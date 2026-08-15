@@ -1,0 +1,9 @@
+timestamp,endpoint,domain,credits,run_id,note
+2026-08-13T15:31:20+00:00,account,,0,20260813T153120Z,
+2026-08-13T15:31:20+00:00,domain-search,bamfunds.com,1,20260813T153120Z,
+2026-08-13T15:31:23+00:00,account,,0,20260813T153123Z,
+2026-08-13T15:31:23+00:00,domain-search,sixthstreet.com,1,20260813T153123Z,
+2026-08-13T15:31:28+00:00,email-verifier,bamfunds.com,1,20260813T153128Z,
+2026-08-13T15:31:30+00:00,email-verifier,sixthstreet.com,1,20260813T153130Z,
+2026-08-13T17:35:23+00:00,domain-search,sixthstreet.com,0,20260813T173523Z,"SKIPPED: skipped: existing partner with a known contact that is not flagged for refresh, so no credit is spent [contact_status=existing_partner, has_known_contact=TRUE, contact_needs_refresh=FALSE]"
+2026-08-13T17:45:17+00:00,domain-search,point72.com,0,20260813T174517Z,"SKIPPED: skipped: lapsed partner with a known contact that is not flagged for refresh; a win-back goes to the contact on file, so no credit is spent [contact_status=lapsed_partner, has_known_contact=TRUE, contact_needs_refresh=FALSE]"

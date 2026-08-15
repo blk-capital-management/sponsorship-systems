@@ -1,0 +1,129 @@
+{
+  "firm": "Citadel",
+  "firm_slug": "citadel",
+  "domain": "citadel.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T18:00:00+00:00",
+  "pages_crawled": [
+    {
+      "category": "university_recruiting",
+      "url": "https://www.citadel.com/careers/programs-and-events/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.citadel.com/careers/internships/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "university_recruiting",
+      "url": "https://www.citadel.com/careers/programs-and-events/discover-citadel/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.citadel.com/who-we-are/our-culture/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "From your first day, you have the opportunity to contribute your best thinking, regardless of title or tenure.",
+      "source_url": "https://www.citadel.com/who-we-are/our-culture/",
+      "quote": "From your first day, you have the opportunity to contribute your best thinking, regardless of title or tenure.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We demand a culture of collaboration where we learn from each other, inspire one another and share in our successes.",
+      "source_url": "https://www.citadel.com/who-we-are/our-culture/",
+      "quote": "We demand a culture of collaboration where we learn from each other, inspire one another and share in our successes.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [
+    {
+      "value": "Our programs help students and recent graduates grow and find inspiration, wherever they are on their academic journey.",
+      "source_url": "https://www.citadel.com/careers/programs-and-events/",
+      "quote": "Our programs help students and recent graduates grow and find inspiration, wherever they are on their academic journey.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "We offer this program to a select group of exceptional undergraduates across the U.S., Europe, and APAC.",
+      "source_url": "https://www.citadel.com/careers/programs-and-events/discover-citadel/",
+      "quote": "We offer this program to a select group of exceptional undergraduates across the U.S., Europe, and APAC.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Interns take on real responsibility, helping to build many solutions still in use in the firm today.",
+      "source_url": "https://www.citadel.com/careers/internships/",
+      "quote": "Interns take on real responsibility, helping to build many solutions still in use in the firm today. Apply your talents within a small team that relies on your skills and supports your development.",
+      "category": "careers"
+    }
+  ],
+  "recruiting_timeline_signals": [
+    {
+      "value": "The program begins with an immersive one-week offsite, followed by 10 fast-paced weeks of work alongside some of the brightest minds in the industry.",
+      "source_url": "https://www.citadel.com/careers/internships/",
+      "quote": "The program begins with an immersive one-week offsite, followed by 10 fast-paced weeks of work alongside some of the brightest minds in the industry.",
+      "category": "careers"
+    }
+  ],
+  "offices_and_regions": [
+    {
+      "value": "Even with a full calendar of activities during the day, you’ll experience what it’s like to work in a major city like New York, London, Hong Kong or Chicago.",
+      "source_url": "https://www.citadel.com/careers/internships/",
+      "quote": "Even with a full calendar of activities during the day, you’ll experience what it’s like to work in a major city like New York, London, Hong Kong or Chicago.",
+      "category": "careers"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "A two-day event that will allow you to Discover Citadel, a leading investor in the world’s financial markets, and Citadel Securities, a leading global market maker.",
+      "source_url": "https://www.citadel.com/careers/programs-and-events/discover-citadel/",
+      "quote": "A two-day event that will allow you to Discover Citadel, a leading investor in the world’s financial markets, and Citadel Securities, a leading global market maker.",
+      "category": "university_recruiting"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "Our programs help students and recent graduates grow and find inspiration, wherever they are on their academic journey.",
+      "firm_claim_source": "https://www.citadel.com/careers/programs-and-events/",
+      "quote": "Our programs help students and recent graduates grow and find inspiration, wherever they are on their academic journey.",
+      "basis": "campus_or_early_careers_programs"
+    },
+    {
+      "text": "We offer this program to a select group of exceptional undergraduates across the U.S., Europe, and APAC.",
+      "firm_claim_source": "https://www.citadel.com/careers/programs-and-events/discover-citadel/",
+      "quote": "We offer this program to a select group of exceptional undergraduates across the U.S., Europe, and APAC.",
+      "basis": "campus_or_early_careers_programs"
+    },
+    {
+      "text": "From your first day, you have the opportunity to contribute your best thinking, regardless of title or tenure.",
+      "firm_claim_source": "https://www.citadel.com/who-we-are/our-culture/",
+      "quote": "From your first day, you have the opportunity to contribute your best thinking, regardless of title or tenure.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.citadel.com/careers/programs-and-events/",
+    "https://www.citadel.com/careers/programs-and-events/discover-citadel/",
+    "https://www.citadel.com/who-we-are/our-culture/"
+  ],
+  "confidence": "high",
+  "gaps": [
+    "manual artifact created because the automated crawler was bot-blocked; official Citadel pages were reviewed directly",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news"
+  ]
+}

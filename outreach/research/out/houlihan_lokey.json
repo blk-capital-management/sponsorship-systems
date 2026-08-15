@@ -1,0 +1,121 @@
+{
+  "firm": "Houlihan Lokey",
+  "firm_slug": "houlihan_lokey",
+  "domain": "hl.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T18:00:00+00:00",
+  "pages_crawled": [
+    {
+      "category": "careers",
+      "url": "https://hl.com/careers/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "university_recruiting",
+      "url": "https://hl.com/careers/early-careers/internships-united-states/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "university_recruiting",
+      "url": "https://hl.com/careers/early-careers/how-to-apply/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Our team-oriented, entrepreneurial culture provides employees with the opportunity to make significant contributions to support the overall growth and success of our firm.",
+      "source_url": "https://hl.com/careers/",
+      "quote": "Our team-oriented, entrepreneurial culture provides employees with the opportunity to make significant contributions to support the overall growth and success of our firm.",
+      "category": "careers"
+    },
+    {
+      "value": "We are more interested in whether they have the talent, passion, and enthusiasm needed to drive our business forward for years to come.",
+      "source_url": "https://hl.com/careers/",
+      "quote": "We are more interested in whether they have the talent, passion, and enthusiasm needed to drive our business forward for years to come.",
+      "category": "careers"
+    }
+  ],
+  "campus_or_early_careers_programs": [
+    {
+      "value": "Our summer internship program, which runs from June to August each year, offers college juniors and first-year MBAs unique insight into investment banking and a taste of life at Houlihan Lokey.",
+      "source_url": "https://hl.com/careers/early-careers/internships-united-states/",
+      "quote": "Our summer internship program, which runs from June to August each year, offers college juniors and first-year MBAs unique insight into investment banking and a taste of life at Houlihan Lokey.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Whichever part of the business you’re placed with, you can expect to work on real projects, supporting live deals and having a tangible impact on your team’s achievements day to day.",
+      "source_url": "https://hl.com/careers/early-careers/internships-united-states/",
+      "quote": "Whichever part of the business you’re placed with, you can expect to work on real projects, supporting live deals and having a tangible impact on your team’s achievements day to day.",
+      "category": "university_recruiting"
+    }
+  ],
+  "recruiting_timeline_signals": [
+    {
+      "value": "The 10-week program takes place at our U.S. offices and operates across a number of key business areas.",
+      "source_url": "https://hl.com/careers/early-careers/internships-united-states/",
+      "quote": "The 10-week program takes place at our U.S. offices and operates across a number of key business areas.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "If your application is successful, you will then be invited to a telephone interview with a recruiter or someone from a business department, depending on the role.",
+      "source_url": "https://hl.com/careers/early-careers/how-to-apply/",
+      "quote": "If your application is successful, you will then be invited to a telephone interview with a recruiter or someone from a business department, depending on the role.",
+      "category": "university_recruiting"
+    }
+  ],
+  "offices_and_regions": [
+    {
+      "value": "The 10-week program takes place at our U.S. offices and operates across a number of key business areas.",
+      "source_url": "https://hl.com/careers/early-careers/internships-united-states/",
+      "quote": "The 10-week program takes place at our U.S. offices and operates across a number of key business areas.",
+      "category": "university_recruiting"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Corporate Finance Financial Restructuring Financial and Valuation Advisory",
+      "source_url": "https://hl.com/careers/",
+      "quote": "Corporate Finance Financial Restructuring Financial and Valuation Advisory",
+      "category": "careers"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "Our summer internship program, which runs from June to August each year, offers college juniors and first-year MBAs unique insight into investment banking and a taste of life at Houlihan Lokey.",
+      "firm_claim_source": "https://hl.com/careers/early-careers/internships-united-states/",
+      "quote": "Our summer internship program, which runs from June to August each year, offers college juniors and first-year MBAs unique insight into investment banking and a taste of life at Houlihan Lokey.",
+      "basis": "campus_or_early_careers_programs"
+    },
+    {
+      "text": "Our team-oriented, entrepreneurial culture provides employees with the opportunity to make significant contributions to support the overall growth and success of our firm.",
+      "firm_claim_source": "https://hl.com/careers/",
+      "quote": "Our team-oriented, entrepreneurial culture provides employees with the opportunity to make significant contributions to support the overall growth and success of our firm.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "The 10-week program takes place at our U.S. offices and operates across a number of key business areas.",
+      "firm_claim_source": "https://hl.com/careers/early-careers/internships-united-states/",
+      "quote": "The 10-week program takes place at our U.S. offices and operates across a number of key business areas.",
+      "basis": "recruiting_timeline_signals"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://hl.com/careers/early-careers/internships-united-states/",
+    "https://hl.com/careers/"
+  ],
+  "confidence": "medium",
+  "gaps": [
+    "manual artifact created because the automated crawler was bot-blocked; official Houlihan Lokey pages were reviewed directly",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news"
+  ]
+}

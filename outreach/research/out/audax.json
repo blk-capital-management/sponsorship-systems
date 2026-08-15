@@ -1,0 +1,91 @@
+{
+  "firm": "Audax Group",
+  "firm_slug": "audax",
+  "domain": "audaxgroup.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:51+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.audaxgroup.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Partnering with middle market leaders to fuel growth and to build value.",
+      "source_url": "https://www.audaxgroup.com/",
+      "quote": "Partnering with middle market leaders to fuel growth and to build value.",
+      "category": "landing"
+    },
+    {
+      "value": "Partnering with middle market leaders to fuel growth and build value.",
+      "source_url": "https://www.audaxgroup.com/",
+      "quote": "Partnering with middle market leaders to fuel growth and build value.",
+      "category": "landing"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [],
+  "asset_classes": [
+    {
+      "value": "Financing partner to private equity-backed middle market leaders.",
+      "source_url": "https://www.audaxgroup.com/",
+      "quote": "Financing partner to private equity-backed middle market leaders.",
+      "category": "landing"
+    },
+    {
+      "value": "The common thread across Audax Private Equity and Audax Private Debt is a dedicated focus to support middle market companies.",
+      "source_url": "https://www.audaxgroup.com/",
+      "quote": "The common thread across Audax Private Equity and Audax Private Debt is a dedicated focus to support middle market companies.",
+      "category": "landing"
+    },
+    {
+      "value": "Financing partner to private equity-backed, middle market leaders.",
+      "source_url": "https://www.audaxgroup.com/",
+      "quote": "Financing partner to private equity-backed, middle market leaders.",
+      "category": "landing"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "Partnering with middle market leaders to fuel growth and to build value.",
+      "firm_claim_source": "https://www.audaxgroup.com/",
+      "quote": "Partnering with middle market leaders to fuel growth and to build value.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Partnering with middle market leaders to fuel growth and build value.",
+      "firm_claim_source": "https://www.audaxgroup.com/",
+      "quote": "Partnering with middle market leaders to fuel growth and build value.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Financing partner to private equity-backed middle market leaders.",
+      "firm_claim_source": "https://www.audaxgroup.com/",
+      "quote": "Financing partner to private equity-backed middle market leaders.",
+      "basis": "asset_classes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.audaxgroup.com/"
+  ],
+  "confidence": "low",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for offices_and_regions",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news",
+    "no careers page found on the firm's domain",
+    "no news page found on the firm's domain",
+    "no university_recruiting page found on the firm's domain",
+    "no values_culture page found on the firm's domain"
+  ]
+}

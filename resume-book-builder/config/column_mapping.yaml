@@ -1,0 +1,53 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# BLK Resume Book Builder — Column Mapping
+#
+# Maps internal field names to the actual column headers in your spreadsheet
+# or Excel file. Each field accepts a list of accepted aliases (case-insensitive).
+# The loader will match the first alias it finds. If none match, validation will
+# report an error.
+#
+# To find your exact column names: open the Excel/Sheet and copy the header row.
+# ─────────────────────────────────────────────────────────────────────────────
+
+fields:
+  first_name:
+    - "First Name"
+    - "first name"
+    - "firstname"
+    - "first"
+    - "First name:"
+
+  last_name:
+    - "Last Name"
+    - "last name"
+    - "lastname"
+    - "last"
+    - "surname"
+    - "Last name:"
+
+  graduation_year:
+    - "Graduation Year"
+    - "graduation year"
+    - "grad year"
+    - "grad_year"
+    - "class year"
+    - "Expected Graduation Year"
+    - "When will you graduate?"
+    - "When will/did you graduate?"
+
+  resume_link:
+    # Current BLK Google Form column names
+    - "Updated Resume"
+    - "Resume Link"
+    - "Resume"
+    - "resume link"
+    - "resume url"
+    - "Google Drive Resume Link"
+    - "Drive Link"
+    - "Updated resume (pdf format):"
+    # Future direct file-upload column names (Google Forms file upload question)
+    - "Resume Upload"
+    - "Upload Your Resume"
+    - "Resume File"
+    - "Upload Resume"
+    - "File Upload"

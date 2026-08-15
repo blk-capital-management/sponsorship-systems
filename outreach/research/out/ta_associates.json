@@ -1,0 +1,152 @@
+{
+  "firm": "TA Associates",
+  "firm_slug": "ta_associates",
+  "domain": "ta.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:30+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.ta.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.ta.com/careers/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.ta.com/about/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.ta.com/news/?type=ta-news#news",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Across six offices worldwide, we are committed to fostering a collaborative culture that allows all team members to thrive.",
+      "source_url": "https://www.ta.com/",
+      "quote": "Across six offices worldwide, we are committed to fostering a collaborative culture that allows all team members to thrive.",
+      "category": "landing"
+    },
+    {
+      "value": "We are tenacious in our pursuit of excellence.",
+      "source_url": "https://www.ta.com/careers/",
+      "quote": "We are tenacious in our pursuit of excellence.",
+      "category": "careers"
+    },
+    {
+      "value": "We strive to do what is right for our people, investors and portfolio companies.",
+      "source_url": "https://www.ta.com/careers/",
+      "quote": "We strive to do what is right for our people, investors and portfolio companies.",
+      "category": "careers"
+    },
+    {
+      "value": "We prioritize collaboration and value unique perspectives.",
+      "source_url": "https://www.ta.com/careers/",
+      "quote": "We prioritize collaboration and value unique perspectives.",
+      "category": "careers"
+    },
+    {
+      "value": "Whether TA is a minority or majority investor, we foster collaborative partnerships with management teams and stakeholders to build outstanding businesses and drive lasting value.",
+      "source_url": "https://www.ta.com/about/",
+      "quote": "Whether TA is a minority or majority investor, we foster collaborative partnerships with management teams and stakeholders to build outstanding businesses and drive lasting value.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "At TA, we partner with high-quality companies to accelerate growth, leveraging our deep industry expertise, strategic resources and global network.",
+      "source_url": "https://www.ta.com/",
+      "quote": "At TA, we partner with high-quality companies to accelerate growth, leveraging our deep industry expertise, strategic resources and global network.",
+      "category": "landing"
+    },
+    {
+      "value": "Across six offices worldwide, we are committed to fostering a collaborative culture that allows all team members to thrive.",
+      "source_url": "https://www.ta.com/",
+      "quote": "Across six offices worldwide, we are committed to fostering a collaborative culture that allows all team members to thrive.",
+      "category": "landing"
+    },
+    {
+      "value": "TA is a leading global private equity firm with nearly six decades of experience investing in high-quality businesses and supporting their long-term success.",
+      "source_url": "https://www.ta.com/about/",
+      "quote": "TA is a leading global private equity firm with nearly six decades of experience investing in high-quality businesses and supporting their long-term success.",
+      "category": "values_culture"
+    },
+    {
+      "value": "TA operates as a single, integrated global platform with a consistent investment strategy across regions.",
+      "source_url": "https://www.ta.com/about/",
+      "quote": "TA operates as a single, integrated global platform with a consistent investment strategy across regions.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Today, our diversified global portfolio includes more than 140 companies across our core sectors of focus, including technology, business services, financial services and healthcare.",
+      "source_url": "https://www.ta.com/about/",
+      "quote": "Today, our diversified global portfolio includes more than 140 companies across our core sectors of focus, including technology, business services, financial services and healthcare.",
+      "category": "values_culture"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "We reward performance and give credit where it is due.",
+      "source_url": "https://www.ta.com/careers/",
+      "quote": "We reward performance and give credit where it is due.",
+      "category": "careers"
+    },
+    {
+      "value": "TA is a leading global private equity firm with nearly six decades of experience investing in high-quality businesses and supporting their long-term success.",
+      "source_url": "https://www.ta.com/about/",
+      "quote": "TA is a leading global private equity firm with nearly six decades of experience investing in high-quality businesses and supporting their long-term success.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "Across six offices worldwide, we are committed to fostering a collaborative culture that allows all team members to thrive.",
+      "firm_claim_source": "https://www.ta.com/",
+      "quote": "Across six offices worldwide, we are committed to fostering a collaborative culture that allows all team members to thrive.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "We reward performance and give credit where it is due.",
+      "firm_claim_source": "https://www.ta.com/careers/",
+      "quote": "We reward performance and give credit where it is due.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "We are tenacious in our pursuit of excellence.",
+      "firm_claim_source": "https://www.ta.com/careers/",
+      "quote": "We are tenacious in our pursuit of excellence.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.ta.com/",
+    "https://www.ta.com/careers/"
+  ],
+  "confidence": "medium",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "firm": "Capstone Investment Advisors",
+  "firm_slug": "capstone_investment",
+  "domain": "capstoneco.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:56+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.capstoneco.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.capstoneco.com/careers/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.capstoneco.com/about/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Where many firms incentivize competition, Capstone is built around collaboration.",
+      "source_url": "https://www.capstoneco.com/",
+      "quote": "Where many firms incentivize competition, Capstone is built around collaboration.",
+      "category": "landing"
+    },
+    {
+      "value": "We believe our culture stands apart in its commitment to collaboration and fostering our talent for the long term.",
+      "source_url": "https://www.capstoneco.com/careers/",
+      "quote": "We believe our culture stands apart in its commitment to collaboration and fostering our talent for the long term.",
+      "category": "careers"
+    },
+    {
+      "value": "For that reason, we take a human approach to everything we do, focusing largely on collaborative performance.",
+      "source_url": "https://www.capstoneco.com/careers/",
+      "quote": "For that reason, we take a human approach to everything we do, focusing largely on collaborative performance.",
+      "category": "careers"
+    },
+    {
+      "value": "Since our founding, Capstone has encouraged a collaborative culture that empowers people to share ideas and work together on new opportunities.",
+      "source_url": "https://www.capstoneco.com/careers/",
+      "quote": "Since our founding, Capstone has encouraged a collaborative culture that empowers people to share ideas and work together on new opportunities.",
+      "category": "careers"
+    },
+    {
+      "value": "We believe the next ten years won’t look like the past ten.",
+      "source_url": "https://www.capstoneco.com/about/",
+      "quote": "We believe the next ten years won’t look like the past ten.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "We are a forward-thinking global asset manager, dedicated to exploring alpha opportunities in derivatives and complementary strategies that persist across market cycles.",
+      "source_url": "https://www.capstoneco.com/",
+      "quote": "We are a forward-thinking global asset manager, dedicated to exploring alpha opportunities in derivatives and complementary strategies that persist across market cycles.",
+      "category": "landing"
+    },
+    {
+      "value": "With our sophisticated, global client base, we recognize that our success is deeply connected to real people.",
+      "source_url": "https://www.capstoneco.com/careers/",
+      "quote": "With our sophisticated, global client base, we recognize that our success is deeply connected to real people.",
+      "category": "careers"
+    },
+    {
+      "value": "We are a forward-thinking global asset manager, dedicated to exploring alpha opportunities in derivatives and complementary strategies that persist across market cycles.",
+      "source_url": "https://www.capstoneco.com/about/",
+      "quote": "We are a forward-thinking global asset manager, dedicated to exploring alpha opportunities in derivatives and complementary strategies that persist across market cycles.",
+      "category": "values_culture"
+    },
+    {
+      "value": "The Global Volatility Summit is founded with the goal of providing educational resources around volatility and derivatives markets to the investor community.",
+      "source_url": "https://www.capstoneco.com/about/",
+      "quote": "The Global Volatility Summit is founded with the goal of providing educational resources around volatility and derivatives markets to the investor community.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Capstone expands Global Volatility Summit to Tokyo.",
+      "source_url": "https://www.capstoneco.com/about/",
+      "quote": "Capstone expands Global Volatility Summit to Tokyo.",
+      "category": "values_culture"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Are Hedge Fund Pioneers Facing the end of a Golden Era?",
+      "source_url": "https://www.capstoneco.com/",
+      "quote": "Are Hedge Fund Pioneers Facing the end of a Golden Era?",
+      "category": "landing"
+    },
+    {
+      "value": "Investing in a broad range of asset classes and geographies, we seek to deliver strong, uncorrelated performance through our flagship multi-strategy offering, and engineer custom and commingled solutions to address our clients’ most significant challenges.",
+      "source_url": "https://www.capstoneco.com/about/",
+      "quote": "Investing in a broad range of asset classes and geographies, we seek to deliver strong, uncorrelated performance through our flagship multi-strategy offering, and engineer custom and commingled solutions to address our clients’ most significant challenges.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We focus on cultivating talent and providing the resources and infrastructure necessary to set our teams up for lasting success.",
+      "source_url": "https://www.capstoneco.com/about/",
+      "quote": "We focus on cultivating talent and providing the resources and infrastructure necessary to set our teams up for lasting success.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Capstone launches CGM, its multi-strategy offering to trading derivatives across asset classes.",
+      "source_url": "https://www.capstoneco.com/about/",
+      "quote": "Capstone launches CGM, its multi-strategy offering to trading derivatives across asset classes.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [
+    {
+      "value": "Capstone Solutions is launched to provide customized mandates and strategies tailored to address client needs across the volatility and derivatives spectrum.",
+      "source_url": "https://www.capstoneco.com/about/",
+      "quote": "Capstone Solutions is launched to provide customized mandates and strategies tailored to address client needs across the volatility and derivatives spectrum.",
+      "category": "values_culture"
+    }
+  ],
+  "alignment_hooks": [
+    {
+      "text": "Where many firms incentivize competition, Capstone is built around collaboration.",
+      "firm_claim_source": "https://www.capstoneco.com/",
+      "quote": "Where many firms incentivize competition, Capstone is built around collaboration.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Investing in a broad range of asset classes and geographies, we seek to deliver strong, uncorrelated performance through our flagship multi-strategy offering, and engineer custom and commingled solutions to address our clients’ most significant challenges.",
+      "firm_claim_source": "https://www.capstoneco.com/about/",
+      "quote": "Investing in a broad range of asset classes and geographies, we seek to deliver strong, uncorrelated performance through our flagship multi-strategy offering, and engineer custom and commingled solutions to address our clients’ most significant challenges.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "We believe our culture stands apart in its commitment to collaboration and fostering our talent for the long term.",
+      "firm_claim_source": "https://www.capstoneco.com/careers/",
+      "quote": "We believe our culture stands apart in its commitment to collaboration and fostering our talent for the long term.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.capstoneco.com/",
+    "https://www.capstoneco.com/about/",
+    "https://www.capstoneco.com/careers/"
+  ],
+  "confidence": "medium",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships",
+    "no news page found on the firm's domain",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

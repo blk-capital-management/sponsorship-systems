@@ -1,0 +1,16 @@
+{
+  "_comment": "Compliance footer content. Kept separate from blk_facts.json because that file is specified to hold BLK statistics and no other fields. Null values in the required set block draft generation via common/preflight.py.",
+
+  "opt_out_line": "Reply with UNSUBSCRIBE to opt out of future outreach from BLK Capital Management.",
+
+  "uk_eu": {
+    "legitimate_interest_basis": "Business-to-business outreach to a named professional at their corporate address, regarding a student talent partnership relevant to that person's stated recruiting responsibilities. Contact details were derived from the firm's own published sources.",
+    "log_path": "review/li_basis_log.csv",
+    "jurisdictions": [
+      "UK", "EMEA", "EU", "IE", "DE", "FR", "NL", "ES", "IT", "SE", "DK", "FI",
+      "NO", "PL", "PT", "BE", "AT", "CH", "LU"
+    ]
+  },
+
+  "suppression_list": "review/suppression.csv"
+}

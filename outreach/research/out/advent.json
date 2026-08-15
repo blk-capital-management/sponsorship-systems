@@ -1,0 +1,182 @@
+{
+  "firm": "Advent International",
+  "firm_slug": "advent",
+  "domain": "adventinternational.com",
+  "region": "US",
+  "relationship": "existing",
+  "fetched_at": "2026-08-13T05:05:24+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.adventinternational.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.adventinternational.com/about-us/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.adventinternational.com/news/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Advent's decades of experience in industrial carve-outs, our hands-on approach to value creation, and our partnership with an exceptional management team were central to unlocking what INNIO could become as an independent business.",
+      "source_url": "https://www.adventinternational.com/",
+      "quote": "Advent's decades of experience in industrial carve-outs, our hands-on approach to value creation, and our partnership with an exceptional management team were central to unlocking what INNIO could become as an independent business.",
+      "category": "landing"
+    },
+    {
+      "value": "Advent executed our value creation plan, and it’s very satisfying that a large strategic buyer has now acquired the company because it can see its growth potential.",
+      "source_url": "https://www.adventinternational.com/",
+      "quote": "Advent executed our value creation plan, and it’s very satisfying that a large strategic buyer has now acquired the company because it can see its growth potential.",
+      "category": "landing"
+    },
+    {
+      "value": "In partnership with Advent, we created one of the largest pharmaceutical companies in India, with a culture of innovation and an exciting pipeline of products with global appeal.",
+      "source_url": "https://www.adventinternational.com/",
+      "quote": "In partnership with Advent, we created one of the largest pharmaceutical companies in India, with a culture of innovation and an exciting pipeline of products with global appeal.",
+      "category": "landing"
+    },
+    {
+      "value": "We’re passionate about what we do, and ours is a long-term partnership built on collaboration, loyalty, and trust.",
+      "source_url": "https://www.adventinternational.com/about-us/",
+      "quote": "We’re passionate about what we do, and ours is a long-term partnership built on collaboration, loyalty, and trust.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We use our sub-sector expertise and entrepreneurial mindset to identify differentiated, scalable businesses built to last.",
+      "source_url": "https://www.adventinternational.com/about-us/",
+      "quote": "We use our sub-sector expertise and entrepreneurial mindset to identify differentiated, scalable businesses built to last.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "We brought deep sector knowledge, a long track record of complex industrial carve-outs, and decades of on-the-ground presence across the German-speaking industrial region where the business is headquartered.",
+      "source_url": "https://www.adventinternational.com/",
+      "quote": "We brought deep sector knowledge, a long track record of complex industrial carve-outs, and decades of on-the-ground presence across the German-speaking industrial region where the business is headquartered.",
+      "category": "landing"
+    },
+    {
+      "value": "On June 4, 2026, INNIO listed on the Nasdaq Global Select Market under the ticker symbol INIO.",
+      "source_url": "https://www.adventinternational.com/",
+      "quote": "On June 4, 2026, INNIO listed on the Nasdaq Global Select Market under the ticker symbol INIO.",
+      "category": "landing"
+    },
+    {
+      "value": "He realized that it was better for the environment and more convenient for consumers if trucks delivered hundreds of parcels to one location, where consumers could pick them up from hi-tech lockers at their leisure.",
+      "source_url": "https://www.adventinternational.com/",
+      "quote": "He realized that it was better for the environment and more convenient for consumers if trucks delivered hundreds of parcels to one location, where consumers could pick them up from hi-tech lockers at their leisure.",
+      "category": "landing"
+    },
+    {
+      "value": "As technology continues to penetrate all sectors of the global economy at an accelerating rate, we are supporting visionary management teams to scale their businesses into the platforms of the future.",
+      "source_url": "https://www.adventinternational.com/about-us/",
+      "quote": "As technology continues to penetrate all sectors of the global economy at an accelerating rate, we are supporting visionary management teams to scale their businesses into the platforms of the future.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Our global platform is powered by local investment teams with decades of regional experience, meeting and supporting our businesses where they are.",
+      "source_url": "https://www.adventinternational.com/about-us/",
+      "quote": "Our global platform is powered by local investment teams with decades of regional experience, meeting and supporting our businesses where they are.",
+      "category": "values_culture"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Our Boston-based team raised the International Network Fund, Advent’s first major institutional fund and the private equity industry’s first global fund.",
+      "source_url": "https://www.adventinternational.com/about-us/",
+      "quote": "Our Boston-based team raised the International Network Fund, Advent’s first major institutional fund and the private equity industry’s first global fund.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Raised our European Special Situations fund, the private equity industry’s first integrated pan-European fund, as we sought to invest more heavily across the European continent.",
+      "source_url": "https://www.adventinternational.com/about-us/",
+      "quote": "Raised our European Special Situations fund, the private equity industry’s first integrated pan-European fund, as we sought to invest more heavily across the European continent.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We raised our first Latin American (LAPEF) private equity fund, allowing Advent to make direct investments in the region.",
+      "source_url": "https://www.adventinternational.com/about-us/",
+      "quote": "We raised our first Latin American (LAPEF) private equity fund, allowing Advent to make direct investments in the region.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [
+    {
+      "value": "When we acquired InPost in 2017, it was heavily financially stressed.",
+      "source_url": "https://www.adventinternational.com/",
+      "quote": "When we acquired InPost in 2017, it was heavily financially stressed.",
+      "category": "landing"
+    },
+    {
+      "value": "Advent executed our value creation plan, and it’s very satisfying that a large strategic buyer has now acquired the company because it can see its growth potential.",
+      "source_url": "https://www.adventinternational.com/",
+      "quote": "Advent executed our value creation plan, and it’s very satisfying that a large strategic buyer has now acquired the company because it can see its growth potential.",
+      "category": "landing"
+    },
+    {
+      "value": "When Grupo Big was acquired by Carrefour Brazil in 2022, the company had one of the best management teams in the business, a rejuvenated store portfolio, and optimal operations.",
+      "source_url": "https://www.adventinternational.com/",
+      "quote": "When Grupo Big was acquired by Carrefour Brazil in 2022, the company had one of the best management teams in the business, a rejuvenated store portfolio, and optimal operations.",
+      "category": "landing"
+    },
+    {
+      "value": "Opened our London office, our first international office, allowing Advent to have a physical, dedicated presence in Europe.",
+      "source_url": "https://www.adventinternational.com/about-us/",
+      "quote": "Opened our London office, our first international office, allowing Advent to have a physical, dedicated presence in Europe.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Opened our Frankfurt office – our first office on the European continent – allowing us to be on the ground with compelling management teams, entrepreneurs, and founders.",
+      "source_url": "https://www.adventinternational.com/about-us/",
+      "quote": "Opened our Frankfurt office – our first office on the European continent – allowing us to be on the ground with compelling management teams, entrepreneurs, and founders.",
+      "category": "values_culture"
+    }
+  ],
+  "alignment_hooks": [
+    {
+      "text": "Advent's decades of experience in industrial carve-outs, our hands-on approach to value creation, and our partnership with an exceptional management team were central to unlocking what INNIO could become as an independent business.",
+      "firm_claim_source": "https://www.adventinternational.com/",
+      "quote": "Advent's decades of experience in industrial carve-outs, our hands-on approach to value creation, and our partnership with an exceptional management team were central to unlocking what INNIO could become as an independent business.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Our Boston-based team raised the International Network Fund, Advent’s first major institutional fund and the private equity industry’s first global fund.",
+      "firm_claim_source": "https://www.adventinternational.com/about-us/",
+      "quote": "Our Boston-based team raised the International Network Fund, Advent’s first major institutional fund and the private equity industry’s first global fund.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "Advent executed our value creation plan, and it’s very satisfying that a large strategic buyer has now acquired the company because it can see its growth potential.",
+      "firm_claim_source": "https://www.adventinternational.com/",
+      "quote": "Advent executed our value creation plan, and it’s very satisfying that a large strategic buyer has now acquired the company because it can see its growth potential.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.adventinternational.com/",
+    "https://www.adventinternational.com/about-us/"
+  ],
+  "confidence": "low",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships",
+    "no careers page found on the firm's domain",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

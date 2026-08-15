@@ -1,0 +1,13 @@
+2026-05-19 18:16:31  DEBUG     blk  Log file: output/reports/debug_20260519_181631.log
+2026-05-19 18:16:31  INFO      blk.main  BLK Resume Book Builder — command: validate
+2026-05-19 18:16:31  DEBUG     blk.main  Config: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/config/settings.yaml
+2026-05-19 18:16:31  INFO      blk.main  validate — not yet implemented (coming in Stage 2).
+2026-05-19 18:16:31  INFO      blk.main  Stage 2 will check: missing fields, invalid Drive links, duplicates, missing transition pages.
+2026-05-19 18:16:31  DEBUG     blk  Log file: output/reports/debug_20260519_181631.log
+2026-05-19 18:16:31  INFO      blk.main  BLK Resume Book Builder — command: build-general
+2026-05-19 18:16:31  DEBUG     blk.main  Config: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/config/settings.yaml
+2026-05-19 18:16:31  INFO      blk.main  build-general — not yet implemented (coming in Stage 3).
+2026-05-19 18:16:31  DEBUG     blk  Log file: output/reports/debug_20260519_181631.log
+2026-05-19 18:16:31  INFO      blk.main  BLK Resume Book Builder — command: build-sponsors
+2026-05-19 18:16:31  DEBUG     blk.main  Config: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/config/settings.yaml
+2026-05-19 18:16:31  INFO      blk.main  build-sponsors — not yet implemented (coming in Stage 4).

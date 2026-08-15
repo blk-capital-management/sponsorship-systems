@@ -1,0 +1,189 @@
+{
+  "firm": "Mondrian Investment Partners",
+  "firm_slug": "mondrian_investment",
+  "domain": "mondrian.com",
+  "region": "EMEA",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:32:11+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.mondrian.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "university_recruiting",
+      "url": "https://www.mondrian.com/graduate-program/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.mondrian.com/careers/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.mondrian.com/about-mondrian/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.mondrian.com/insights-2/#news",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "All of our investment products utilize value disciplines that have been successfully applied since our founding in 1990.",
+      "source_url": "https://www.mondrian.com/",
+      "quote": "All of our investment products utilize value disciplines that have been successfully applied since our founding in 1990.",
+      "category": "landing"
+    },
+    {
+      "value": "In the management of global equity assets, Mondrian invests in securities where rigorous dividend discount analysis identifies value in terms of the long-term flow of income.",
+      "source_url": "https://www.mondrian.com/",
+      "quote": "In the management of global equity assets, Mondrian invests in securities where rigorous dividend discount analysis identifies value in terms of the long-term flow of income.",
+      "category": "landing"
+    },
+    {
+      "value": "For over 20 years, Mondrian’s knowledgeable emerging markets investment team has offered an active, value-oriented approach to investing in the developing world.",
+      "source_url": "https://www.mondrian.com/",
+      "quote": "For over 20 years, Mondrian’s knowledgeable emerging markets investment team has offered an active, value-oriented approach to investing in the developing world.",
+      "category": "landing"
+    },
+    {
+      "value": "As a Mondrian graduate, you’ll be engaged in a number of key projects, with opportunities to add value and explore unfamiliar areas of the business being prevalent throughout.",
+      "source_url": "https://www.mondrian.com/graduate-program/",
+      "quote": "As a Mondrian graduate, you’ll be engaged in a number of key projects, with opportunities to add value and explore unfamiliar areas of the business being prevalent throughout.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Our calendar of social and sporting events create a great chance for graduates to engage in the affable culture, and combined with a collaborative work environment make for a very enjoyable place to work.",
+      "source_url": "https://www.mondrian.com/graduate-program/",
+      "quote": "Our calendar of social and sporting events create a great chance for graduates to engage in the affable culture, and combined with a collaborative work environment make for a very enjoyable place to work.",
+      "category": "university_recruiting"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "In the management of global equity assets, Mondrian invests in securities where rigorous dividend discount analysis identifies value in terms of the long-term flow of income.",
+      "source_url": "https://www.mondrian.com/",
+      "quote": "In the management of global equity assets, Mondrian invests in securities where rigorous dividend discount analysis identifies value in terms of the long-term flow of income.",
+      "category": "landing"
+    },
+    {
+      "value": "Mondrian is an employee owned investment management firm with offices in London, Philadelphia, Singapore and Melbourne.",
+      "source_url": "https://www.mondrian.com/",
+      "quote": "Mondrian is an employee owned investment management firm with offices in London, Philadelphia, Singapore and Melbourne.",
+      "category": "landing"
+    },
+    {
+      "value": "We believe that it is best to locate our investment team in a single location in London to encourage dialogue and consistency to our disciplined valuation approach.",
+      "source_url": "https://www.mondrian.com/",
+      "quote": "We believe that it is best to locate our investment team in a single location in London to encourage dialogue and consistency to our disciplined valuation approach.",
+      "category": "landing"
+    },
+    {
+      "value": "Mondrian’s graduate program offers pro-active and hard-working graduates the opportunity to gain exposure to a wide range of business areas; providing an in-depth view of the operations of a global asset manager.",
+      "source_url": "https://www.mondrian.com/graduate-program/",
+      "quote": "Mondrian’s graduate program offers pro-active and hard-working graduates the opportunity to gain exposure to a wide range of business areas; providing an in-depth view of the operations of a global asset manager.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Founded in 1990, we are an independent, employee-owned, global value-oriented investment manager.",
+      "source_url": "https://www.mondrian.com/careers/",
+      "quote": "Founded in 1990, we are an independent, employee-owned, global value-oriented investment manager.",
+      "category": "careers"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "We are value investors across the globe in both equity and fixed income asset classes.",
+      "source_url": "https://www.mondrian.com/",
+      "quote": "We are value investors across the globe in both equity and fixed income asset classes.",
+      "category": "landing"
+    },
+    {
+      "value": "The graduate scheme at Mondrian provides a great opportunity to gain a varied whilst thorough grounding in asset management.",
+      "source_url": "https://www.mondrian.com/graduate-program/",
+      "quote": "The graduate scheme at Mondrian provides a great opportunity to gain a varied whilst thorough grounding in asset management.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "The collaborative work environment and interconnected nature of the departments provides in-depth exposure to the business and the operations side of asset management.",
+      "source_url": "https://www.mondrian.com/graduate-program/",
+      "quote": "The collaborative work environment and interconnected nature of the departments provides in-depth exposure to the business and the operations side of asset management.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "The interconnected nature of the operations teams gives graduates a strong understanding of what it takes to run a successful asset management firm through exposure to various parts of the business.",
+      "source_url": "https://www.mondrian.com/graduate-program/",
+      "quote": "The interconnected nature of the operations teams gives graduates a strong understanding of what it takes to run a successful asset management firm through exposure to various parts of the business.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Our clients are large institutional investors from around the globe with a wide range of product offerings that cover long only equity and fixed income mandates.",
+      "source_url": "https://www.mondrian.com/careers/",
+      "quote": "Our clients are large institutional investors from around the globe with a wide range of product offerings that cover long only equity and fixed income mandates.",
+      "category": "careers"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [
+    {
+      "value": "Members of our senior management team, together with a private equity fund, completed the management buyout of Delaware International Advisers Ltd.",
+      "source_url": "https://www.mondrian.com/about-mondrian/",
+      "quote": "Members of our senior management team, together with a private equity fund, completed the management buyout of Delaware International Advisers Ltd.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Mondrian Investment Partners has opened a new Singapore office to provide institutional investors better access to our comprehensive range of equity and fixed income strategies.",
+      "source_url": "https://www.mondrian.com/insights-2/#news",
+      "quote": "Mondrian Investment Partners has opened a new Singapore office to provide institutional investors better access to our comprehensive range of equity and fixed income strategies.",
+      "category": "news"
+    }
+  ],
+  "alignment_hooks": [
+    {
+      "text": "All of our investment products utilize value disciplines that have been successfully applied since our founding in 1990.",
+      "firm_claim_source": "https://www.mondrian.com/",
+      "quote": "All of our investment products utilize value disciplines that have been successfully applied since our founding in 1990.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "The graduate scheme at Mondrian provides a great opportunity to gain a varied whilst thorough grounding in asset management.",
+      "firm_claim_source": "https://www.mondrian.com/graduate-program/",
+      "quote": "The graduate scheme at Mondrian provides a great opportunity to gain a varied whilst thorough grounding in asset management.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "Members of our senior management team, together with a private equity fund, completed the management buyout of Delaware International Advisers Ltd.",
+      "firm_claim_source": "https://www.mondrian.com/about-mondrian/",
+      "quote": "Members of our senior management team, together with a private equity fund, completed the management buyout of Delaware International Advisers Ltd.",
+      "basis": "recent_relevant_news"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.mondrian.com/",
+    "https://www.mondrian.com/graduate-program/",
+    "https://www.mondrian.com/about-mondrian/"
+  ],
+  "confidence": "high",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships"
+  ]
+}

@@ -1,0 +1,243 @@
+2026-07-26 18:31:20  DEBUG     blk  Log file: output/reports/debug_20260726_183120.log
+2026-07-26 18:31:20  INFO      blk.main  BLK Resume Book Builder — command: build-wells-fargo
+2026-07-26 18:31:20  DEBUG     blk.main  Config: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/config/settings.yaml
+2026-07-26 18:31:21  INFO      blk.loaders.excel_loader  Loading Excel file: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/BLK Undergraduate Audit 2026 (Responses) .xlsx (sheet=Form Link (dont edit))
+2026-07-26 18:31:21  INFO      blk.loaders.excel_loader  Excel loaded: 620 rows × 46 columns.
+2026-07-26 18:31:21  DEBUG     blk.loaders.excel_loader  Columns: ['Timestamp', 'First name:', 'Last name:', 'BLK ID:', 'University email:', 'Personal email:', 'Preferred email address:', 'Home City:', 'I am currently a:', 'Phone number:', 'Gender:', 'When did you join BLK?', 'When will you graduate?', 'What Region are you in?', 'Which of these major cities is within a 15-mile radius of your college/university?', 'Are you able to work in the US?', 'What is the name of the company that you interned with after your first year of college?', 'Location (City, State):', 'Industry:', 'How many offers did you receive?', "If you got another offer and you didn't take it why?", 'What is the name of the company that you interned with after your second year of college?', 'Location (City, State): 2', 'Industry: 2', 'How many offers did you receive? 2', "If you got another offer and you didn't take it why? 2", 'What is the name of the company that you interned with after your third year of college?', 'Location (City, State): 3', 'Industry: 3', 'How many offers did you receive? 3', "If you got another offer and you didn't take it why? 3", 'What company did you accept a full-time offer from after completing your undergraduate studies?', 'University/College:', 'University/College City:', 'School type:', 'Overall GPA:', 'Chosen/Expected Major:', 'When will/did you graduate?', 'Are you part of the following organizations?', 'Updated resume (pdf format):', 'As of right now, what career paths interest you most? We shall do our best to target you with associated opportunities. ', "Feel free to let us know you top firms of interest so we can keep this in mind for current and future sponsors in the region. Please indicate if the firm isn't already a sponsor.", 'Feel free to go into more detail about your career interests so we can best match you to sponsor opportunities', 'Was there any specific BLK event that assisted in your recruitment? (Conference, Spotlight Call, etc.)', 'Which position would you like to be next year?', 'What year are you filling out this audit for?']
+2026-07-26 18:31:21  DEBUG     blk.loaders.column_resolver  Field 'first_name' resolved to column 'First name:'
+2026-07-26 18:31:21  DEBUG     blk.loaders.column_resolver  Field 'last_name' resolved to column 'Last name:'
+2026-07-26 18:31:21  DEBUG     blk.loaders.column_resolver  Field 'graduation_year' resolved to column 'When will you graduate?'
+2026-07-26 18:31:21  DEBUG     blk.loaders.column_resolver  Field 'resume_link' resolved to column 'Updated resume (pdf format):'
+2026-07-26 18:31:21  INFO      blk.processing.pdf_merger  Loaded 0 transition page(s) from /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/transition_pages.
+2026-07-26 18:31:21  WARNING   blk.main  Validation found 5 error(s) (see error report). Proceeding anyway — none of these rows are eligible for the Wells Fargo book. Run: python -m src.main validate --config config/settings.yaml for details.
+2026-07-26 18:31:21  INFO      blk.processing.audit_filter  Recency filter: kept 287/620 rows with Timestamp year >= 2026.
+2026-07-26 18:31:21  INFO      blk.processing.audit_filter  Dedup: dropped 20 duplicate submission(s) by 'BLK ID:' (kept latest).
+2026-07-26 18:31:21  DEBUG     blk.auth.google_auth  Loaded cached token from /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/token.json
+2026-07-26 18:31:21  INFO      blk.auth.google_auth  Refreshing expired Google token…
+2026-07-26 18:31:22  DEBUG     blk.auth.google_auth  Token cached at /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/token.json
+2026-07-26 18:31:22  INFO      blk.builders.wells_fargo_builder  Wells Fargo book: 43 Junior-eligible, 29 Senior-eligible.
+2026-07-26 18:31:22  DEBUG     blk.processing.resume_downloader  Downloading 'Abdillahi_Mohamedamin_Resume_CFS_FALL2026 - MohamedAmin Abdillahi.pdf' (mime=application/pdf)
+2026-07-26 18:31:22  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1R-nXCGBMbIS3TJp7XsjC9wHXwM20jf76
+2026-07-26 18:31:22  DEBUG     blk.builders.wells_fargo_builder      + MohamedAmin Abdillahi
+2026-07-26 18:31:23  DEBUG     blk.processing.resume_downloader  Downloading 'Adegbesan_Alexander_Resume - Alex Adegbesan.pdf' (mime=application/pdf)
+2026-07-26 18:31:23  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1LL-AwDiNx4Iv4WQKNgXiaKleT1qZS6m2
+2026-07-26 18:31:23  DEBUG     blk.builders.wells_fargo_builder      + Alexander Adegbesan
+2026-07-26 18:31:23  DEBUG     blk.processing.resume_downloader  Downloading 'Tolulope Agosu Resume - Tolu A.pdf' (mime=application/pdf)
+2026-07-26 18:31:23  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1pKGd3eD3qbZ9teMAB9AGVPBhi8Iy38Qc
+2026-07-26 18:31:24  DEBUG     blk.builders.wells_fargo_builder      + Tolulope Agosu
+2026-07-26 18:31:24  DEBUG     blk.processing.resume_downloader  Downloading 'SHAMIMA AHMED RESUME 2026 (2) - Shamima Ahmed.pdf' (mime=application/pdf)
+2026-07-26 18:31:24  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1I-_NMWzwqZ1ZsqGWh69nV9vdL1RGbXUY
+2026-07-26 18:31:25  DEBUG     blk.builders.wells_fargo_builder      + Shamima Ahmed
+2026-07-26 18:31:25  DEBUG     blk.processing.resume_downloader  Downloading 'Emmanuel_Amponsah_Resume - Emmanuel Amponsah.pdf' (mime=application/pdf)
+2026-07-26 18:31:25  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1MHIyAq9xGFgDWymKqfwq5CZDMwrwIWwG
+2026-07-26 18:31:25  DEBUG     blk.builders.wells_fargo_builder      + Emmanuel Amponsah
+2026-07-26 18:31:26  DEBUG     blk.processing.resume_downloader  Downloading 'Fola_Awofisayo_Resume - Folakunmi Awofisayo.pdf' (mime=application/pdf)
+2026-07-26 18:31:26  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1su_ZJPsF4YE92mJo-AnGOiOtthnB7qYL
+2026-07-26 18:31:26  DEBUG     blk.builders.wells_fargo_builder      + Fola Awofisayo
+2026-07-26 18:31:26  DEBUG     blk.processing.resume_downloader  Downloading 'Barrie, Aboubacar Resume - Aboubacar Barrie.pdf' (mime=application/pdf)
+2026-07-26 18:31:26  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1qFep8WCAnqwf6pakNaEox3zA1y4TLxPa
+2026-07-26 18:31:27  DEBUG     blk.builders.wells_fargo_builder      + Aboubacar Barrie
+2026-07-26 18:31:27  DEBUG     blk.processing.resume_downloader  Downloading 'MLT Resume.docx - Ivy Cheluget.pdf' (mime=application/pdf)
+2026-07-26 18:31:27  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1iZn68iEhE2K_13McKaRuL69CBqPSV_4v
+2026-07-26 18:31:28  DEBUG     blk.builders.wells_fargo_builder      + Ivy Cheluget
+2026-07-26 18:31:28  DEBUG     blk.processing.resume_downloader  Downloading 'Clairine_Sean_Duke_Resume - Sean Clairine.pdf' (mime=application/pdf)
+2026-07-26 18:31:28  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1s9vuX5SejePVv_B-CShIqkfV50yZj95m
+2026-07-26 18:31:29  DEBUG     blk.builders.wells_fargo_builder      + Sean Clairine
+2026-07-26 18:31:29  DEBUG     blk.processing.resume_downloader  Downloading 'Dejene, Nathanael_Resume(Fid) - Nathanael.pdf' (mime=application/pdf)
+2026-07-26 18:31:29  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=14RhJhQSDhmBTmtQZPPmdWfizM4sxmkB3
+2026-07-26 18:31:30  DEBUG     blk.builders.wells_fargo_builder      + Nathanael Dejene
+2026-07-26 18:31:30  DEBUG     blk.processing.resume_downloader  Downloading 'BaharDjour_Resume_2026 - Bahar Djour.pdf' (mime=application/pdf)
+2026-07-26 18:31:30  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1DBO4b9RoXHxef2K9FjvkXsJdIZsE2rdV
+2026-07-26 18:31:30  DEBUG     blk.builders.wells_fargo_builder      + Bahar Djour
+2026-07-26 18:31:30  DEBUG     blk.processing.resume_downloader  Downloading 'David_Fordjour_Resume_BLK - David Fordjour.pdf' (mime=application/pdf)
+2026-07-26 18:31:30  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1GVZ_Cd0xabSxZKCXuCZdYBVNR7o07TGa
+2026-07-26 18:31:31  DEBUG     blk.builders.wells_fargo_builder      + David Fordjour
+2026-07-26 18:31:31  DEBUG     blk.processing.resume_downloader  Downloading 'Paul_Gbebry_Resume - Paul Gbebry.pdf' (mime=application/pdf)
+2026-07-26 18:31:31  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1FbHqJjtdk34LSbD02WxFF6RWs83JkKAX
+2026-07-26 18:31:32  DEBUG     blk.builders.wells_fargo_builder      + Paul Gbebry
+2026-07-26 18:31:32  DEBUG     blk.processing.resume_downloader  Downloading 'Bisrat, Goitom Resume - Bisrat.pdf' (mime=application/pdf)
+2026-07-26 18:31:32  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1M703IG8eYUYOsnAs8kkH0wtvTiJJHnuP
+2026-07-26 18:31:32  DEBUG     blk.builders.wells_fargo_builder      + Bisrat Goitom
+2026-07-26 18:31:32  DEBUG     blk.processing.resume_downloader  Downloading 'Angel Guzman Resume - Angel Guzmán Tarazona.pdf' (mime=application/pdf)
+2026-07-26 18:31:32  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1wXVlewZIRF9nk_DOEe8Q3rYPk51HQG2H
+2026-07-26 18:31:33  DEBUG     blk.builders.wells_fargo_builder      + Angel Guzman
+2026-07-26 18:31:33  DEBUG     blk.processing.resume_downloader  Downloading 'Eyob Habtyehun Resume - Eyob Habtyehun.pdf' (mime=application/pdf)
+2026-07-26 18:31:33  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1U0Ekk5aFq1bso8IVUmkCCudFnVisGe7q
+2026-07-26 18:31:34  DEBUG     blk.builders.wells_fargo_builder      + Eyob Habtyehun
+2026-07-26 18:31:34  DEBUG     blk.processing.resume_downloader  Downloading 'Ibeku_Ikenna_Resume - Ikenna Ibeku.pdf' (mime=application/pdf)
+2026-07-26 18:31:34  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1zvs-AvSyVI65c5ZXn0P_YlRsoiI87npW
+2026-07-26 18:31:34  DEBUG     blk.builders.wells_fargo_builder      + Ikenna Ibeku
+2026-07-26 18:31:35  DEBUG     blk.processing.resume_downloader  Downloading 'Elijah Jacobs Resume-8 - Elijah Jacobs.pdf' (mime=application/pdf)
+2026-07-26 18:31:35  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1D1v7nK5tNPbZccBLDcUNdxkcQ7QFmEKu
+2026-07-26 18:31:37  DEBUG     blk.builders.wells_fargo_builder      + Eli Jacobs
+2026-07-26 18:31:37  DEBUG     blk.processing.resume_downloader  Downloading 'Eli J Resume - Elijah Jacobs.pdf' (mime=application/pdf)
+2026-07-26 18:31:37  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=10XuBSSHUiVji5B19T9wCsP-ZL1ffSViN
+2026-07-26 18:31:37  DEBUG     blk.builders.wells_fargo_builder      + Elijah Jacobs
+2026-07-26 18:31:38  DEBUG     blk.processing.resume_downloader  Downloading '_Koko, Orafiri  Resume  - Orafiri Zara Koko.pdf' (mime=application/pdf)
+2026-07-26 18:31:38  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1H3ngofFQIVEQBR4BdsPPl_ak29a9PZar
+2026-07-26 18:31:38  DEBUG     blk.builders.wells_fargo_builder      + Orafiri Koko
+2026-07-26 18:31:38  DEBUG     blk.processing.resume_downloader  Downloading '_Konu_Mark_Resume .docx - Mark Konu.pdf' (mime=application/pdf)
+2026-07-26 18:31:38  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1ss-8MF5NroS9g81SQAewqsrcmUpbnFP8
+2026-07-26 18:31:39  DEBUG     blk.builders.wells_fargo_builder      + Mark Konu
+2026-07-26 18:31:39  DEBUG     blk.processing.resume_downloader  Downloading 'Updated Resume Fall 2026 - Renée Larbi.pdf' (mime=application/pdf)
+2026-07-26 18:31:39  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1o37Nxtj0LWJCh1tJ2SEb5eknNb7-5UiS
+2026-07-26 18:31:39  DEBUG     blk.builders.wells_fargo_builder      + Renée Larbi
+2026-07-26 18:31:39  DEBUG     blk.processing.resume_downloader  Downloading 'Joshua A. Lopez Resume (5) - Josh Lopez.pdf' (mime=application/pdf)
+2026-07-26 18:31:39  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1Xg5fuF1wmsT3qi8ovUhHRpvamVkgV19Y
+2026-07-26 18:31:41  DEBUG     blk.builders.wells_fargo_builder      + Joshua Lopez
+2026-07-26 18:31:43  DEBUG     blk.processing.resume_downloader  Downloading 'Lesley M. Machimbidza Resume_3_26 - Lesley Machimbidza.pdf' (mime=application/pdf)
+2026-07-26 18:31:43  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1oTb4CUhtrLVpoE8t9B1GP-8uHXX0wi3D
+2026-07-26 18:31:44  DEBUG     blk.builders.wells_fargo_builder      + Lesley Machimbidza
+2026-07-26 18:31:44  DEBUG     blk.processing.resume_downloader  Downloading 'OMOTOLANI_MAKINDE_RESUME_26 (1) - Omotolani Makinde.pdf' (mime=application/pdf)
+2026-07-26 18:31:44  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1Wk7P-YaZ3zvKgry60x8zPEeq3q8zrjCG
+2026-07-26 18:31:44  DEBUG     blk.builders.wells_fargo_builder      + Omotolani Makinde
+2026-07-26 18:31:45  DEBUG     blk.processing.resume_downloader  Downloading 'Mekonen_Binyam_Resume (7) - Bini Mini.pdf' (mime=application/pdf)
+2026-07-26 18:31:45  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1TkPRTbZYeqNQ4d0VtwXfWLBIVv71V3S_
+2026-07-26 18:31:45  DEBUG     blk.builders.wells_fargo_builder      + Binyam Mekonem
+2026-07-26 18:31:45  DEBUG     blk.processing.resume_downloader  Downloading 'Melkamu, Abigail Resume - Abigail Melkamu.pdf' (mime=application/pdf)
+2026-07-26 18:31:45  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1Ugg-ItUoceQ979lMCAqM92vOr1e57LGK
+2026-07-26 18:31:46  DEBUG     blk.builders.wells_fargo_builder      + Abigail Melkamu
+2026-07-26 18:31:46  DEBUG     blk.processing.resume_downloader  Downloading 'Mugisha.Andy.Resume - Andy Mugisha.pdf' (mime=application/pdf)
+2026-07-26 18:31:46  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1H1GhCFGiWbzbbdwlR9Bu_e6ymuNQc9dK
+2026-07-26 18:31:47  DEBUG     blk.builders.wells_fargo_builder      + Andy Mugisha
+2026-07-26 18:31:47  DEBUG     blk.processing.resume_downloader  Downloading 'Victor Mwine UofR Resume.docx - Victor Mwine.pdf' (mime=application/pdf)
+2026-07-26 18:31:47  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1EuJhvQT3qNpFz1FnqcErz2mPN-ujXNRA
+2026-07-26 18:31:47  DEBUG     blk.builders.wells_fargo_builder      + Victor Mwine
+2026-07-26 18:31:48  DEBUG     blk.processing.resume_downloader  Downloading 'Victoria_Okonkwo_Resume_BLK_Capital - Victoria Okonkwo.pdf' (mime=application/pdf)
+2026-07-26 18:31:48  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1M_4lFb4PbhOBHmbxjzt72jTte0dyC4r7
+2026-07-26 18:31:48  DEBUG     blk.builders.wells_fargo_builder      + Victoria Okonkwo
+2026-07-26 18:31:48  DEBUG     blk.processing.resume_downloader  Downloading 'NH Edits - Palmer Resume.docx - Google Docss - Palmer Yerima.pdf' (mime=application/pdf)
+2026-07-26 18:31:48  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1jFqe8qalHPtv51UJZpzjyovq1Iwc2e1h
+2026-07-26 18:31:49  DEBUG     blk.builders.wells_fargo_builder      + Yongka Yerima Palmer Jr
+2026-07-26 18:31:49  DEBUG     blk.processing.resume_downloader  Downloading 'NH Edits - Palmer Resume.docx - Google Docss - Palmer Yerima.pdf' (mime=application/pdf)
+2026-07-26 18:31:49  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=14G_dMXMzrnPvOXyZrzn73aUwwoKWVLQ6
+2026-07-26 18:31:51  DEBUG     blk.builders.wells_fargo_builder      + Yongka Yerima Palmer Jr
+2026-07-26 18:31:51  DEBUG     blk.processing.resume_downloader  Downloading 'Josiah Pewitt - Resume (updated) - Josiah Pewitt.pdf' (mime=application/pdf)
+2026-07-26 18:31:51  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1GTxzdquoN1dQG4jSX_1CvZn7XTiUZM6Q
+2026-07-26 18:31:52  DEBUG     blk.builders.wells_fargo_builder      + Josiah Pewitt
+2026-07-26 18:31:52  DEBUG     blk.processing.resume_downloader  Downloading 'Resume_Henry Pope IV - Henry Pope IV.pdf' (mime=application/pdf)
+2026-07-26 18:31:52  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1t5-MdLXy2c4jA4T12Ek22vFi_AD3Lw4a
+2026-07-26 18:31:53  DEBUG     blk.builders.wells_fargo_builder      + Henry Pope
+2026-07-26 18:31:53  DEBUG     blk.processing.resume_downloader  Downloading 'Anthony_Powell - Resume - Anthony Powell 'student'.pdf' (mime=application/pdf)
+2026-07-26 18:31:53  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1oHr0YUF96pcuW3bN-NIP7TKy0MmR3hhg
+2026-07-26 18:31:53  DEBUG     blk.builders.wells_fargo_builder      + Anthony Powell
+2026-07-26 18:31:53  DEBUG     blk.processing.resume_downloader  Downloading 'Ransom Charm Spring 2026 Resume - Charm Ransom.pdf' (mime=application/pdf)
+2026-07-26 18:31:53  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1RZDmtf_r5astJ1MihMmVQmTvMAP5Iezd
+2026-07-26 18:31:54  DEBUG     blk.builders.wells_fargo_builder      + Charm Ransom
+2026-07-26 18:31:54  DEBUG     blk.processing.resume_downloader  Downloading 'Ransom Charm Summer  2026 Resume - charm ransom.pdf' (mime=application/pdf)
+2026-07-26 18:31:54  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1nt4NXU8TMZTBRTTZdALI6OlDd7W8ZYrI
+2026-07-26 18:31:55  DEBUG     blk.builders.wells_fargo_builder      + Charm Ransom
+2026-07-26 18:31:55  DEBUG     blk.processing.resume_downloader  Downloading 'XamoraReed_Resume_June26 - Xamora R.pdf' (mime=application/pdf)
+2026-07-26 18:31:55  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1ttrkBjGP6wfDZiD_tBOLJCWdlCRI61E_
+2026-07-26 18:31:56  DEBUG     blk.builders.wells_fargo_builder      + Xamora Reed
+2026-07-26 18:31:56  DEBUG     blk.processing.resume_downloader  Downloading 'Russell, Tremayne Resume - Trey Russell.pdf' (mime=application/pdf)
+2026-07-26 18:31:56  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1yQAnNHqLHp72Pg0a-nuSBjuMnzGzy-Pe
+2026-07-26 18:31:56  DEBUG     blk.builders.wells_fargo_builder      + Tremayne Russell
+2026-07-26 18:31:56  DEBUG     blk.processing.resume_downloader  Downloading '_Ava Shane_ Resume June - Ava Shane.pdf' (mime=application/pdf)
+2026-07-26 18:31:56  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1-3uBAbNM6w4iwlM8195K8901MzNkAbTT
+2026-07-26 18:31:57  DEBUG     blk.builders.wells_fargo_builder      + Ava Shane
+2026-07-26 18:31:57  DEBUG     blk.processing.resume_downloader  Downloading 'Resume - Shumbusho, Don - Don Shumbusho.pdf' (mime=application/pdf)
+2026-07-26 18:31:57  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1zc8YmB3W_vT0WqEQPO6_QSOzX_swMbFX
+2026-07-26 18:31:58  DEBUG     blk.builders.wells_fargo_builder      + Don Shumbusho
+2026-07-26 18:31:58  DEBUG     blk.processing.resume_downloader  Downloading 'Smith, Fitz Resume.docx (11) - Fitz Smith.pdf' (mime=application/pdf)
+2026-07-26 18:31:58  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1e6DIK4dgUqq8aCAecEwolmUqYgtOQNnm
+2026-07-26 18:31:58  DEBUG     blk.builders.wells_fargo_builder      + Fitz Smith
+2026-07-26 18:31:58  DEBUG     blk.processing.resume_downloader  Downloading 'ChristinaWolde_Resume - Christina F Wolde.pdf' (mime=application/pdf)
+2026-07-26 18:31:58  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1-Jp_wm1Li2ovARae-ivyX65j4A5kZsyN
+2026-07-26 18:31:59  DEBUG     blk.builders.wells_fargo_builder      + Christina Wolde
+2026-07-26 18:31:59  DEBUG     blk.processing.resume_downloader  Downloading 'Akinnibosun, Michael Resume  - Michael Akinnibosun.pdf' (mime=application/pdf)
+2026-07-26 18:31:59  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1BFz9GESSMiR2x1zY100el6wR2JkoY52-
+2026-07-26 18:32:00  DEBUG     blk.builders.wells_fargo_builder      + Michael Akinnibosun
+2026-07-26 18:32:00  DEBUG     blk.processing.resume_downloader  Downloading 'HirphooAnbassa_NU_Resume - Hirphoo Anbassa.pdf' (mime=application/pdf)
+2026-07-26 18:32:00  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1p8j73D6RPwCt4FrGoOoYwaWeYeOOKenu
+2026-07-26 18:32:02  DEBUG     blk.builders.wells_fargo_builder      + Hirphoo Anbassa
+2026-07-26 18:32:02  DEBUG     blk.processing.resume_downloader  Downloading 'Kalkidan_Berhane_Resume AVC - Kalkidan Daniel.pdf' (mime=application/pdf)
+2026-07-26 18:32:02  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=11kuOWzAazGUH5HZNBJkR_o7RihsSChZt
+2026-07-26 18:32:02  DEBUG     blk.builders.wells_fargo_builder      + Kalkidan Berhane
+2026-07-26 18:32:03  DEBUG     blk.processing.resume_downloader  Downloading 'Rosalia Black Resume Summer 2026 - Rosalia Black.pdf' (mime=application/pdf)
+2026-07-26 18:32:03  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1_-QQcIJOokqQdEAmUwmTwEY4Szi78nqZ
+2026-07-26 18:32:03  DEBUG     blk.builders.wells_fargo_builder      + Rosalia Black
+2026-07-26 18:32:03  DEBUG     blk.processing.resume_downloader  Downloading 'Bliey,Miles_Resume - Miles Bliey.pdf' (mime=application/pdf)
+2026-07-26 18:32:03  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1gp89OPJkRA0ONECKLP1D8y5Kge8JsgP-
+2026-07-26 18:32:04  DEBUG     blk.builders.wells_fargo_builder      + Miles Bliey
+2026-07-26 18:32:04  DEBUG     blk.processing.resume_downloader  Downloading 'Patrick_Bongo_Resume - Patrick Bongo.pdf' (mime=application/pdf)
+2026-07-26 18:32:04  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1C4WwwgogepD2tKW4XJo9HMBz2b9tVhrt
+2026-07-26 18:32:05  DEBUG     blk.builders.wells_fargo_builder      + Patrick Bongo
+2026-07-26 18:32:05  DEBUG     blk.processing.resume_downloader  Downloading 'Capezzone, Micah - Resume - Micah Capezzone.pdf' (mime=application/pdf)
+2026-07-26 18:32:05  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1FHJeyWxCOw_RquEdIAyyXuWLTaTGKBqh
+2026-07-26 18:32:05  DEBUG     blk.builders.wells_fargo_builder      + Micah Capezzone
+2026-07-26 18:32:05  DEBUG     blk.processing.resume_downloader  Downloading 'Ousman resume 21 - Ousman Ceesay.pdf' (mime=application/pdf)
+2026-07-26 18:32:05  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1A4d3fVXD8g29DIU7O2g2k2DyoTu8e3nt
+2026-07-26 18:32:06  DEBUG     blk.builders.wells_fargo_builder      + Ousman Ceesay
+2026-07-26 18:32:06  DEBUG     blk.processing.resume_downloader  Downloading 'Daniel, Eden - Resume - Eden Daniel.pdf' (mime=application/pdf)
+2026-07-26 18:32:06  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1zqRCnIQy223-D9SdD4ac7NL6-QfQ38H7
+2026-07-26 18:32:07  DEBUG     blk.builders.wells_fargo_builder      + Eden Daniel
+2026-07-26 18:32:07  DEBUG     blk.processing.resume_downloader  Downloading 'Julius Dorsey UChicago Resume - Julius Dorsey.pdf' (mime=application/pdf)
+2026-07-26 18:32:07  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=12Aac_zFOElFlvpowkxvz8wD4Dr3u8pkR
+2026-07-26 18:32:08  DEBUG     blk.builders.wells_fargo_builder      + Julius Dorsey
+2026-07-26 18:32:08  DEBUG     blk.processing.resume_downloader  Downloading 'Nevaeh_DosSantos_Resume_2026 - Nevaeh Dos Santos.pdf' (mime=application/pdf)
+2026-07-26 18:32:08  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1goR66obF-yy3-CAfRCOd1Rnoo_h6b4AV
+2026-07-26 18:32:08  DEBUG     blk.builders.wells_fargo_builder      + Nevaeh Dos Santos
+2026-07-26 18:32:08  DEBUG     blk.processing.resume_downloader  Downloading 'Sockona_ Doucoure_ Resume.docx (1) (1) - Sockona Doucoure.pdf' (mime=application/pdf)
+2026-07-26 18:32:08  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=19uuhS6B23iVYzlE3Wsb4rAMmeC4uwCTR
+2026-07-26 18:32:10  DEBUG     blk.builders.wells_fargo_builder      + Sockona Doucoure
+2026-07-26 18:32:10  DEBUG     blk.processing.resume_downloader  Downloading 'Elsanousi_Nabeel_Resume_F26 - Nabeel Elsanousi.pdf' (mime=application/pdf)
+2026-07-26 18:32:10  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1SsUgT6uQdloqTGIH-5j7y6RNJMcLR7Vh
+2026-07-26 18:32:11  DEBUG     blk.builders.wells_fargo_builder      + Nabeel Elsanousi
+2026-07-26 18:32:11  DEBUG     blk.processing.resume_downloader  Downloading 'Steve_Fotso_Resume - Steve Fotso.pdf' (mime=application/pdf)
+2026-07-26 18:32:11  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1D4m4RYoxzJ3CMnKAriUa9k6fdagIHAhE
+2026-07-26 18:32:11  DEBUG     blk.builders.wells_fargo_builder      + Steve Fotso
+2026-07-26 18:32:12  DEBUG     blk.processing.resume_downloader  Downloading 'Sara_Jeffrey_Resume_ - Sara Jeffrey.pdf' (mime=application/pdf)
+2026-07-26 18:32:12  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=13rZUmKfKGmt7PJJ5zCG-YFwVoJKvGbWE
+2026-07-26 18:32:13  DEBUG     blk.builders.wells_fargo_builder      + Sara Jeffrey
+2026-07-26 18:32:13  DEBUG     blk.processing.resume_downloader  Downloading 'Alvaro Ledezma Resume 2026 - Alvaro LedezmaSalvador.pdf' (mime=application/pdf)
+2026-07-26 18:32:13  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1IpcCT-Cn0RJR5YjEG1ekDp4Yfsu8Y6MM
+2026-07-26 18:32:14  DEBUG     blk.builders.wells_fargo_builder      + Alvaro Ledezma Salvador
+2026-07-26 18:32:14  DEBUG     blk.processing.resume_downloader  Downloading 'Finhas Mesfin_Legesse_Seton Hall University_Resume - Finhas Mesfin Legesse.pdf' (mime=application/pdf)
+2026-07-26 18:32:14  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=14GF2aKO-kyJHAJvdx_5x0niUBtBbfo7a
+2026-07-26 18:32:14  DEBUG     blk.builders.wells_fargo_builder      + Finhas Mesfin Legesse
+2026-07-26 18:32:15  DEBUG     blk.processing.resume_downloader  Downloading 'Jeffrey Odiase - Master Resume (2) - Jeffrey Odiase.pdf' (mime=application/pdf)
+2026-07-26 18:32:15  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1nEdVSVqhgEb8hqDnGwWWnAudnKtKu3MW
+2026-07-26 18:32:15  DEBUG     blk.builders.wells_fargo_builder      + Jeffrey Odiase
+2026-07-26 18:32:15  DEBUG     blk.processing.resume_downloader  Downloading 'Nana Kofi Oduro-Nyaning - Resume (Updated) - Nana Oduro-Nyaning.pdf' (mime=application/pdf)
+2026-07-26 18:32:15  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1bs6c1lLx3WKsdPQqJLu6bQZ7ER1ZpEKa
+2026-07-26 18:32:16  DEBUG     blk.builders.wells_fargo_builder      + Nana Oduro-Nyaning
+2026-07-26 18:32:16  DEBUG     blk.processing.resume_downloader  Downloading 'Kyle_C_Randon Resume - Kyle Randon.pdf' (mime=application/pdf)
+2026-07-26 18:32:16  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1EqBf9Es_jzti5ok6c51II0vhpSnBf3Jw
+2026-07-26 18:32:16  DEBUG     blk.builders.wells_fargo_builder      + Kyle Randon
+2026-07-26 18:32:16  DEBUG     blk.processing.resume_downloader  Downloading 'Robinson.Ryan.Resume - Ryan Robinson.pdf' (mime=application/pdf)
+2026-07-26 18:32:16  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1C1byWcWmAhmhHxORTZVSgqQYjJmUolDN
+2026-07-26 18:32:17  DEBUG     blk.builders.wells_fargo_builder      + Ryan Robinson
+2026-07-26 18:32:17  DEBUG     blk.processing.resume_downloader  Downloading 'RobyDylanResume - Dylan Roby.pdf' (mime=application/pdf)
+2026-07-26 18:32:17  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1LsDsrNZRT-fpYA7fb6jLCOH13rxq1-C7
+2026-07-26 18:32:18  DEBUG     blk.builders.wells_fargo_builder      + Dylan Roby
+2026-07-26 18:32:18  DEBUG     blk.processing.resume_downloader  Downloading 'Sirleaf_Kalefah_Resume_HSC_102025 - Kalefah Sirleaf - Kalefah Sirleaf.pdf' (mime=application/pdf)
+2026-07-26 18:32:18  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1X3RvsbjgO5RG6HRhKpaiRG3B0Fm6EfXz
+2026-07-26 18:32:18  DEBUG     blk.builders.wells_fargo_builder      + Kalefah Sirleaf
+2026-07-26 18:32:18  DEBUG     blk.processing.resume_downloader  Downloading 'Salif_traore (6) - Salif Traore.pdf' (mime=application/pdf)
+2026-07-26 18:32:18  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1dcBqRbCZ7jycVAbSRHzqFIusu3kwUxry
+2026-07-26 18:32:19  DEBUG     blk.builders.wells_fargo_builder      + Salif Traore
+2026-07-26 18:32:19  DEBUG     blk.processing.resume_downloader  Downloading 'Tuwila, Holy Resume - UBS  - Holy Tuwila.pdf' (mime=application/pdf)
+2026-07-26 18:32:19  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1d5O7M67YfNdpthesYzYBdB9q9ENOQZLY
+2026-07-26 18:32:21  DEBUG     blk.builders.wells_fargo_builder      + Holy Tuwila
+2026-07-26 18:32:21  DEBUG     blk.processing.resume_downloader  Downloading 'EDEM WORDI_DataSc - Edem wordi.pdf' (mime=application/pdf)
+2026-07-26 18:32:21  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1LaXMu_Mgu-n4_XOtEfAUFkGFD0nTtNxZ
+2026-07-26 18:32:24  DEBUG     blk.builders.wells_fargo_builder      + Edem Wordi
+2026-07-26 18:32:24  DEBUG     blk.processing.resume_downloader  Downloading 'Samuel Yacob - Resume - Samuel Yacob.pdf' (mime=application/pdf)
+2026-07-26 18:32:24  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1bpLaoLBlAjbzkbO6Dsup7hW956Yyy65v
+2026-07-26 18:32:25  DEBUG     blk.builders.wells_fargo_builder      + Samuel Yacob
+2026-07-26 18:32:25  DEBUG     blk.processing.resume_downloader  Downloading 'Emri Yasso Resume 2027 - Emri Yasso.pdf' (mime=application/pdf)
+2026-07-26 18:32:25  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1IPFMhOfuuR2i9iNyxLKPcqNibLkfgj8j
+2026-07-26 18:32:25  DEBUG     blk.builders.wells_fargo_builder      + Emri Yasso
+2026-07-26 18:32:26  DEBUG     blk.processing.resume_downloader  Downloading 'Fered Yousuf Resume 7:5:26 - Fered Yousuf.pdf' (mime=application/pdf)
+2026-07-26 18:32:26  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1dUkWhnSvdKj2UanXWyPTbouMMZe4nE8B
+2026-07-26 18:32:28  DEBUG     blk.builders.wells_fargo_builder      + Fered Yousuf
+2026-07-26 18:32:28  DEBUG     blk.processing.pdf_compressor  Running Ghostscript: /opt/homebrew/bin/gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile=/var/folders/yv/wcn4kfm95hq543d18q0h_6vr0000gn/T/tmpq2m8l95u.pdf /var/folders/yv/wcn4kfm95hq543d18q0h_6vr0000gn/T/tmp5f0tern9.pdf
+2026-07-26 18:32:34  INFO      blk.processing.pdf_compressor  Compression [ghostscript]: 12744.1 KB → 9648.7 KB  (24% reduction)
+2026-07-26 18:32:34  INFO      blk.builders.wells_fargo_builder  Wells Fargo resume book saved: output/sponsor_books/Wells_Fargo_Resume_Book.pdf (9.42 MB)
+2026-07-26 18:32:34  INFO      blk.main  ────────────────────────────────────────────────────────────
+2026-07-26 18:32:34  INFO      blk.main  build-wells-fargo complete
+2026-07-26 18:32:34  INFO      blk.main    Juniors: 43/43 resumes included
+2026-07-26 18:32:34  INFO      blk.main    Seniors: 29/29 resumes included
+2026-07-26 18:32:34  INFO      blk.main    Output : output/sponsor_books/Wells_Fargo_Resume_Book.pdf
+2026-07-26 18:32:34  INFO      blk.main  ────────────────────────────────────────────────────────────

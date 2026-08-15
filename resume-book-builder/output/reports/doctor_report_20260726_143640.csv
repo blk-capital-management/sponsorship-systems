@@ -1,0 +1,25 @@
+status,check,detail,fix
+PASS,python_version,Python 3.12.2,
+PASS,package:yaml,yaml importable,
+PASS,package:pypdf,pypdf importable,
+PASS,package:pandas,pandas importable,
+PASS,package:openpyxl,openpyxl importable,
+PASS,package:tqdm,tqdm importable,
+PASS,package:dotenv,dotenv importable,
+PASS,optional_package:pikepdf,pikepdf available,
+PASS,ghostscript,Found at /opt/homebrew/bin/gs,
+PASS,folder:input,/Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input exists,
+PASS,folder:input/cover_pages,/Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/cover_pages exists,
+PASS,folder:input/transition_pages,/Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/transition_pages exists,
+PASS,folder:output,/Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/output exists,
+PASS,folder:output/general,/Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/output/general exists,
+PASS,folder:output/sponsor_books,/Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/output/sponsor_books exists,
+PASS,folder:output/reports,/Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/output/reports exists,
+PASS,config:settings.yaml,settings.yaml parsed successfully,
+PASS,config:sponsors.yaml,sponsors.yaml parsed successfully,
+PASS,config:column_mapping.yaml,column_mapping.yaml parsed successfully,
+PASS,google_credentials_file,credentials.json found at /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/credentials.json,
+WARNING,google_token_file,token.json not present (OAuth token not yet cached).,Run any build command for the first time — a browser window will open for Google login.
+PASS,data_source:excel_file,Excel file found: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/BLK Undergraduate Audit 2026 (Responses) .xlsx,
+WARNING,cover_page,Cover pages directory exists but no recognised cover PDF found in /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/cover_pages.,Add a PDF named 'cover.pdf' to /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/cover_pages. Export it from Canva.
+WARNING,transition_pages,Transition pages directory is empty: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/transition_pages — dividers will be auto-generated.,Export divider PDFs from Canva and place them here.

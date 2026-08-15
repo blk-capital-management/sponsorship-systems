@@ -1,0 +1,165 @@
+{
+  "firm": "Lincoln International",
+  "firm_slug": "lincoln",
+  "domain": "lincolninternational.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:32:14+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.lincolninternational.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.lincolninternational.com/careers-and-culture/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.lincolninternational.com/about-us/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.lincolninternational.com/news-events/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "As strategic in processing transactions as they are in advising on markets and opportunities, our people are passionate about what they do, deeply invested in your success and relentless in helping you achieve optimal results.",
+      "source_url": "https://www.lincolninternational.com/",
+      "quote": "As strategic in processing transactions as they are in advising on markets and opportunities, our people are passionate about what they do, deeply invested in your success and relentless in helping you achieve optimal results.",
+      "category": "landing"
+    },
+    {
+      "value": "They continue to work with us year after year — and often for decades — because of the character and caliber of our people.",
+      "source_url": "https://www.lincolninternational.com/careers-and-culture/",
+      "quote": "They continue to work with us year after year — and often for decades — because of the character and caliber of our people.",
+      "category": "careers"
+    },
+    {
+      "value": "Integrity, trust and teamwork are more than words at Lincoln International; they drive how we work with our clients — and with each other.",
+      "source_url": "https://www.lincolninternational.com/careers-and-culture/",
+      "quote": "Integrity, trust and teamwork are more than words at Lincoln International; they drive how we work with our clients — and with each other.",
+      "category": "careers"
+    },
+    {
+      "value": "We are inspired by both client and colleague achievements and work collaboratively to foster a culture of excellence and integrity.",
+      "source_url": "https://www.lincolninternational.com/careers-and-culture/",
+      "quote": "We are inspired by both client and colleague achievements and work collaboratively to foster a culture of excellence and integrity.",
+      "category": "careers"
+    },
+    {
+      "value": "They continue to work with us year after year — and often for decades — because of the relationships they have with our people and the relationships we have across the private capital markets.",
+      "source_url": "https://www.lincolninternational.com/about-us/",
+      "quote": "They continue to work with us year after year — and often for decades — because of the relationships they have with our people and the relationships we have across the private capital markets.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "We offer a range of M&A Services and are consistently ranked as a top global M&A advisor to the mid-market.",
+      "source_url": "https://www.lincolninternational.com/",
+      "quote": "We offer a range of M&A Services and are consistently ranked as a top global M&A advisor to the mid-market.",
+      "category": "landing"
+    },
+    {
+      "value": "Lincoln International’s approach, growth and global reach provide career opportunities that are unique to the industry.",
+      "source_url": "https://www.lincolninternational.com/careers-and-culture/",
+      "quote": "Lincoln International’s approach, growth and global reach provide career opportunities that are unique to the industry.",
+      "category": "careers"
+    },
+    {
+      "value": "With superb delivery backed by the perspective that can only come from deep industry relationships and a tightly integrated global team, we help our clients achieve superior results and strive to outperform their highest expectations.",
+      "source_url": "https://www.lincolninternational.com/about-us/",
+      "quote": "With superb delivery backed by the perspective that can only come from deep industry relationships and a tightly integrated global team, we help our clients achieve superior results and strive to outperform their highest expectations.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We are headquartered in Chicago and connected around the world.",
+      "source_url": "https://www.lincolninternational.com/about-us/",
+      "quote": "We are headquartered in Chicago and connected around the world.",
+      "category": "values_culture"
+    },
+    {
+      "value": "With more than 1,400 professionals in more than 30 offices in 14 countries, we have a global footprint with strong local presence in the world’s most important markets.",
+      "source_url": "https://www.lincolninternational.com/about-us/",
+      "quote": "With more than 1,400 professionals in more than 30 offices in 14 countries, we have a global footprint with strong local presence in the world’s most important markets.",
+      "category": "values_culture"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "We partner with private equity firms to raise capital and create tailored private capital solution that support their strategic growth objectives.",
+      "source_url": "https://www.lincolninternational.com/",
+      "quote": "We partner with private equity firms to raise capital and create tailored private capital solution that support their strategic growth objectives.",
+      "category": "landing"
+    },
+    {
+      "value": "PE Hub | 5 Reasons Private Equity is Betting Big on U.S.",
+      "source_url": "https://www.lincolninternational.com/",
+      "quote": "PE Hub | 5 Reasons Private Equity is Betting Big on U.S.",
+      "category": "landing"
+    },
+    {
+      "value": "We are trusted investment banking advisors to business owners and senior executives of leading private equity firms and public and privately held companies around the world.",
+      "source_url": "https://www.lincolninternational.com/about-us/",
+      "quote": "We are trusted investment banking advisors to business owners and senior executives of leading private equity firms and public and privately held companies around the world.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We partner with private equity firms to raise capital and create tailored private capital solutions that support their strategic growth objectives.",
+      "source_url": "https://www.lincolninternational.com/about-us/",
+      "quote": "We partner with private equity firms to raise capital and create tailored private capital solutions that support their strategic growth objectives.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "As strategic in processing transactions as they are in advising on markets and opportunities, our people are passionate about what they do, deeply invested in your success and relentless in helping you achieve optimal results.",
+      "firm_claim_source": "https://www.lincolninternational.com/",
+      "quote": "As strategic in processing transactions as they are in advising on markets and opportunities, our people are passionate about what they do, deeply invested in your success and relentless in helping you achieve optimal results.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "We are trusted investment banking advisors to business owners and senior executives of leading private equity firms and public and privately held companies around the world.",
+      "firm_claim_source": "https://www.lincolninternational.com/about-us/",
+      "quote": "We are trusted investment banking advisors to business owners and senior executives of leading private equity firms and public and privately held companies around the world.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "They continue to work with us year after year — and often for decades — because of the character and caliber of our people.",
+      "firm_claim_source": "https://www.lincolninternational.com/careers-and-culture/",
+      "quote": "They continue to work with us year after year — and often for decades — because of the character and caliber of our people.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.lincolninternational.com/",
+    "https://www.lincolninternational.com/about-us/",
+    "https://www.lincolninternational.com/careers-and-culture/"
+  ],
+  "confidence": "medium",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

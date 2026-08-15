@@ -1,0 +1,133 @@
+"""Acceptance tests 1 and 3.
+
+1. A draft containing a claim with no matching source_url fails generation.
+3. Any em dash in generated output fails.
+"""
+
+import pytest
+
+from common.provenance import (
+    ProvenanceError,
+    assert_no_em_dash,
+    build_evidence_block,
+    check_firm_paragraph,
+    find_tone_violations,
+    split_sentences,
+)
+
+
+# ── Acceptance test 1: no source_url means no claim ───────────────────────────
+
+def test_supported_paragraph_passes(hooks, blk_facts):
+    paragraph = (
+        "Sixth Street's Early Careers programs already bring undergraduate students "
+        "into contact with your professionals. BLK members are selected through a "
+        "multi-round process, so that pipeline arrives pre-vetted."
+    )
+    report = check_firm_paragraph(paragraph, hooks, blk_facts)
+    assert report.ok, report.describe()
+    assert any(s.source_url for s in report.sentences)
+
+
+def test_invented_firm_fact_fails(hooks, blk_facts):
+    """A claim about a program that appears in no hook must fail generation."""
+    paragraph = (
+        "Sixth Street's Early Careers programs bring undergraduate students in. "
+        "Your Chicago office also runs a Sophomore Springboard program each January."
+    )
+    report = check_firm_paragraph(paragraph, hooks, blk_facts)
+    assert not report.ok
+    joined = " ".join(report.violations)
+    assert "no source_url backs" in joined
+    assert "Springboard" in joined or "Chicago" in joined
+
+
+def test_invented_number_fails(hooks, blk_facts):
+    paragraph = (
+        "Sixth Street's Early Careers programs reach undergraduate students. "
+        "Your team hired 47 interns last summer across four offices."
+    )
+    report = check_firm_paragraph(paragraph, hooks, blk_facts)
+    assert not report.ok
+    assert any("47" in v for v in report.violations)
+
+
+def test_hooks_without_source_url_block_everything(blk_facts):
+    """A hook missing its source_url is unusable, not merely weaker."""
+    unsourced = [{"text": "They run a campus program.", "source_url": "", "quote": "x"}]
+    report = check_firm_paragraph("They run a campus program. It is large.",
+                                  unsourced, blk_facts)
+    assert not report.ok
+    assert any("no alignment_hooks carry a source_url" in v for v in report.violations)
+
+
+def test_blk_facts_vocabulary_is_allowed(hooks, blk_facts):
+    """BLK's own approved numbers are not firm claims and must not be flagged."""
+    paragraph = (
+        "Sixth Street's Early Careers programs reach undergraduate students. "
+        "BLK draws members from 200+ universities across the US and EMEA."
+    )
+    report = check_firm_paragraph(paragraph, hooks, blk_facts)
+    assert report.ok, report.describe()
+
+
+# ── Acceptance test 3: em dashes ──────────────────────────────────────────────
+
+@pytest.mark.parametrize("dash", ["—", "–", "―"])
+def test_em_dash_variants_raise(dash):
+    with pytest.raises(ProvenanceError, match="Em dash"):
+        assert_no_em_dash(f"BLK members are vetted {dash} yours are not.")
+
+
+def test_ascii_em_dash_substitute_raises():
+    with pytest.raises(ProvenanceError, match="ASCII em dash"):
+        assert_no_em_dash("BLK members are vetted -- yours are not.")
+
+
+def test_hyphen_in_date_range_is_fine():
+    assert_no_em_dash("Our 2026-27 prospectus is attached.")
+
+
+def test_em_dash_in_paragraph_fails_generation(hooks, blk_facts):
+    paragraph = (
+        "Sixth Street's Early Careers programs reach undergraduate students — "
+        "that is the same group BLK selects from. BLK members arrive pre-vetted."
+    )
+    report = check_firm_paragraph(paragraph, hooks, blk_facts)
+    assert not report.ok
+    assert any("Em dash" in v for v in report.violations)
+
+
+# ── House tone ────────────────────────────────────────────────────────────────
+
+def test_flattery_is_rejected(hooks, blk_facts):
+    paragraph = (
+        "Sixth Street's prestigious Early Careers programs reach undergraduate "
+        "students. We are thrilled to connect with your team."
+    )
+    report = check_firm_paragraph(paragraph, hooks, blk_facts)
+    assert not report.ok
+    assert find_tone_violations(paragraph) == ["prestigious", "thrilled"]
+
+
+def test_sentence_count_bounds(hooks, blk_facts):
+    one = "Sixth Street's Early Careers programs reach undergraduate students."
+    report = check_firm_paragraph(one, hooks, blk_facts)
+    assert any("sentence(s)" in v for v in report.violations)
+
+
+# ── Evidence block ────────────────────────────────────────────────────────────
+
+def test_evidence_block_lists_a_source_per_claim(hooks, blk_facts):
+    paragraph = (
+        "Sixth Street's Early Careers programs reach undergraduate students. "
+        "People at Sixth Street are intellectually curious by nature."
+    )
+    report = check_firm_paragraph(paragraph, hooks, blk_facts)
+    block = build_evidence_block(report, hooks)
+    assert "https://sixthstreet.com/careers/" in block
+    assert "https://sixthstreet.com/values-and-culture/" in block
+
+
+def test_split_sentences_handles_short_paragraphs():
+    assert len(split_sentences("One thing here. Two things there. Three now.")) == 3

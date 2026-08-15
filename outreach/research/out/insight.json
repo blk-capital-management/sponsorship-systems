@@ -1,0 +1,121 @@
+{
+  "firm": "Insight Partners",
+  "firm_slug": "insight",
+  "domain": "insightpartners.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:32+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.insightpartners.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.insightpartners.com/about-us/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.insightpartners.com/about-us/media/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Our Talent Center of Excellence helped the team add their CSO and participated in active CMO interview cycles, later working with their CMO to prepare for an IPO.",
+      "source_url": "https://www.insightpartners.com/",
+      "quote": "Our Talent Center of Excellence helped the team add their CSO and participated in active CMO interview cycles, later working with their CMO to prepare for an IPO.",
+      "category": "landing"
+    },
+    {
+      "value": "Starting with product-market fit, we bring our operating excellence, our talent and customer networks and our capital to move companies from early to growth stage.",
+      "source_url": "https://www.insightpartners.com/",
+      "quote": "Starting with product-market fit, we bring our operating excellence, our talent and customer networks and our capital to move companies from early to growth stage.",
+      "category": "landing"
+    },
+    {
+      "value": "We deploy our three core pillars – scale, focus, and experience – to help companies capture value and generate long-term business success.",
+      "source_url": "https://www.insightpartners.com/about-us/",
+      "quote": "We deploy our three core pillars – scale, focus, and experience – to help companies capture value and generate long-term business success.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We dedicate resources and time to advise executive teams, accelerating their ability to sell to new customers, capture opportunity, and realize value.",
+      "source_url": "https://www.insightpartners.com/about-us/",
+      "quote": "We dedicate resources and time to advise executive teams, accelerating their ability to sell to new customers, capture opportunity, and realize value.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Insight’s mission is to find, fund, and work successfully with visionary executives, providing them with tailored, hands-on software expertise along their growth journey, from their first investment to IPO.",
+      "source_url": "https://www.insightpartners.com/about-us/media/",
+      "quote": "Insight’s mission is to find, fund, and work successfully with visionary executives, providing them with tailored, hands-on software expertise along their growth journey, from their first investment to IPO.",
+      "category": "news"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "Insight Partners is a global software investor partnering with high-growth technology, software, and Internet startup and ScaleUp companies that are driving transformative change in their industries.",
+      "source_url": "https://www.insightpartners.com/about-us/media/",
+      "quote": "Insight Partners is a global software investor partnering with high-growth technology, software, and Internet startup and ScaleUp companies that are driving transformative change in their industries.",
+      "category": "news"
+    },
+    {
+      "value": "Headquartered in New York City, Insight has a global presence with leadership in London, Tel Aviv, and the Bay Area.",
+      "source_url": "https://www.insightpartners.com/about-us/media/",
+      "quote": "Headquartered in New York City, Insight has a global presence with leadership in London, Tel Aviv, and the Bay Area.",
+      "category": "news"
+    }
+  ],
+  "asset_classes": [],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [
+    {
+      "value": "The company launched strategic products in Ranger IoT and acquired Scalyr which was then rebranded as DataSet – an enterprise data platform.",
+      "source_url": "https://www.insightpartners.com/",
+      "quote": "The company launched strategic products in Ranger IoT and acquired Scalyr which was then rebranded as DataSet – an enterprise data platform.",
+      "category": "landing"
+    }
+  ],
+  "alignment_hooks": [
+    {
+      "text": "Our Talent Center of Excellence helped the team add their CSO and participated in active CMO interview cycles, later working with their CMO to prepare for an IPO.",
+      "firm_claim_source": "https://www.insightpartners.com/",
+      "quote": "Our Talent Center of Excellence helped the team add their CSO and participated in active CMO interview cycles, later working with their CMO to prepare for an IPO.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Starting with product-market fit, we bring our operating excellence, our talent and customer networks and our capital to move companies from early to growth stage.",
+      "firm_claim_source": "https://www.insightpartners.com/",
+      "quote": "Starting with product-market fit, we bring our operating excellence, our talent and customer networks and our capital to move companies from early to growth stage.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "The company launched strategic products in Ranger IoT and acquired Scalyr which was then rebranded as DataSet – an enterprise data platform.",
+      "firm_claim_source": "https://www.insightpartners.com/",
+      "quote": "The company launched strategic products in Ranger IoT and acquired Scalyr which was then rebranded as DataSet – an enterprise data platform.",
+      "basis": "recent_relevant_news"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.insightpartners.com/"
+  ],
+  "confidence": "medium",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for asset_classes",
+    "no citable content found for existing_student_org_partnerships",
+    "no careers page found on the firm's domain",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

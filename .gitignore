@@ -1,0 +1,24 @@
+# Secrets. Never commit a key, token, or password.
+.env
+.env.*
+!.env.example
+# Stray misnamed copies of .env that the patterns above would miss.
+env.
+env
+credentials.json
+token.json
+**/config/gmail_token.json
+.vercel/
+**/supabase/.temp/
+
+# Environments and caches
+.venv/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+
+# Reproducible or reviewed-locally artifacts
+**/research/cache/
+**/drafts/out/
+**/contacts/out/

@@ -1,0 +1,115 @@
+{
+  "firm": "The Raine Group",
+  "firm_slug": "raine",
+  "domain": "raine.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:32:19+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://raine.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://raine.com/press/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Through seasoned advisory expertise, innovative investment strategies, and a robust global network, Raine provides integral support to industry heavyweights and entrepreneurial disruptors alike.",
+      "source_url": "https://raine.com/",
+      "quote": "Through seasoned advisory expertise, innovative investment strategies, and a robust global network, Raine provides integral support to industry heavyweights and entrepreneurial disruptors alike.",
+      "category": "landing"
+    },
+    {
+      "value": "We are selective in taking on engagements, and focus on transactions where we believe our involvement can maximize outcomes for our clients.",
+      "source_url": "https://raine.com/",
+      "quote": "We are selective in taking on engagements, and focus on transactions where we believe our involvement can maximize outcomes for our clients.",
+      "category": "landing"
+    },
+    {
+      "value": "We believe our sectors of focus will continue to enjoy significant top-line growth from globalization and secular technology shifts, positioning our investment strategies to uniquely benefit from these trends.",
+      "source_url": "https://raine.com/",
+      "quote": "We believe our sectors of focus will continue to enjoy significant top-line growth from globalization and secular technology shifts, positioning our investment strategies to uniquely benefit from these trends.",
+      "category": "landing"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "Through seasoned advisory expertise, innovative investment strategies, and a robust global network, Raine provides integral support to industry heavyweights and entrepreneurial disruptors alike.",
+      "source_url": "https://raine.com/",
+      "quote": "Through seasoned advisory expertise, innovative investment strategies, and a robust global network, Raine provides integral support to industry heavyweights and entrepreneurial disruptors alike.",
+      "category": "landing"
+    },
+    {
+      "value": "Raine brings together strategic counsel, capital, and a powerful global network to help clients and portfolio companies achieve groundbreaking outcomes.",
+      "source_url": "https://raine.com/",
+      "quote": "Raine brings together strategic counsel, capital, and a powerful global network to help clients and portfolio companies achieve groundbreaking outcomes.",
+      "category": "landing"
+    },
+    {
+      "value": "We utilize our integrated platform, along with our global connectivity and reach, to provide differentiated services and a unique perspective.",
+      "source_url": "https://raine.com/",
+      "quote": "We utilize our integrated platform, along with our global connectivity and reach, to provide differentiated services and a unique perspective.",
+      "category": "landing"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Raine manages strategies across growth equity and venture capital, with current assets under management of approximately $2.8 billion.",
+      "source_url": "https://raine.com/",
+      "quote": "Raine manages strategies across growth equity and venture capital, with current assets under management of approximately $2.8 billion.",
+      "category": "landing"
+    },
+    {
+      "value": "Our growth and venture strategies seek investments across our four core verticals – sports, content, music, and gaming – as well as at their intersections, with specialized teams focused on advertising, commerce, and technology.",
+      "source_url": "https://raine.com/",
+      "quote": "Our growth and venture strategies seek investments across our four core verticals – sports, content, music, and gaming – as well as at their intersections, with specialized teams focused on advertising, commerce, and technology.",
+      "category": "landing"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "Through seasoned advisory expertise, innovative investment strategies, and a robust global network, Raine provides integral support to industry heavyweights and entrepreneurial disruptors alike.",
+      "firm_claim_source": "https://raine.com/",
+      "quote": "Through seasoned advisory expertise, innovative investment strategies, and a robust global network, Raine provides integral support to industry heavyweights and entrepreneurial disruptors alike.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "We are selective in taking on engagements, and focus on transactions where we believe our involvement can maximize outcomes for our clients.",
+      "firm_claim_source": "https://raine.com/",
+      "quote": "We are selective in taking on engagements, and focus on transactions where we believe our involvement can maximize outcomes for our clients.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Raine manages strategies across growth equity and venture capital, with current assets under management of approximately $2.8 billion.",
+      "firm_claim_source": "https://raine.com/",
+      "quote": "Raine manages strategies across growth equity and venture capital, with current assets under management of approximately $2.8 billion.",
+      "basis": "asset_classes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://raine.com/"
+  ],
+  "confidence": "low",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news",
+    "no careers page found on the firm's domain",
+    "no university_recruiting page found on the firm's domain",
+    "no values_culture page found on the firm's domain"
+  ]
+}

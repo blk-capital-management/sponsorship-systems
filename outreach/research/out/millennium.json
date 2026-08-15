@@ -1,0 +1,189 @@
+{
+  "firm": "Millennium Management",
+  "firm_slug": "millennium",
+  "domain": "mlp.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:45+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.mlp.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "university_recruiting",
+      "url": "https://www.mlp.com/careers/students/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.mlp.com/careers/life-at-millennium/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.mlp.com/people/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.mlp.com/cdn-cgi/l/email-protection#2f424a4b464e46415e5a465d464a5c6f42435f014c4042",
+      "status": 404,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Millennium is a global, diversified alternative investment firm with the mission to deliver high-quality returns for our investors.",
+      "source_url": "https://www.mlp.com/",
+      "quote": "Millennium is a global, diversified alternative investment firm with the mission to deliver high-quality returns for our investors.",
+      "category": "landing"
+    },
+    {
+      "value": "We seek to empower our global network to deliver on our mission.",
+      "source_url": "https://www.mlp.com/",
+      "quote": "We seek to empower our global network to deliver on our mission.",
+      "category": "landing"
+    },
+    {
+      "value": "At Millennium, our Quantitative roles enable you to turn data into actionable insights, help develop sophisticated models and collaborate with industry experts to support investment strategies.",
+      "source_url": "https://www.mlp.com/careers/students/",
+      "quote": "At Millennium, our Quantitative roles enable you to turn data into actionable insights, help develop sophisticated models and collaborate with industry experts to support investment strategies.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Collaborate with experts at the intersection of technology and finance to help drive innovation.",
+      "source_url": "https://www.mlp.com/careers/students/",
+      "quote": "Collaborate with experts at the intersection of technology and finance to help drive innovation.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Gain hands-on experience in software development and quantitative engineering, against the backdrop of our entrepreneurial, collaborative culture.",
+      "source_url": "https://www.mlp.com/careers/students/",
+      "quote": "Gain hands-on experience in software development and quantitative engineering, against the backdrop of our entrepreneurial, collaborative culture.",
+      "category": "university_recruiting"
+    }
+  ],
+  "campus_or_early_careers_programs": [
+    {
+      "value": "Discover how your interests and skills align with a career at Millennium through our immersive program for top undergraduate and master’s students.",
+      "source_url": "https://www.mlp.com/careers/students/",
+      "quote": "Discover how your interests and skills align with a career at Millennium through our immersive program for top undergraduate and master’s students.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Hear from those who began their journey with us as interns and emerged as analysts with greater self-understanding.",
+      "source_url": "https://www.mlp.com/careers/students/",
+      "quote": "Hear from those who began their journey with us as interns and emerged as analysts with greater self-understanding.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Is experience in financial markets needed to apply to an internship role?",
+      "source_url": "https://www.mlp.com/careers/students/",
+      "quote": "Is experience in financial markets needed to apply to an internship role?",
+      "category": "university_recruiting"
+    }
+  ],
+  "recruiting_timeline_signals": [
+    {
+      "value": "Please note that individuals may only submit up to two (2) applications, including applications for different locations.",
+      "source_url": "https://www.mlp.com/careers/students/",
+      "quote": "Please note that individuals may only submit up to two (2) applications, including applications for different locations.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Our applications will open on August 3, and roles will be filled on a rolling basis.",
+      "source_url": "https://www.mlp.com/careers/students/",
+      "quote": "Our applications will open on August 3, and roles will be filled on a rolling basis.",
+      "category": "university_recruiting"
+    }
+  ],
+  "offices_and_regions": [
+    {
+      "value": "Millennium is a global, diversified alternative investment firm with the mission to deliver high-quality returns for our investors.",
+      "source_url": "https://www.mlp.com/",
+      "quote": "Millennium is a global, diversified alternative investment firm with the mission to deliver high-quality returns for our investors.",
+      "category": "landing"
+    },
+    {
+      "value": "We seek to empower our global network to deliver on our mission.",
+      "source_url": "https://www.mlp.com/",
+      "quote": "We seek to empower our global network to deliver on our mission.",
+      "category": "landing"
+    },
+    {
+      "value": "We encourage candidates to carefully select and apply to the roles and locations that best align with their skills and aspirations.",
+      "source_url": "https://www.mlp.com/careers/students/",
+      "quote": "We encourage candidates to carefully select and apply to the roles and locations that best align with their skills and aspirations.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Please note that individuals may only submit up to two (2) applications, including applications for different locations.",
+      "source_url": "https://www.mlp.com/careers/students/",
+      "quote": "Please note that individuals may only submit up to two (2) applications, including applications for different locations.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Our people are empowered to turn ideas into opportunities on a global scale.",
+      "source_url": "https://www.mlp.com/people/",
+      "quote": "Our people are empowered to turn ideas into opportunities on a global scale.",
+      "category": "values_culture"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "We collaborate across Investment, Technology and Core Infrastructure to continually challenge the status quo.",
+      "source_url": "https://www.mlp.com/people/",
+      "quote": "We collaborate across Investment, Technology and Core Infrastructure to continually challenge the status quo.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Dedicated specialists across the globe bring their skills and expertise to all areas of the business, creating a foundation and infrastructure for the firm’s success.",
+      "source_url": "https://www.mlp.com/people/",
+      "quote": "Dedicated specialists across the globe bring their skills and expertise to all areas of the business, creating a foundation and infrastructure for the firm’s success.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "Discover how your interests and skills align with a career at Millennium through our immersive program for top undergraduate and master’s students.",
+      "firm_claim_source": "https://www.mlp.com/careers/students/",
+      "quote": "Discover how your interests and skills align with a career at Millennium through our immersive program for top undergraduate and master’s students.",
+      "basis": "campus_or_early_careers_programs"
+    },
+    {
+      "text": "Millennium is a global, diversified alternative investment firm with the mission to deliver high-quality returns for our investors.",
+      "firm_claim_source": "https://www.mlp.com/",
+      "quote": "Millennium is a global, diversified alternative investment firm with the mission to deliver high-quality returns for our investors.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "We collaborate across Investment, Technology and Core Infrastructure to continually challenge the status quo.",
+      "firm_claim_source": "https://www.mlp.com/people/",
+      "quote": "We collaborate across Investment, Technology and Core Infrastructure to continually challenge the status quo.",
+      "basis": "asset_classes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.mlp.com/careers/students/",
+    "https://www.mlp.com/",
+    "https://www.mlp.com/people/"
+  ],
+  "confidence": "medium",
+  "gaps": [
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news"
+  ]
+}

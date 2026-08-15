@@ -1,0 +1,151 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# BLK Sponsor Outreach — Settings
+# Paths are relative to this config file's directory (or absolute), matching the
+# same contract used by resume-book-builder/config/settings.yaml.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Research crawl ────────────────────────────────────────────────────────────
+research:
+  # Page categories to look for. The crawler takes the single best-matching page
+  # per category on the firm's own domain and goes no deeper. Adding categories
+  # here produces research for its own sake; four is the ceiling by design.
+  categories:
+    - careers
+    - university_recruiting
+    - values_culture
+    - news
+
+  max_pages_per_firm: 4
+  requests_per_second_per_domain: 1.0
+  request_timeout_seconds: 20
+  max_link_candidates: 400        # links scanned on the landing page per firm
+
+  user_agent: >-
+    BLKCapitalManagementResearchBot/1.0 (student finance nonprofit; sponsor
+    research; +https://blkcapitalmanagement.org; jamari@blkcapitalmanagement.org)
+
+  respect_robots: true
+  cache_dir: ../research/cache
+  out_dir: ../research/out
+
+  # Playwright is opt-in. Only used when a page returns almost no text without JS.
+  # Requires: pip install playwright && playwright install chromium
+  playwright_fallback: false
+  min_text_chars_before_js_fallback: 400
+
+  # Confidence thresholds, measured in distinct categories that yielded citable
+  # content. Below low_threshold routes the firm to the manual queue.
+  confidence:
+    high_min_categories: 3
+    medium_min_categories: 2
+    low_max_categories: 1
+
+  max_alignment_hooks: 3
+
+# ── Contacts (Phase 3) ────────────────────────────────────────────────────────
+contacts:
+  # Priority order. Human Capital outranks generic HR at PE and credit firms
+  # because it sits closer to the budget.
+  title_priority:
+    - University Relations
+    - Campus Recruiting
+    - Early Careers
+    - Emerging Talent
+    - Human Capital
+    - Talent Partner
+    - Head of Talent Acquisition
+
+  # Firm types where Human Capital is promoted above the campus-specific titles.
+  # At PE and credit firms Human Capital sits closer to the budget than HR does.
+  # Values must match the firm_type column in data/targets.csv.
+  human_capital_first_for_types:
+    - PE
+    - "PE (Middle Market)"
+    - "Private Credit"
+    - "Private Markets"
+
+  # ── Hunter scope and budget ────────────────────────────────────────────────
+  hunter:
+    # Hard stop, not a warning. An unbounded loop over 28 firms can exhaust a
+    # month of free-tier credits in a single run. Override per run with the
+    # MAX_HUNTER_CALLS_PER_RUN environment variable.
+    max_calls_per_run: 10
+
+    # Domain Search and Email Finder may only be called with a domain that
+    # already has a row in data/targets.csv. Discover is the only endpoint
+    # allowed to surface a new domain, and only into review/prospects.csv.
+    # This is enforced in contacts/hunter_guard.py, not by convention.
+
+    # Hunter attributes most addresses to LinkedIn. Jamari's call, 2026-08-13:
+    # using a licensed API whose corpus includes LinkedIn is within rule 3,
+    # because BLK is not scraping LinkedIn. common/http.py still refuses
+    # linkedin.com at the request layer, so no scraping path exists either way.
+    # Set to true to reject LinkedIn-attributed addresses instead.
+    reject_linkedin_derived_sources: false
+
+    # Server-side department filter. The free plan returns 10 addresses per
+    # domain, so an unfiltered call spends the whole allowance on investment
+    # professionals who are never the target. Hunter values: executive, it,
+    # finance, management, sales, legal, support, hr, marketing, communication.
+    domain_search_departments: hr,executive
+
+  verification:
+    provider: hunter              # hunter | apollo | rocketreach | dryrun
+    min_score: 80                 # 0-100; addresses below this are dropped
+    api_key_env:
+      hunter: HUNTER_API_KEY
+      apollo: APOLLO_API_KEY
+      rocketreach: ROCKETREACH_API_KEY
+
+# ── Drafting (Phase 4) ────────────────────────────────────────────────────────
+drafts:
+  model: claude-opus-5
+  api_key_env: ANTHROPIC_API_KEY
+  template_version: "2026-27.v1"
+  firm_paragraph:
+    min_sentences: 2
+    max_sentences: 3
+    max_validator_retries: 2
+    # On repeated validator failure: "fallback" composes deterministically from
+    # the hook sentences; "manual_queue" routes the firm out instead.
+    on_validator_failure: fallback
+  out_dir: ../drafts/out
+
+# ── Review and send (Phase 5) ─────────────────────────────────────────────────
+review:
+  queue_path: ../review/queue.csv
+  manual_queue_path: ../review/manual_queue.csv
+  suppression_path: ../review/suppression.csv
+
+send:
+  # Hard stop, not a warning. Exceeding it damages domain reputation, which would
+  # degrade deliverability on live sponsor threads.
+  daily_cap_per_mailbox: 40
+  mailbox: jamari@blkcapitalmanagement.org
+  send_log_path: ../review/send_log.csv
+
+  # Reuses the resume book's OAuth client, with its own token cache so the
+  # resume book's existing token.json is never invalidated.
+  auth:
+    credentials_file: ../../resume-book-builder/credentials.json
+    token_file: gmail_token.json
+    scopes:
+      - https://www.googleapis.com/auth/gmail.compose
+      - https://www.googleapis.com/auth/spreadsheets
+
+  prospectus_by_region:
+    EMEA: "../../BLK EMEA Prospectus 26-27.pdf"
+    US: null                      # US prospectus path to be supplied
+    default: null
+
+# ── CRM writeback ─────────────────────────────────────────────────────────────
+crm:
+  backend: xlsx                   # xlsx | sheets
+  tab: "Pipeline & Leads"
+  header_row: 4
+
+  xlsx:
+    path: "../../sponsor-crm/Sponsor_CRM_2026-27_UPDATED (2).xlsx"
+
+  sheets:
+    spreadsheet_id: ""            # paste the Google Sheet ID to switch backends

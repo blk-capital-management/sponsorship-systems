@@ -1,0 +1,8 @@
+severity,category,row_number,student_name,graduation_year,sponsor,field,issue,recommended_fix
+error,missing_field,3,Bob,2026,,last_name,Last name is missing.,Fill in the last name in the spreadsheet for this row.
+error,graduation_year,4,Carol Jones,abc,,graduation_year,Graduation year 'abc' is not a valid year.,Update the graduation year to a 4-digit numeric year (e.g. 2026).
+error,invalid_link,4,Carol Jones,abc,,resume_link,Could not extract a Google Drive file ID from: not-a-drive-link,Ask the student to provide a valid Google Drive share link. It should look like: https://drive.google.com/file/d/FILE_ID/view
+warning,duplicate,5,Alice Smith,2026,,,Duplicate student entry. First seen at row 2.,"Remove the duplicate row. Keep the most recent submission (row 5) and delete row 2, or vice versa."
+warning,transition_page,,,2026,,,No transition page found for graduation year 2026.,Add a PDF named like '2026 Transition.pdf' to /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/transition_pages. Export it from Canva.
+error,sponsor,,,,Example Sponsor A,,Sponsor column 'Example Sponsor A' for 'Example Sponsor A' not found in the spreadsheet.,Open the spreadsheet and check the exact column header for 'Example Sponsor A'. Update config/sponsors.yaml to match it exactly (case-insensitive).
+error,sponsor,,,,Example Sponsor B,,Sponsor column 'Example Sponsor B' for 'Example Sponsor B' not found in the spreadsheet.,Open the spreadsheet and check the exact column header for 'Example Sponsor B'. Update config/sponsors.yaml to match it exactly (case-insensitive).

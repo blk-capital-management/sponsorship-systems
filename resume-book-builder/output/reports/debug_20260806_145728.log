@@ -1,0 +1,134 @@
+2026-08-06 14:57:28  DEBUG     blk  Log file: output/reports/debug_20260806_145728.log
+2026-08-06 14:57:28  INFO      blk.main  BLK Resume Book Builder — command: build-franklin-templeton
+2026-08-06 14:57:28  DEBUG     blk.main  Config: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/config/settings.yaml
+2026-08-06 14:57:29  INFO      blk.loaders.excel_loader  Loading Excel file: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/BLK Undergraduate Audit 2026 (Responses) .xlsx (sheet=Form Link (dont edit))
+2026-08-06 14:57:30  INFO      blk.loaders.excel_loader  Excel loaded: 620 rows × 46 columns.
+2026-08-06 14:57:30  DEBUG     blk.loaders.excel_loader  Columns: ['Timestamp', 'First name:', 'Last name:', 'BLK ID:', 'University email:', 'Personal email:', 'Preferred email address:', 'Home City:', 'I am currently a:', 'Phone number:', 'Gender:', 'When did you join BLK?', 'When will you graduate?', 'What Region are you in?', 'Which of these major cities is within a 15-mile radius of your college/university?', 'Are you able to work in the US?', 'What is the name of the company that you interned with after your first year of college?', 'Location (City, State):', 'Industry:', 'How many offers did you receive?', "If you got another offer and you didn't take it why?", 'What is the name of the company that you interned with after your second year of college?', 'Location (City, State): 2', 'Industry: 2', 'How many offers did you receive? 2', "If you got another offer and you didn't take it why? 2", 'What is the name of the company that you interned with after your third year of college?', 'Location (City, State): 3', 'Industry: 3', 'How many offers did you receive? 3', "If you got another offer and you didn't take it why? 3", 'What company did you accept a full-time offer from after completing your undergraduate studies?', 'University/College:', 'University/College City:', 'School type:', 'Overall GPA:', 'Chosen/Expected Major:', 'When will/did you graduate?', 'Are you part of the following organizations?', 'Updated resume (pdf format):', 'As of right now, what career paths interest you most? We shall do our best to target you with associated opportunities. ', "Feel free to let us know you top firms of interest so we can keep this in mind for current and future sponsors in the region. Please indicate if the firm isn't already a sponsor.", 'Feel free to go into more detail about your career interests so we can best match you to sponsor opportunities', 'Was there any specific BLK event that assisted in your recruitment? (Conference, Spotlight Call, etc.)', 'Which position would you like to be next year?', 'What year are you filling out this audit for?']
+2026-08-06 14:57:30  DEBUG     blk.loaders.column_resolver  Field 'first_name' resolved to column 'First name:'
+2026-08-06 14:57:30  DEBUG     blk.loaders.column_resolver  Field 'last_name' resolved to column 'Last name:'
+2026-08-06 14:57:30  DEBUG     blk.loaders.column_resolver  Field 'graduation_year' resolved to column 'When will you graduate?'
+2026-08-06 14:57:30  DEBUG     blk.loaders.column_resolver  Field 'resume_link' resolved to column 'Updated resume (pdf format):'
+2026-08-06 14:57:30  INFO      blk.processing.pdf_merger  Loaded 0 transition page(s) from /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/transition_pages.
+2026-08-06 14:57:30  WARNING   blk.main  Validation found 5 error(s) (see error report). Proceeding anyway — rows outside the class-of-2029 cohort are not eligible for this book. Run: python -m src.main validate --config config/settings.yaml for details.
+2026-08-06 14:57:30  INFO      blk.processing.audit_filter  Recency filter: kept 287/620 rows with Timestamp year >= 2026.
+2026-08-06 14:57:30  INFO      blk.processing.audit_filter  Dedup: dropped 20 duplicate submission(s) by 'BLK ID:' (kept latest).
+2026-08-06 14:57:30  DEBUG     blk.auth.google_auth  Loaded cached token from /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/token.json
+2026-08-06 14:57:30  INFO      blk.auth.google_auth  Refreshing expired Google token…
+2026-08-06 14:57:30  DEBUG     blk.auth.google_auth  Token cached at /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/token.json
+2026-08-06 14:57:30  INFO      blk.builders.franklin_templeton_builder  Franklin Templeton book: 36 class-of-2029 students eligible.
+2026-08-06 14:57:30  DEBUG     blk.processing.resume_downloader  Downloading 'Resume - Endrias Abebe - Endrias A.pdf' (mime=application/pdf)
+2026-08-06 14:57:30  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1kbica0AZD_lK9lwpCJgVlIxRb5OUoarz
+2026-08-06 14:57:31  DEBUG     blk.builders.franklin_templeton_builder      + Endrias Abebe
+2026-08-06 14:57:31  DEBUG     blk.processing.resume_downloader  Downloading 'Ethan Abebe Resume v3 - Ethan Abebe.pdf' (mime=application/pdf)
+2026-08-06 14:57:31  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1N72ikVesIT00klItyvYLLCxfgT92qP7z
+2026-08-06 14:57:32  DEBUG     blk.builders.franklin_templeton_builder      + Ethan Abebe
+2026-08-06 14:57:32  DEBUG     blk.processing.resume_downloader  Downloading 'Abel Alemayehu 2 - Abel.pdf' (mime=application/pdf)
+2026-08-06 14:57:32  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1vKU5cQzpDmk3LcqV_mruGvmwJDrK5zIr
+2026-08-06 14:57:33  DEBUG     blk.builders.franklin_templeton_builder      + Abel Alemayehu
+2026-08-06 14:57:33  DEBUG     blk.processing.resume_downloader  Downloading 'Naomi Alexander Resume - Naomi.pdf' (mime=application/pdf)
+2026-08-06 14:57:33  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1O9oSsm5z8tUSp93JFtT5pRD_-1fBCPkf
+2026-08-06 14:57:34  DEBUG     blk.builders.franklin_templeton_builder      + Naomi Alexander
+2026-08-06 14:57:34  DEBUG     blk.processing.resume_downloader  Downloading 'Naomi Alexander Resume - Naomi.pdf' (mime=application/pdf)
+2026-08-06 14:57:34  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1Kf1PmWVfb4eBB5-gBeZ-uzOMolW6j4Hy
+2026-08-06 14:57:35  DEBUG     blk.builders.franklin_templeton_builder      + Naomi Alexander
+2026-08-06 14:57:35  DEBUG     blk.processing.resume_downloader  Downloading 'Jesse Ampong's_Intern - Business Development - Federal Civilian Growth_20260128 - Jesse Ampong.pdf' (mime=application/pdf)
+2026-08-06 14:57:35  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1SL_F_m1Kvm9ekyV0xkpo1GBG2HpjGK_Y
+2026-08-06 14:57:36  DEBUG     blk.builders.franklin_templeton_builder      + Jesse Ampong
+2026-08-06 14:57:36  DEBUG     blk.processing.resume_downloader  Downloading 'Abigail Assefa's Resume - Abigail Assefa.pdf' (mime=application/pdf)
+2026-08-06 14:57:36  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=17MsWPAWX2RWdhuKfwx6oOgwBpUMxiXIH
+2026-08-06 14:57:37  DEBUG     blk.builders.franklin_templeton_builder      + Abigail Assefa
+2026-08-06 14:57:37  DEBUG     blk.processing.resume_downloader  Downloading 'resume v01.08 - Sean Awet.pdf' (mime=application/pdf)
+2026-08-06 14:57:37  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1NRDcbKYjZ4ki2yUDFXFAIZmV3WL8r8Ed
+2026-08-06 14:57:37  DEBUG     blk.builders.franklin_templeton_builder      + Sean Awet
+2026-08-06 14:57:38  DEBUG     blk.processing.resume_downloader  Downloading 'James Bryant Resume - JT Bryant.pdf' (mime=application/pdf)
+2026-08-06 14:57:38  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=12thACCviIx8XSOAKpjfcldIpku-8CY2v
+2026-08-06 14:57:38  DEBUG     blk.builders.franklin_templeton_builder      + James Bryant III
+2026-08-06 14:57:38  DEBUG     blk.processing.resume_downloader  Downloading 'Ezra_Clayton_Resume - Ezra Clayton.pdf' (mime=application/pdf)
+2026-08-06 14:57:38  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1l52jmtalQaLI2L2L3QrrDlhOHod-BfRp
+2026-08-06 14:57:39  DEBUG     blk.builders.franklin_templeton_builder      + Ezra Clayton
+2026-08-06 14:57:39  DEBUG     blk.processing.resume_downloader  Downloading 'Kyle Clinkscale Resume (05_2026)  (1) - Kyle Clinkscale.pdf' (mime=application/pdf)
+2026-08-06 14:57:39  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1uRLrB-KQp8lciQegBaRJhUWOn8H8Fubu
+2026-08-06 14:57:40  DEBUG     blk.builders.franklin_templeton_builder      + Kyle Clinkscale
+2026-08-06 14:57:40  DEBUG     blk.processing.resume_downloader  Downloading 'Covington_Kevin_June2026 (1) (1) - Kevin Covington.pdf' (mime=application/pdf)
+2026-08-06 14:57:40  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1InbQhrpEvHjlb-wPpGcmFg0teP2Ac6PW
+2026-08-06 14:57:41  DEBUG     blk.builders.franklin_templeton_builder      + Kevin Covington
+2026-08-06 14:57:41  DEBUG     blk.processing.resume_downloader  Downloading 'Dousuah, Joseph 3 - WhoSzn.pdf' (mime=application/pdf)
+2026-08-06 14:57:41  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1aP8K5iq0jB8i2lwOKVAmpUvPhf_smc5I
+2026-08-06 14:57:42  DEBUG     blk.builders.franklin_templeton_builder      + Joseph Dousuah
+2026-08-06 14:57:42  DEBUG     blk.processing.resume_downloader  Downloading 'Resume-Robell - Robell Ephrem.pdf' (mime=application/pdf)
+2026-08-06 14:57:42  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1EPL6lLUzte5Pk0BzSFTPCyVrq58hvRx0
+2026-08-06 14:57:42  DEBUG     blk.builders.franklin_templeton_builder      + Robell Ephrem
+2026-08-06 14:57:43  DEBUG     blk.processing.resume_downloader  Downloading 'Esayas & - - & Joseias Resume - -.docx - Joseias Esayas.pdf' (mime=application/pdf)
+2026-08-06 14:57:43  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=12oqVk6wRYnHcpfx-dqseGiYQXUzVhVQp
+2026-08-06 14:57:43  DEBUG     blk.builders.franklin_templeton_builder      + Joseias Esayas
+2026-08-06 14:57:43  DEBUG     blk.processing.resume_downloader  Downloading 'Arashi_Hunter_Resume - Arashi Hunter.pdf' (mime=application/pdf)
+2026-08-06 14:57:43  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=15t1T2F9OMEOkZLEAi1j09bQMm89oVYox
+2026-08-06 14:57:44  DEBUG     blk.builders.franklin_templeton_builder      + Keith Hunter
+2026-08-06 14:57:44  DEBUG     blk.processing.resume_downloader  Downloading 'Michael Anthony Hunter Resume  - Michael Anthony Hunter.pdf' (mime=application/pdf)
+2026-08-06 14:57:44  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1o9602ZX-MgHQosJuF31o8sMMmeSFnr4R
+2026-08-06 14:57:44  DEBUG     blk.builders.franklin_templeton_builder      + Michael Hunter
+2026-08-06 14:57:45  DEBUG     blk.processing.resume_downloader  Downloading 'Ameen, Ibrahim Resume - Ameen Ibrahim.pdf' (mime=application/pdf)
+2026-08-06 14:57:45  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1So92SyH8_gC3PSEIdNF9_KDtJfrnfwS0
+2026-08-06 14:57:45  DEBUG     blk.builders.franklin_templeton_builder      + Ameen Ibrahim
+2026-08-06 14:57:45  DEBUG     blk.processing.resume_downloader  Downloading 'Caleb_Joel_[Month]2026 - Caleb Joel.pdf' (mime=application/pdf)
+2026-08-06 14:57:45  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1ACdMgWjSiB7okxHALeJgJ3g7aPwuy5pT
+2026-08-06 14:57:46  DEBUG     blk.builders.franklin_templeton_builder      + Caleb Joel
+2026-08-06 14:57:46  DEBUG     blk.processing.resume_downloader  Downloading 'Mohamed M Kone 1 - Mohamed Kone.pdf' (mime=application/pdf)
+2026-08-06 14:57:46  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1JYJgt_pyADbyau0xA2pDYgjP913JcwNc
+2026-08-06 14:57:47  DEBUG     blk.builders.franklin_templeton_builder      + Mohamed Kone
+2026-08-06 14:57:47  DEBUG     blk.processing.resume_downloader  Downloading 'Neriah Laborde Résumé - Neriah Laborde.pdf' (mime=application/pdf)
+2026-08-06 14:57:47  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=15czgNdLsKMNsbeFkSp8qIkW33gE7Je1l
+2026-08-06 14:57:47  DEBUG     blk.builders.franklin_templeton_builder      + Neriah Laborde
+2026-08-06 14:57:48  DEBUG     blk.processing.resume_downloader  Downloading 'Aser Mehari - Resume (8) - Aser Mehari.pdf' (mime=application/pdf)
+2026-08-06 14:57:48  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1Hg7kuXS0LF_X68evmEuykHnfMiO6hWzF
+2026-08-06 14:57:48  DEBUG     blk.builders.franklin_templeton_builder      + Aser Mehari
+2026-08-06 14:57:48  DEBUG     blk.processing.resume_downloader  Downloading 'Olivier_Morin_Resume - Olivier Morin.pdf' (mime=application/pdf)
+2026-08-06 14:57:48  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=13KG-i2147GG3RSmQSMQw2qclyq1bPmJY
+2026-08-06 14:57:49  DEBUG     blk.builders.franklin_templeton_builder      + Olivier Morin
+2026-08-06 14:57:49  DEBUG     blk.processing.resume_downloader  Downloading 'Daniel_Purvis_Resume - Daniel Purvis.pdf' (mime=application/pdf)
+2026-08-06 14:57:49  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1RFiNjDERPFIMm5jqKPuSDbfW7UmE-w9j
+2026-08-06 14:57:50  DEBUG     blk.builders.franklin_templeton_builder      + Daniel Purvis
+2026-08-06 14:57:50  DEBUG     blk.processing.resume_downloader  Downloading 'Ethan J Rochester Resume .docx - EJ Rochester.pdf' (mime=application/pdf)
+2026-08-06 14:57:50  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1qEUOvt0z9UP8qV5V2W421WM4ESKhN4qM
+2026-08-06 14:57:51  DEBUG     blk.builders.franklin_templeton_builder      + Ethan Rochester
+2026-08-06 14:57:51  DEBUG     blk.processing.resume_downloader  Downloading 'Bryson.Simmons_Resume - OOS - Bryson Simmons.pdf' (mime=application/pdf)
+2026-08-06 14:57:51  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1ib-zF2yQNG8uaKj34IxgaqIioUWrW0Xf
+2026-08-06 14:57:51  DEBUG     blk.builders.franklin_templeton_builder      + Bryson Simmons
+2026-08-06 14:57:51  DEBUG     blk.processing.resume_downloader  Downloading 'Stackhouse,%20Cye%20Resume.pdf - Cye Stackhouse.pdf' (mime=application/pdf)
+2026-08-06 14:57:51  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1lnP5Q0tMi91HpQhEO-N2fCtRE5OmT-G5
+2026-08-06 14:57:52  DEBUG     blk.builders.franklin_templeton_builder      + Cye Stackhouse
+2026-08-06 14:57:52  DEBUG     blk.processing.resume_downloader  Downloading 'Augustin Tanoh Resume-9 - Augustin Tanoh.pdf' (mime=application/pdf)
+2026-08-06 14:57:52  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1JnQ5nMvwGwn2hfEt9DHPct05In5L_226
+2026-08-06 14:57:53  DEBUG     blk.builders.franklin_templeton_builder      + Augustin Tanoh
+2026-08-06 14:57:53  DEBUG     blk.processing.resume_downloader  Downloading 'Augustin Tanoh Resume-7 - Augustin Tanoh.pdf' (mime=application/pdf)
+2026-08-06 14:57:53  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1zlRedQML5UemhkdodDjnE8HaX3rzDEj8
+2026-08-06 14:57:54  DEBUG     blk.builders.franklin_templeton_builder      + Augustin Tanoh
+2026-08-06 14:57:54  DEBUG     blk.processing.resume_downloader  Downloading 'Tedros, Abigail - Resume.docx - Abigail Tedros.pdf' (mime=application/pdf)
+2026-08-06 14:57:54  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1eY1F4PLk7C-Z3U8ZCMOWizK3hqWRfcuk
+2026-08-06 14:57:55  DEBUG     blk.builders.franklin_templeton_builder      + Abigail Tedros
+2026-08-06 14:57:55  DEBUG     blk.processing.resume_downloader  Downloading 'Abigail Tedros - Resume - Abigail Tedros.pdf' (mime=application/pdf)
+2026-08-06 14:57:55  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=18yENab95uAhJZN0EUv81rBY2CRahdh-F
+2026-08-06 14:57:55  DEBUG     blk.builders.franklin_templeton_builder      + Abigail Tedros
+2026-08-06 14:57:56  DEBUG     blk.processing.resume_downloader  Downloading 'Hans Teme_Resume - Hans Teme.pdf' (mime=application/pdf)
+2026-08-06 14:57:56  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1tyqk2nvd9APB_rf80FtWSmqoClYJzZCA
+2026-08-06 14:57:56  DEBUG     blk.builders.franklin_templeton_builder      + Hans Teme
+2026-08-06 14:57:56  DEBUG     blk.processing.resume_downloader  Downloading 'Tewelde, Sefanit - Sefanit Tewelde.pdf' (mime=application/pdf)
+2026-08-06 14:57:56  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=14MDI9XZL1h6dgPImQVy5ydLlicbauZoN
+2026-08-06 14:57:57  DEBUG     blk.builders.franklin_templeton_builder      + Sefanit Tewelde
+2026-08-06 14:57:57  DEBUG     blk.processing.resume_downloader  Downloading 'Eva Tiku's Resume - Eva Tiku.pdf' (mime=application/pdf)
+2026-08-06 14:57:57  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1HTdisR2Ecbtht7B52D6gQOsZJWAVTFLf
+2026-08-06 14:57:58  DEBUG     blk.builders.franklin_templeton_builder      + Eva Tiku
+2026-08-06 14:57:58  DEBUG     blk.processing.resume_downloader  Downloading 'elhadjtoure_resume - Elhadj.pdf' (mime=application/pdf)
+2026-08-06 14:57:58  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1JdV278dV2edkZ7EBYLxxPcChbadCJpcg
+2026-08-06 14:57:59  DEBUG     blk.builders.franklin_templeton_builder      + Elhadj Toure
+2026-08-06 14:57:59  DEBUG     blk.processing.resume_downloader  Downloading 'Brionna Triplett Resume 2026 - Brionna Triplett.pdf' (mime=application/pdf)
+2026-08-06 14:57:59  DEBUG     blk.processing.pdf_converter  Downloading native PDF file_id=1SeXXO2ypa-mS6ounh7tBqZqH70gr1BRp
+2026-08-06 14:58:00  DEBUG     blk.builders.franklin_templeton_builder      + Brionna Triplett
+2026-08-06 14:58:00  DEBUG     blk.processing.pdf_compressor  Running Ghostscript: /opt/homebrew/bin/gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile=/var/folders/yv/wcn4kfm95hq543d18q0h_6vr0000gn/T/tmpxl6q42sx.pdf /var/folders/yv/wcn4kfm95hq543d18q0h_6vr0000gn/T/tmp0hu8c0h4.pdf
+2026-08-06 14:58:06  INFO      blk.processing.pdf_compressor  Compression [ghostscript]: 6313.8 KB → 4168.1 KB  (34% reduction)
+2026-08-06 14:58:06  INFO      blk.builders.franklin_templeton_builder  Franklin Templeton resume book saved: output/sponsor_books/Franklin_Templeton_Resume_Book.pdf (4.07 MB)
+2026-08-06 14:58:06  INFO      blk.main  ────────────────────────────────────────────────────────────
+2026-08-06 14:58:06  INFO      blk.main  build-franklin-templeton complete
+2026-08-06 14:58:06  INFO      blk.main    Class of 2029: 36/36 resumes included (0 skipped)
+2026-08-06 14:58:06  INFO      blk.main    Output : output/sponsor_books/Franklin_Templeton_Resume_Book.pdf
+2026-08-06 14:58:06  INFO      blk.main  ────────────────────────────────────────────────────────────

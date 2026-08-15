@@ -1,0 +1,146 @@
+{
+  "firm": "HPS Investment Partners",
+  "firm_slug": "hps_investment",
+  "domain": "hpspartners.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:41+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.hpspartners.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.hpspartners.com/careers",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.hpspartners.com/our-story",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.hpspartners.com/insights-and-news",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "We believe many of the world's largest pension funds, insurance companies, sovereign wealth funds, and endowments turn to us for our long-term track record, breadth of investment solutions, and service-oriented mindset.",
+      "source_url": "https://www.hpspartners.com/",
+      "quote": "We believe many of the world's largest pension funds, insurance companies, sovereign wealth funds, and endowments turn to us for our long-term track record, breadth of investment solutions, and service-oriented mindset.",
+      "category": "landing"
+    },
+    {
+      "value": "Bringing rigorous problem solving and innovative thinking together, we aim to deliver solutions that unlock value from situational, transactional, and business complexity.",
+      "source_url": "https://www.hpspartners.com/",
+      "quote": "Bringing rigorous problem solving and innovative thinking together, we aim to deliver solutions that unlock value from situational, transactional, and business complexity.",
+      "category": "landing"
+    },
+    {
+      "value": "We believe clients turn to us for our experience across market environments.",
+      "source_url": "https://www.hpspartners.com/",
+      "quote": "We believe clients turn to us for our experience across market environments.",
+      "category": "landing"
+    },
+    {
+      "value": "We are a market leader in alternative credit, and our people make it possible.",
+      "source_url": "https://www.hpspartners.com/careers",
+      "quote": "We are a market leader in alternative credit, and our people make it possible.",
+      "category": "careers"
+    },
+    {
+      "value": "Working alongside some of the brightest minds in the industry, you can build your expertise, expand your perspective, and accelerate your growth in an entrepreneurial environment.",
+      "source_url": "https://www.hpspartners.com/careers",
+      "quote": "Working alongside some of the brightest minds in the industry, you can build your expertise, expand your perspective, and accelerate your growth in an entrepreneurial environment.",
+      "category": "careers"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "Intellectually curious, innovative, thorough, dedicated—our strength is our global team.",
+      "source_url": "https://www.hpspartners.com/",
+      "quote": "Intellectually curious, innovative, thorough, dedicated—our strength is our global team.",
+      "category": "landing"
+    },
+    {
+      "value": "As one of the largest global investment managers focused on alternative credit, we help our partners capitalize on the potential of a growing asset class.",
+      "source_url": "https://www.hpspartners.com/our-story",
+      "quote": "As one of the largest global investment managers focused on alternative credit, we help our partners capitalize on the potential of a growing asset class.",
+      "category": "values_culture"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Our focus, combined with the tenure and expertise of our investment team, enables us to provide deep insights that can help you capitalize on the potential of alternative credit.",
+      "source_url": "https://www.hpspartners.com/",
+      "quote": "Our focus, combined with the tenure and expertise of our investment team, enables us to provide deep insights that can help you capitalize on the potential of alternative credit.",
+      "category": "landing"
+    },
+    {
+      "value": "We are a market leader in alternative credit, and our people make it possible.",
+      "source_url": "https://www.hpspartners.com/careers",
+      "quote": "We are a market leader in alternative credit, and our people make it possible.",
+      "category": "careers"
+    },
+    {
+      "value": "As one of the largest global investment managers focused on alternative credit, we help our partners capitalize on the potential of a growing asset class.",
+      "source_url": "https://www.hpspartners.com/our-story",
+      "quote": "As one of the largest global investment managers focused on alternative credit, we help our partners capitalize on the potential of a growing asset class.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Morgan Asset Management and became an employee-owned organization in 2016.",
+      "source_url": "https://www.hpspartners.com/our-story",
+      "quote": "Morgan Asset Management and became an employee-owned organization in 2016.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "We believe many of the world's largest pension funds, insurance companies, sovereign wealth funds, and endowments turn to us for our long-term track record, breadth of investment solutions, and service-oriented mindset.",
+      "firm_claim_source": "https://www.hpspartners.com/",
+      "quote": "We believe many of the world's largest pension funds, insurance companies, sovereign wealth funds, and endowments turn to us for our long-term track record, breadth of investment solutions, and service-oriented mindset.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "We are a market leader in alternative credit, and our people make it possible.",
+      "firm_claim_source": "https://www.hpspartners.com/careers",
+      "quote": "We are a market leader in alternative credit, and our people make it possible.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "Bringing rigorous problem solving and innovative thinking together, we aim to deliver solutions that unlock value from situational, transactional, and business complexity.",
+      "firm_claim_source": "https://www.hpspartners.com/",
+      "quote": "Bringing rigorous problem solving and innovative thinking together, we aim to deliver solutions that unlock value from situational, transactional, and business complexity.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.hpspartners.com/",
+    "https://www.hpspartners.com/careers"
+  ],
+  "confidence": "medium",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

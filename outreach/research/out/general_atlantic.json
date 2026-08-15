@@ -1,0 +1,151 @@
+{
+  "firm": "General Atlantic",
+  "firm_slug": "general_atlantic",
+  "domain": "generalatlantic.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:23+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.generalatlantic.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.generalatlantic.com/careers/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.generalatlantic.com/our-culture/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.generalatlantic.com/news-insights/?type=press-release",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "General Atlantic is a global investment leader — the dedicated partner for entrepreneurs and investors building long-term value.",
+      "source_url": "https://www.generalatlantic.com/",
+      "quote": "General Atlantic is a global investment leader — the dedicated partner for entrepreneurs and investors building long-term value.",
+      "category": "landing"
+    },
+    {
+      "value": "Accelerating the growth of category-leading companies by providing the strategic counsel, resources and value-add capabilities they need to realize the next chapter of their stories.",
+      "source_url": "https://www.generalatlantic.com/",
+      "quote": "Accelerating the growth of category-leading companies by providing the strategic counsel, resources and value-add capabilities they need to realize the next chapter of their stories.",
+      "category": "landing"
+    },
+    {
+      "value": "Actively building a culture of character since 1980.",
+      "source_url": "https://www.generalatlantic.com/our-culture/",
+      "quote": "Actively building a culture of character since 1980.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Our team is made up of problem solvers and collaborators.",
+      "source_url": "https://www.generalatlantic.com/our-culture/",
+      "quote": "Our team is made up of problem solvers and collaborators.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We embrace innovation, integrity, tenacity, and collaboration as key to our success.",
+      "source_url": "https://www.generalatlantic.com/our-culture/",
+      "quote": "We embrace innovation, integrity, tenacity, and collaboration as key to our success.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "General Atlantic is a global investment leader — the dedicated partner for entrepreneurs and investors building long-term value.",
+      "source_url": "https://www.generalatlantic.com/",
+      "quote": "General Atlantic is a global investment leader — the dedicated partner for entrepreneurs and investors building long-term value.",
+      "category": "landing"
+    },
+    {
+      "value": "Since 1980, we have identified talent and technologies with great potential — empowering innovators with patient capital, operational expertise, and a global platform to scale their ambitions.",
+      "source_url": "https://www.generalatlantic.com/",
+      "quote": "Since 1980, we have identified talent and technologies with great potential — empowering innovators with patient capital, operational expertise, and a global platform to scale their ambitions.",
+      "category": "landing"
+    },
+    {
+      "value": "Our deep sector expertise, vast global infrastructure and network, and robust company building capabilities provide the tangible, targeted support to take businesses to the next level.",
+      "source_url": "https://www.generalatlantic.com/",
+      "quote": "Our deep sector expertise, vast global infrastructure and network, and robust company building capabilities provide the tangible, targeted support to take businesses to the next level.",
+      "category": "landing"
+    },
+    {
+      "value": "Join a global team of investors and innovators creating the future together.",
+      "source_url": "https://www.generalatlantic.com/careers/",
+      "quote": "Join a global team of investors and innovators creating the future together.",
+      "category": "careers"
+    },
+    {
+      "value": "Connected across countries and continents, our team and our strategies are intentionally designed to harness the strength of diverse global perspectives to unlock extraordinary growth.",
+      "source_url": "https://www.generalatlantic.com/careers/",
+      "quote": "Connected across countries and continents, our team and our strategies are intentionally designed to harness the strength of diverse global perspectives to unlock extraordinary growth.",
+      "category": "careers"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Investing in long-term, equitable growth in critical infrastructure across the energy transition, digitization, and the transformation of supply chains through Actis.",
+      "source_url": "https://www.generalatlantic.com/",
+      "quote": "Investing in long-term, equitable growth in critical infrastructure across the energy transition, digitization, and the transformation of supply chains through Actis.",
+      "category": "landing"
+    },
+    {
+      "value": "Our deep sector expertise, vast global infrastructure and network, and robust company building capabilities provide the tangible, targeted support to take businesses to the next level.",
+      "source_url": "https://www.generalatlantic.com/",
+      "quote": "Our deep sector expertise, vast global infrastructure and network, and robust company building capabilities provide the tangible, targeted support to take businesses to the next level.",
+      "category": "landing"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "General Atlantic is a global investment leader — the dedicated partner for entrepreneurs and investors building long-term value.",
+      "firm_claim_source": "https://www.generalatlantic.com/",
+      "quote": "General Atlantic is a global investment leader — the dedicated partner for entrepreneurs and investors building long-term value.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Accelerating the growth of category-leading companies by providing the strategic counsel, resources and value-add capabilities they need to realize the next chapter of their stories.",
+      "firm_claim_source": "https://www.generalatlantic.com/",
+      "quote": "Accelerating the growth of category-leading companies by providing the strategic counsel, resources and value-add capabilities they need to realize the next chapter of their stories.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Investing in long-term, equitable growth in critical infrastructure across the energy transition, digitization, and the transformation of supply chains through Actis.",
+      "firm_claim_source": "https://www.generalatlantic.com/",
+      "quote": "Investing in long-term, equitable growth in critical infrastructure across the energy transition, digitization, and the transformation of supply chains through Actis.",
+      "basis": "asset_classes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.generalatlantic.com/"
+  ],
+  "confidence": "medium",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

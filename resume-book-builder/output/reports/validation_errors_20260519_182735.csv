@@ -1,0 +1,2 @@
+severity,category,row_number,student_name,graduation_year,sponsor,field,issue,recommended_fix
+error,data_source,,,,,,Excel file not found: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/Member Registration _ Fall 2025 (Responses).xlsx,"Place your Excel file at '/Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/Member Registration _ Fall 2025 (Responses).xlsx', or update data.excel_file in config/settings.yaml to point to the correct path."

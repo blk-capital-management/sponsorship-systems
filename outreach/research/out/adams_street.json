@@ -1,0 +1,207 @@
+{
+  "firm": "Adams Street Partners",
+  "firm_slug": "adams_street",
+  "domain": "adamsstreetpartners.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:51+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.adamsstreetpartners.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "university_recruiting",
+      "url": "https://www.adamsstreetpartners.com/careers/internship/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.adamsstreetpartners.com/careers/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.adamsstreetpartners.com/our-firm/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.adamsstreetpartners.com/news/private-credit-fund-iii-recognized-among-bloombergs-top-performing-debt-funds/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Adams Street has been recognized with UK Private Capital's 2026 Excellence in Sustainability LP Award for its efforts in responsible investing.",
+      "source_url": "https://www.adamsstreetpartners.com/",
+      "quote": "Adams Street has been recognized with UK Private Capital's 2026 Excellence in Sustainability LP Award for its efforts in responsible investing.",
+      "category": "landing"
+    },
+    {
+      "value": "Helping entrepreneurs and CEOs build market-leading companies with our founder-first approach, value added services, and global presence.",
+      "source_url": "https://www.adamsstreetpartners.com/",
+      "quote": "Helping entrepreneurs and CEOs build market-leading companies with our founder-first approach, value added services, and global presence.",
+      "category": "landing"
+    },
+    {
+      "value": "We pursue opportunities across the entire capital structure, targeting middle-market companies with enterprise value of $150 -$750 million.",
+      "source_url": "https://www.adamsstreetpartners.com/",
+      "quote": "We pursue opportunities across the entire capital structure, targeting middle-market companies with enterprise value of $150 -$750 million.",
+      "category": "landing"
+    },
+    {
+      "value": "Our 2025 summer interns shared their thoughts on various aspects of their internship, including the value of diverse perspectives, importance of active mentorship, and the hands-on experience they gained.",
+      "source_url": "https://www.adamsstreetpartners.com/careers/internship/",
+      "quote": "Our 2025 summer interns shared their thoughts on various aspects of their internship, including the value of diverse perspectives, importance of active mentorship, and the hands-on experience they gained.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "The firm is very collaborative and has a flat organizational structure, so it always feels like I am making an impact even as an intern.",
+      "source_url": "https://www.adamsstreetpartners.com/careers/internship/",
+      "quote": "The firm is very collaborative and has a flat organizational structure, so it always feels like I am making an impact even as an intern.",
+      "category": "university_recruiting"
+    }
+  ],
+  "campus_or_early_careers_programs": [
+    {
+      "value": "Adams Street provides a comprehensive hands-on internship experience for undergraduate students interested in exploring a career in private markets.",
+      "source_url": "https://www.adamsstreetpartners.com/careers/internship/",
+      "quote": "Adams Street provides a comprehensive hands-on internship experience for undergraduate students interested in exploring a career in private markets.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Our 2025 summer interns shared their thoughts on various aspects of their internship, including the value of diverse perspectives, importance of active mentorship, and the hands-on experience they gained.",
+      "source_url": "https://www.adamsstreetpartners.com/careers/internship/",
+      "quote": "Our 2025 summer interns shared their thoughts on various aspects of their internship, including the value of diverse perspectives, importance of active mentorship, and the hands-on experience they gained.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "The interns discuss how the program helped them build career skills and develop meaningful relationships that will support their professional growth moving forward.",
+      "source_url": "https://www.adamsstreetpartners.com/careers/internship/",
+      "quote": "The interns discuss how the program helped them build career skills and develop meaningful relationships that will support their professional growth moving forward.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Adams Street seeks to hire the brightest students with a diversity of perspectives.",
+      "source_url": "https://www.adamsstreetpartners.com/careers/",
+      "quote": "Adams Street seeks to hire the brightest students with a diversity of perspectives.",
+      "category": "careers"
+    }
+  ],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "Today, Adams Street announced it has secured more than $5 billion in capital commitments for its latest Secondaries Investment Program, including the successful close of Global Secondary Fund 8 at $2.6 billion.",
+      "source_url": "https://www.adamsstreetpartners.com/",
+      "quote": "Today, Adams Street announced it has secured more than $5 billion in capital commitments for its latest Secondaries Investment Program, including the successful close of Global Secondary Fund 8 at $2.6 billion.",
+      "category": "landing"
+    },
+    {
+      "value": "Helping entrepreneurs and CEOs build market-leading companies with our founder-first approach, value added services, and global presence.",
+      "source_url": "https://www.adamsstreetpartners.com/",
+      "quote": "Helping entrepreneurs and CEOs build market-leading companies with our founder-first approach, value added services, and global presence.",
+      "category": "landing"
+    },
+    {
+      "value": "Our global platform of relationships, supported by our highly advanced in-house analytics, facilitates investments in buyout, venture capital, growth equity, and other private markets fund strategies.",
+      "source_url": "https://www.adamsstreetpartners.com/",
+      "quote": "Our global platform of relationships, supported by our highly advanced in-house analytics, facilitates investments in buyout, venture capital, growth equity, and other private markets fund strategies.",
+      "category": "landing"
+    },
+    {
+      "value": "This supportive spirit extends far beyond just my immediate team, the entire New York office, as well as colleagues from around the world, have embraced me with open arms, regardless of their department.",
+      "source_url": "https://www.adamsstreetpartners.com/careers/internship/",
+      "quote": "This supportive spirit extends far beyond just my immediate team, the entire New York office, as well as colleagues from around the world, have embraced me with open arms, regardless of their department.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "We are committed to investing responsibly, building a diverse and inclusive workplace, and supporting the global communities in which we operate.",
+      "source_url": "https://www.adamsstreetpartners.com/careers/",
+      "quote": "We are committed to investing responsibly, building a diverse and inclusive workplace, and supporting the global communities in which we operate.",
+      "category": "careers"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Today, Adams Street announced it has secured more than $5 billion in capital commitments for its latest Secondaries Investment Program, including the successful close of Global Secondary Fund 8 at $2.6 billion.",
+      "source_url": "https://www.adamsstreetpartners.com/",
+      "quote": "Today, Adams Street announced it has secured more than $5 billion in capital commitments for its latest Secondaries Investment Program, including the successful close of Global Secondary Fund 8 at $2.6 billion.",
+      "category": "landing"
+    },
+    {
+      "value": "Adams Street Private Credit Fund III ranked third in Bloomberg’s 2026 League Tables of the Top 10 Best Performing Debt Funds by Net IRR, Funds Above $2 Billion.",
+      "source_url": "https://www.adamsstreetpartners.com/",
+      "quote": "Adams Street Private Credit Fund III ranked third in Bloomberg’s 2026 League Tables of the Top 10 Best Performing Debt Funds by Net IRR, Funds Above $2 Billion.",
+      "category": "landing"
+    },
+    {
+      "value": "Jeff Diehl addresses four questions institutional investors are asking as higher rates, manager dispersion and AI impact private equity allocations.",
+      "source_url": "https://www.adamsstreetpartners.com/",
+      "quote": "Jeff Diehl addresses four questions institutional investors are asking as higher rates, manager dispersion and AI impact private equity allocations.",
+      "category": "landing"
+    },
+    {
+      "value": "Weekly webinars led by professionals across Adams Street’s platform providing exposure to and insights into the private equity, private credit, and venture capital markets.",
+      "source_url": "https://www.adamsstreetpartners.com/careers/internship/",
+      "quote": "Weekly webinars led by professionals across Adams Street’s platform providing exposure to and insights into the private equity, private credit, and venture capital markets.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Over five decades of private equity investing combined with 590+ advisory board seats, and investments with 520+ global general partners in 30+ countries.",
+      "source_url": "https://www.adamsstreetpartners.com/our-firm/",
+      "quote": "Over five decades of private equity investing combined with 590+ advisory board seats, and investments with 520+ global general partners in 30+ countries.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [
+    {
+      "value": "Today, Adams Street announced it has secured more than $5 billion in capital commitments for its latest Secondaries Investment Program, including the successful close of Global Secondary Fund 8 at $2.6 billion.",
+      "source_url": "https://www.adamsstreetpartners.com/",
+      "quote": "Today, Adams Street announced it has secured more than $5 billion in capital commitments for its latest Secondaries Investment Program, including the successful close of Global Secondary Fund 8 at $2.6 billion.",
+      "category": "landing"
+    }
+  ],
+  "alignment_hooks": [
+    {
+      "text": "Adams Street provides a comprehensive hands-on internship experience for undergraduate students interested in exploring a career in private markets.",
+      "firm_claim_source": "https://www.adamsstreetpartners.com/careers/internship/",
+      "quote": "Adams Street provides a comprehensive hands-on internship experience for undergraduate students interested in exploring a career in private markets.",
+      "basis": "campus_or_early_careers_programs"
+    },
+    {
+      "text": "Adams Street has been recognized with UK Private Capital's 2026 Excellence in Sustainability LP Award for its efforts in responsible investing.",
+      "firm_claim_source": "https://www.adamsstreetpartners.com/",
+      "quote": "Adams Street has been recognized with UK Private Capital's 2026 Excellence in Sustainability LP Award for its efforts in responsible investing.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Over five decades of private equity investing combined with 590+ advisory board seats, and investments with 520+ global general partners in 30+ countries.",
+      "firm_claim_source": "https://www.adamsstreetpartners.com/our-firm/",
+      "quote": "Over five decades of private equity investing combined with 590+ advisory board seats, and investments with 520+ global general partners in 30+ countries.",
+      "basis": "asset_classes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.adamsstreetpartners.com/careers/internship/",
+    "https://www.adamsstreetpartners.com/",
+    "https://www.adamsstreetpartners.com/our-firm/"
+  ],
+  "confidence": "high",
+  "gaps": [
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships"
+  ]
+}

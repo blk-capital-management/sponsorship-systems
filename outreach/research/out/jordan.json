@@ -1,0 +1,110 @@
+{
+  "firm": "The Jordan Company",
+  "firm_slug": "jordan",
+  "domain": "thejordancompany.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:59+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://tjclp.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://tjclp.com/our-culture/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://tjclp.com/media/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Working together for 24+ years, our senior investment professionals make up what we believe to be one of the most experienced and stable leadership teams in the private equity business.",
+      "source_url": "https://tjclp.com/",
+      "quote": "Working together for 24+ years, our senior investment professionals make up what we believe to be one of the most experienced and stable leadership teams in the private equity business.",
+      "category": "landing"
+    },
+    {
+      "value": "Having worked alongside one another for over 24+ years, we believe we have built a unique trust that is rarely found in this industry.",
+      "source_url": "https://tjclp.com/our-culture/",
+      "quote": "Having worked alongside one another for over 24+ years, we believe we have built a unique trust that is rarely found in this industry.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Collaborate regardless of the situation, opportunity or challenge.",
+      "source_url": "https://tjclp.com/our-culture/",
+      "quote": "Collaborate regardless of the situation, opportunity or challenge.",
+      "category": "values_culture"
+    },
+    {
+      "value": "TJC is dedicated to promoting a culture of mentorship and developing partners from within our firm.",
+      "source_url": "https://tjclp.com/our-culture/",
+      "quote": "TJC is dedicated to promoting a culture of mentorship and developing partners from within our firm.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [],
+  "asset_classes": [
+    {
+      "value": "Working together for 24+ years, our senior investment professionals make up what we believe to be one of the most experienced and stable leadership teams in the private equity business.",
+      "source_url": "https://tjclp.com/",
+      "quote": "Working together for 24+ years, our senior investment professionals make up what we believe to be one of the most experienced and stable leadership teams in the private equity business.",
+      "category": "landing"
+    },
+    {
+      "value": "To be the most collaborative private equity firm in the U.S. middle market, comprised of selfless individuals working together as a united group to deliver superior results for our investors.",
+      "source_url": "https://tjclp.com/our-culture/",
+      "quote": "To be the most collaborative private equity firm in the U.S. middle market, comprised of selfless individuals working together as a united group to deliver superior results for our investors.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "Working together for 24+ years, our senior investment professionals make up what we believe to be one of the most experienced and stable leadership teams in the private equity business.",
+      "firm_claim_source": "https://tjclp.com/",
+      "quote": "Working together for 24+ years, our senior investment professionals make up what we believe to be one of the most experienced and stable leadership teams in the private equity business.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "To be the most collaborative private equity firm in the U.S. middle market, comprised of selfless individuals working together as a united group to deliver superior results for our investors.",
+      "firm_claim_source": "https://tjclp.com/our-culture/",
+      "quote": "To be the most collaborative private equity firm in the U.S. middle market, comprised of selfless individuals working together as a united group to deliver superior results for our investors.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "Having worked alongside one another for over 24+ years, we believe we have built a unique trust that is rarely found in this industry.",
+      "firm_claim_source": "https://tjclp.com/our-culture/",
+      "quote": "Having worked alongside one another for over 24+ years, we believe we have built a unique trust that is rarely found in this industry.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://tjclp.com/",
+    "https://tjclp.com/our-culture/"
+  ],
+  "confidence": "low",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for offices_and_regions",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news",
+    "no careers page found on the firm's domain",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

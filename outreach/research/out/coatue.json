@@ -1,0 +1,92 @@
+{
+  "firm": "Coatue Management",
+  "firm_slug": "coatue",
+  "domain": "coatue.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:57+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.coatue.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.coatue.com/blog/press/our-continued-partnership-with-anthropic",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "We believe that investment strategies, like companies, must grow and evolve with the market.",
+      "source_url": "https://www.coatue.com/",
+      "quote": "We believe that investment strategies, like companies, must grow and evolve with the market.",
+      "category": "landing"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [],
+  "asset_classes": [
+    {
+      "value": "Investing in public equities with decades of experience, company and market knowledge, and strong risk management.",
+      "source_url": "https://www.coatue.com/",
+      "quote": "Investing in public equities with decades of experience, company and market knowledge, and strong risk management.",
+      "category": "landing"
+    },
+    {
+      "value": "Claude itself is now accelerating that flywheel, helping build the next generation of models, optimizing infrastructure across heterogeneous compute, and compounding operational leverage as the company scales.",
+      "source_url": "https://www.coatue.com/blog/press/our-continued-partnership-with-anthropic",
+      "quote": "Claude itself is now accelerating that flywheel, helping build the next generation of models, optimizing infrastructure across heterogeneous compute, and compounding operational leverage as the company scales.",
+      "category": "news"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [
+    {
+      "value": "In aggregate, Anthropic launched dozens of new product features in the past quarter.",
+      "source_url": "https://www.coatue.com/blog/press/our-continued-partnership-with-anthropic",
+      "quote": "In aggregate, Anthropic launched dozens of new product features in the past quarter.",
+      "category": "news"
+    }
+  ],
+  "alignment_hooks": [
+    {
+      "text": "We believe that investment strategies, like companies, must grow and evolve with the market.",
+      "firm_claim_source": "https://www.coatue.com/",
+      "quote": "We believe that investment strategies, like companies, must grow and evolve with the market.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Claude itself is now accelerating that flywheel, helping build the next generation of models, optimizing infrastructure across heterogeneous compute, and compounding operational leverage as the company scales.",
+      "firm_claim_source": "https://www.coatue.com/blog/press/our-continued-partnership-with-anthropic",
+      "quote": "Claude itself is now accelerating that flywheel, helping build the next generation of models, optimizing infrastructure across heterogeneous compute, and compounding operational leverage as the company scales.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "Investing in public equities with decades of experience, company and market knowledge, and strong risk management.",
+      "firm_claim_source": "https://www.coatue.com/",
+      "quote": "Investing in public equities with decades of experience, company and market knowledge, and strong risk management.",
+      "basis": "asset_classes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.coatue.com/",
+    "https://www.coatue.com/blog/press/our-continued-partnership-with-anthropic"
+  ],
+  "confidence": "low",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for offices_and_regions",
+    "no citable content found for existing_student_org_partnerships",
+    "no careers page found on the firm's domain",
+    "no university_recruiting page found on the firm's domain",
+    "no values_culture page found on the firm's domain"
+  ]
+}

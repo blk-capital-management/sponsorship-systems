@@ -1,0 +1,48 @@
+{
+  "firm": "Sixth Street",
+  "firm_slug": "sixth_street",
+  "owner": "jamari",
+  "contact_status": "existing_partner",
+  "contact": {
+    "owner": "jamari",
+    "name": "Maddy",
+    "first_name": "Maddy",
+    "title": "",
+    "email": "mlivingston@sixthstreet.com"
+  },
+  "subject": null,
+  "subject_status": "required_but_unset",
+  "email_body": "Hi Maddy,\n\nThank you for continuing Sixth Street's Gold partnership with BLK Capital Management. Our records list the partnership as Active, and I am reaching out to discuss the coming cycle with you.\n\nBLK connects 1500+ members across 200+ universities in the US and EMEA. Continuing the partnership would keep your team connected to this community through year-round programming and our Fall Conference on November 12 and 13 in New York at Wells Fargo.\n\nWe would welcome the chance to discuss the next cycle. If it would be useful, I am happy to follow up with our full sponsorship prospectus ahead of a call.\n\nThank you for your time and consideration.\n\nBest,\nJamari Myers\nCo-Chair of Sponsorships, BLK Capital Management\n",
+  "evidence_block": "## Relationship evidence\n\nCRM source: Jamari!r21\n\nEvery relationship claim is rendered from these targets.csv fields:\n- relationship_tier: Gold\n- relationship_status: Active\n- relationship_contact_name: Maddy, Skylar, Madeleine\n- relationship_contact_email: mlivingston@sixthstreet.com; sburdick@sixthstreet.com; mparker@sixthstreet.com\n- relationship_expiration: 2026-09-08\n- relationship_record_id: S048\n\n## Contact provenance (internal only, never sent)\n\nMethod: crm_derived / sponsor_crm\n",
+  "validator_results": {
+    "status": "pass",
+    "checks": [
+      "no_em_or_en_dash",
+      "blk_facts_exact_match",
+      "no_provenance_leak",
+      "no_outcome_promise",
+      "no_attachment_claim",
+      "subject_required_but_unset",
+      "owner_lane_match",
+      "relationship_claims_trace_to_targets_csv",
+      "crm_source_internal_only"
+    ]
+  },
+  "fields": {
+    "contact_first_name": "Maddy",
+    "firm_name": "Sixth Street",
+    "relationship_tier": "Gold",
+    "relationship_status": "Active",
+    "relationship_contact_name": "Maddy, Skylar, Madeleine",
+    "relationship_contact_email": "mlivingston@sixthstreet.com; sburdick@sixthstreet.com; mparker@sixthstreet.com",
+    "relationship_expiration": "2026-09-08",
+    "relationship_decline_reason": "",
+    "relationship_crm_source": "Jamari!r21",
+    "applications_last_cycle": "1,750+",
+    "member_count": "1500+",
+    "university_count": "200+",
+    "conference_dates": "November 12 and 13",
+    "conference_venue": "Wells Fargo"
+  },
+  "generated_at": "2026-08-14T04:06:25+00:00"
+}

@@ -1,0 +1,147 @@
+{
+  "firm": "Summit Partners",
+  "firm_slug": "summit",
+  "domain": "summitpartners.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:26+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.summitpartners.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.summitpartners.com/summit-careers",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.summitpartners.com/about-us",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.summitpartners.com/news/trusted-ai-for-the-fight-against-financial-crime-our-investment-in-quantifind",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "We take a collaborative approach to investing, whether as a minority or majority partner.",
+      "source_url": "https://www.summitpartners.com/",
+      "quote": "We take a collaborative approach to investing, whether as a minority or majority partner.",
+      "category": "landing"
+    },
+    {
+      "value": "We believe in the potential of our team and the power of the Summit Partners network.",
+      "source_url": "https://www.summitpartners.com/summit-careers",
+      "quote": "We believe in the potential of our team and the power of the Summit Partners network.",
+      "category": "careers"
+    },
+    {
+      "value": "Our commitment to the growth of our portfolio companies is matched only by our dedication to the growth of our people.",
+      "source_url": "https://www.summitpartners.com/summit-careers",
+      "quote": "Our commitment to the growth of our portfolio companies is matched only by our dedication to the growth of our people.",
+      "category": "careers"
+    },
+    {
+      "value": "Whether as a minority or majority shareholder, we strive to provide resources to help drive profitable growth and build lasting value.",
+      "source_url": "https://www.summitpartners.com/about-us",
+      "quote": "Whether as a minority or majority shareholder, we strive to provide resources to help drive profitable growth and build lasting value.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We have actively innovated our approach for more than forty years, and we believe the results speak for themselves.",
+      "source_url": "https://www.summitpartners.com/about-us",
+      "quote": "We have actively innovated our approach for more than forty years, and we believe the results speak for themselves.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "Reach out to your local Summit office to inquire about our open positions.",
+      "source_url": "https://www.summitpartners.com/summit-careers",
+      "quote": "Reach out to your local Summit office to inquire about our open positions.",
+      "category": "careers"
+    },
+    {
+      "value": "With more than 225 professionals operating across five offices, Summit is powered by an exceptional team with deep domain expertise in our target sectors: technology, healthcare & life sciences, and growth products & services.",
+      "source_url": "https://www.summitpartners.com/about-us",
+      "quote": "With more than 225 professionals operating across five offices, Summit is powered by an exceptional team with deep domain expertise in our target sectors: technology, healthcare & life sciences, and growth products & services.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Quantifind serves a global customer base that includes six of the world's top ten Tier 1 financial institutions and tens of thousands of compliance and national security professionals.",
+      "source_url": "https://www.summitpartners.com/news/trusted-ai-for-the-fight-against-financial-crime-our-investment-in-quantifind",
+      "quote": "Quantifind serves a global customer base that includes six of the world's top ten Tier 1 financial institutions and tens of thousands of compliance and national security professionals.",
+      "category": "news"
+    },
+    {
+      "value": "We are proud to partner with Ari Tuchman and the Quantifind team as they extend Graphyte's reach globally and build for the agentic era.",
+      "source_url": "https://www.summitpartners.com/news/trusted-ai-for-the-fight-against-financial-crime-our-investment-in-quantifind",
+      "quote": "We are proud to partner with Ari Tuchman and the Quantifind team as they extend Graphyte's reach globally and build for the agentic era.",
+      "category": "news"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Since our founding, Summit has focused on partnering with growth stage businesses, helping to define a category that bridges the gap between early-stage venture capital and traditional private equity.",
+      "source_url": "https://www.summitpartners.com/about-us",
+      "quote": "Since our founding, Summit has focused on partnering with growth stage businesses, helping to define a category that bridges the gap between early-stage venture capital and traditional private equity.",
+      "category": "values_culture"
+    },
+    {
+      "value": "As the growth equity industry has evolved, so have we—expanding our team, refining our approach and building deep domain expertise across technology, healthcare & life sciences and growth products & services.",
+      "source_url": "https://www.summitpartners.com/about-us",
+      "quote": "As the growth equity industry has evolved, so have we—expanding our team, refining our approach and building deep domain expertise across technology, healthcare & life sciences and growth products & services.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "We take a collaborative approach to investing, whether as a minority or majority partner.",
+      "firm_claim_source": "https://www.summitpartners.com/",
+      "quote": "We take a collaborative approach to investing, whether as a minority or majority partner.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Since our founding, Summit has focused on partnering with growth stage businesses, helping to define a category that bridges the gap between early-stage venture capital and traditional private equity.",
+      "firm_claim_source": "https://www.summitpartners.com/about-us",
+      "quote": "Since our founding, Summit has focused on partnering with growth stage businesses, helping to define a category that bridges the gap between early-stage venture capital and traditional private equity.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "We believe in the potential of our team and the power of the Summit Partners network.",
+      "firm_claim_source": "https://www.summitpartners.com/summit-careers",
+      "quote": "We believe in the potential of our team and the power of the Summit Partners network.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.summitpartners.com/",
+    "https://www.summitpartners.com/about-us",
+    "https://www.summitpartners.com/summit-careers"
+  ],
+  "confidence": "high",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

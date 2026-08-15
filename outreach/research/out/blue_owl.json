@@ -1,0 +1,135 @@
+{
+  "firm": "Blue Owl Capital",
+  "firm_slug": "blue_owl",
+  "domain": "blueowl.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:38+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.blueowl.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.blueowl.com/careers",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.blueowl.com/about-us",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.blueowl.com/news/blue-owl-capital-announces-senior-notes-offering-0",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "We're fostering a culture where team members feel energized and empowered to achieve their potential.",
+      "source_url": "https://www.blueowl.com/careers",
+      "quote": "We're fostering a culture where team members feel energized and empowered to achieve their potential.",
+      "category": "careers"
+    },
+    {
+      "value": "We offer long-term career development opportunities and mentorship from experienced leaders who empower our people to take on new challenges and go further with confidence.",
+      "source_url": "https://www.blueowl.com/careers",
+      "quote": "We offer long-term career development opportunities and mentorship from experienced leaders who empower our people to take on new challenges and go further with confidence.",
+      "category": "careers"
+    },
+    {
+      "value": "Our transparent and collaborative work processes offer employees the opportunity to develop their skillset and role while working toward achieving the common goals that define our growing firm.",
+      "source_url": "https://www.blueowl.com/careers",
+      "quote": "Our transparent and collaborative work processes offer employees the opportunity to develop their skillset and role while working toward achieving the common goals that define our growing firm.",
+      "category": "careers"
+    },
+    {
+      "value": "We act in the highest interest of the Blue Owl ecosystem and work across functions for greater outcomes to deliver value for all of these groups.",
+      "source_url": "https://www.blueowl.com/about-us",
+      "quote": "We act in the highest interest of the Blue Owl ecosystem and work across functions for greater outcomes to deliver value for all of these groups.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We prioritize the growth and development of each individual, allowing us to consistently deliver excellence across the organization.",
+      "source_url": "https://www.blueowl.com/about-us",
+      "quote": "We prioritize the growth and development of each individual, allowing us to consistently deliver excellence across the organization.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "From our in-office café to our lounge, golf simulator, and on-site gym at our New York headquarters, we’ve prioritized creating a work environment to help our employees live well-rounded lives.",
+      "source_url": "https://www.blueowl.com/careers",
+      "quote": "From our in-office café to our lounge, golf simulator, and on-site gym at our New York headquarters, we’ve prioritized creating a work environment to help our employees live well-rounded lives.",
+      "category": "careers"
+    },
+    {
+      "value": "While in-office interaction is prioritized, we try to strike a balance with policies like flexible Fridays and fully remote August.",
+      "source_url": "https://www.blueowl.com/careers",
+      "quote": "While in-office interaction is prioritized, we try to strike a balance with policies like flexible Fridays and fully remote August.",
+      "category": "careers"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Blue Owl intends to use the net proceeds from this offering to repay a portion of outstanding borrowings under its revolving credit facility.",
+      "source_url": "https://www.blueowl.com/news/blue-owl-capital-announces-senior-notes-offering-0",
+      "quote": "Blue Owl intends to use the net proceeds from this offering to repay a portion of outstanding borrowings under its revolving credit facility.",
+      "category": "news"
+    }
+  ],
+  "existing_student_org_partnerships": [
+    {
+      "value": "Blue Owl Gives advances our firm’s philanthropic mission: investing in opportunity by powering access to college, to career, and to capital through strategic nonprofit partnerships, sponsorships, and employee-giving campaigns.",
+      "source_url": "https://www.blueowl.com/careers",
+      "quote": "Blue Owl Gives advances our firm’s philanthropic mission: investing in opportunity by powering access to college, to career, and to capital through strategic nonprofit partnerships, sponsorships, and employee-giving campaigns.",
+      "category": "careers"
+    }
+  ],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "Blue Owl Gives advances our firm’s philanthropic mission: investing in opportunity by powering access to college, to career, and to capital through strategic nonprofit partnerships, sponsorships, and employee-giving campaigns.",
+      "firm_claim_source": "https://www.blueowl.com/careers",
+      "quote": "Blue Owl Gives advances our firm’s philanthropic mission: investing in opportunity by powering access to college, to career, and to capital through strategic nonprofit partnerships, sponsorships, and employee-giving campaigns.",
+      "basis": "existing_student_org_partnerships"
+    },
+    {
+      "text": "We act in the highest interest of the Blue Owl ecosystem and work across functions for greater outcomes to deliver value for all of these groups.",
+      "firm_claim_source": "https://www.blueowl.com/about-us",
+      "quote": "We act in the highest interest of the Blue Owl ecosystem and work across functions for greater outcomes to deliver value for all of these groups.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Blue Owl intends to use the net proceeds from this offering to repay a portion of outstanding borrowings under its revolving credit facility.",
+      "firm_claim_source": "https://www.blueowl.com/news/blue-owl-capital-announces-senior-notes-offering-0",
+      "quote": "Blue Owl intends to use the net proceeds from this offering to repay a portion of outstanding borrowings under its revolving credit facility.",
+      "basis": "asset_classes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.blueowl.com/careers",
+    "https://www.blueowl.com/about-us",
+    "https://www.blueowl.com/news/blue-owl-capital-announces-senior-notes-offering-0"
+  ],
+  "confidence": "high",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for recent_relevant_news",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

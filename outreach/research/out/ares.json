@@ -1,0 +1,201 @@
+{
+  "firm": "Ares Management",
+  "firm_slug": "ares",
+  "domain": "ares.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:35+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.ares.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.ares.com/us/careers",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.ares.com/us/who-we-are/our-people",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.ares.com/us/news-and-insights/press-releases",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Since 2007, Ares has been investing in the sports, media, and entertainment ecosystem, bringing flexible private capital solutions and a hands-on approach to generating what we believe to be long-term value creation to franchises.",
+      "source_url": "https://www.ares.com/",
+      "quote": "Since 2007, Ares has been investing in the sports, media, and entertainment ecosystem, bringing flexible private capital solutions and a hands-on approach to generating what we believe to be long-term value creation to franchises.",
+      "category": "landing"
+    },
+    {
+      "value": "We believe Q3 2024 marked the trough of the most recent real estate (RE) cycle as the lingering effects of the Federal Reserve’s 2022–2023 tightening campaign began to fade.",
+      "source_url": "https://www.ares.com/",
+      "quote": "We believe Q3 2024 marked the trough of the most recent real estate (RE) cycle as the lingering effects of the Federal Reserve’s 2022–2023 tightening campaign began to fade.",
+      "category": "landing"
+    },
+    {
+      "value": "Creating enduring value through the power of relationships .",
+      "source_url": "https://www.ares.com/",
+      "quote": "Creating enduring value through the power of relationships .",
+      "category": "landing"
+    },
+    {
+      "value": "At Ares, we create an environment where professionals can grow, collaborate, and make a lasting impact.",
+      "source_url": "https://www.ares.com/us/careers",
+      "quote": "At Ares, we create an environment where professionals can grow, collaborate, and make a lasting impact.",
+      "category": "careers"
+    },
+    {
+      "value": "Join a team built on excellence, innovation, and shared success.",
+      "source_url": "https://www.ares.com/us/careers",
+      "quote": "Join a team built on excellence, innovation, and shared success.",
+      "category": "careers"
+    }
+  ],
+  "campus_or_early_careers_programs": [
+    {
+      "value": "Sagati Aghili currently serves on the Los Angeles advisory board of the Posse Foundation, a non-profit organization that partners with colleges and universities to provide student scholarships and leadership training.",
+      "source_url": "https://www.ares.com/us/who-we-are/our-people",
+      "quote": "Sagati Aghili currently serves on the Los Angeles advisory board of the Posse Foundation, a non-profit organization that partners with colleges and universities to provide student scholarships and leadership training.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Smith serves on the Board of Directors of the University of Notre Dame's Wilson Sheehan Lab for Economic Opportunity (LEO), which helps service providers apply scientific evaluation methods to better understand and share effective poverty interventions.",
+      "source_url": "https://www.ares.com/us/who-we-are/our-people",
+      "quote": "Smith serves on the Board of Directors of the University of Notre Dame's Wilson Sheehan Lab for Economic Opportunity (LEO), which helps service providers apply scientific evaluation methods to better understand and share effective poverty interventions.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Kozicki holds a B.S. from the New York University Stern School of Business in Finance and International Business.",
+      "source_url": "https://www.ares.com/us/who-we-are/our-people",
+      "quote": "Kozicki holds a B.S. from the New York University Stern School of Business in Finance and International Business.",
+      "category": "values_culture"
+    }
+  ],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "The New Delhi office is operated by third parties with whom Ares Asia maintains an ongoing relationship relating to the sourcing, acquisition and/or management of investments.",
+      "source_url": "https://www.ares.com/",
+      "quote": "The New Delhi office is operated by third parties with whom Ares Asia maintains an ongoing relationship relating to the sourcing, acquisition and/or management of investments.",
+      "category": "landing"
+    },
+    {
+      "value": "With offices across key markets worldwide, Ares combines global perspective with local expertise to deliver lasting impact for clients and communities.",
+      "source_url": "https://www.ares.com/us/careers",
+      "quote": "With offices across key markets worldwide, Ares combines global perspective with local expertise to deliver lasting impact for clients and communities.",
+      "category": "careers"
+    },
+    {
+      "value": "Ares’ global team thrives on collaboration, bringing an interconnected and innovative approach to serving our stakeholders.",
+      "source_url": "https://www.ares.com/us/who-we-are/our-people",
+      "quote": "Ares’ global team thrives on collaboration, bringing an interconnected and innovative approach to serving our stakeholders.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Mr. deVeer serves on the Boston College Board of Regents and the Board of Advisors at the Yale Jackson School of Global Affairs.",
+      "source_url": "https://www.ares.com/us/who-we-are/our-people",
+      "quote": "Mr. deVeer serves on the Boston College Board of Regents and the Board of Advisors at the Yale Jackson School of Global Affairs.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Sagati Aghili oversees Ares' global Legal & Compliance department.",
+      "source_url": "https://www.ares.com/us/who-we-are/our-people",
+      "quote": "Sagati Aghili oversees Ares' global Legal & Compliance department.",
+      "category": "values_culture"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "In this piece, Ares CEO Mike Arougheti explores how the term “private credit” has a perception problem, often evoking images of opaque deals or hidden risk.",
+      "source_url": "https://www.ares.com/",
+      "quote": "In this piece, Ares CEO Mike Arougheti explores how the term “private credit” has a perception problem, often evoking images of opaque deals or hidden risk.",
+      "category": "landing"
+    },
+    {
+      "value": "In reality, private or public, credit is simply capital extended to worthy borrowers in exchange for the promise of repayment and interest.",
+      "source_url": "https://www.ares.com/",
+      "quote": "In reality, private or public, credit is simply capital extended to worthy borrowers in exchange for the promise of repayment and interest.",
+      "category": "landing"
+    },
+    {
+      "value": "Julie Solomon, Head of Real Estate at Ares, discusses the implications of current real estate market conditions.",
+      "source_url": "https://www.ares.com/",
+      "quote": "Julie Solomon, Head of Real Estate at Ares, discusses the implications of current real estate market conditions.",
+      "category": "landing"
+    },
+    {
+      "value": "Apply for roles in Credit, Private Equity, Real Assets, Secondaries, Wealth Management, Technology and Corporate Functions—each offering unique opportunities to advance your career and make a meaningful impact.",
+      "source_url": "https://www.ares.com/us/careers",
+      "quote": "Apply for roles in Credit, Private Equity, Real Assets, Secondaries, Wealth Management, Technology and Corporate Functions—each offering unique opportunities to advance your career and make a meaningful impact.",
+      "category": "careers"
+    },
+    {
+      "value": "From July 2014 to February 2025, Mr. deVeer served as the Head of the Ares Credit Group.",
+      "source_url": "https://www.ares.com/us/who-we-are/our-people",
+      "quote": "From July 2014 to February 2025, Mr. deVeer served as the Head of the Ares Credit Group.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [
+    {
+      "value": "Sagati Aghili currently serves on the Los Angeles advisory board of the Posse Foundation, a non-profit organization that partners with colleges and universities to provide student scholarships and leadership training.",
+      "source_url": "https://www.ares.com/us/who-we-are/our-people",
+      "quote": "Sagati Aghili currently serves on the Los Angeles advisory board of the Posse Foundation, a non-profit organization that partners with colleges and universities to provide student scholarships and leadership training.",
+      "category": "values_culture"
+    }
+  ],
+  "recent_relevant_news": [
+    {
+      "value": "Holsinger held prior positions within financial services at Navigant Consulting, American Commercial Capital (subsequently acquired by Wells Fargo) and Citigroup.",
+      "source_url": "https://www.ares.com/us/who-we-are/our-people",
+      "quote": "Holsinger held prior positions within financial services at Navigant Consulting, American Commercial Capital (subsequently acquired by Wells Fargo) and Citigroup.",
+      "category": "values_culture"
+    }
+  ],
+  "alignment_hooks": [
+    {
+      "text": "Sagati Aghili currently serves on the Los Angeles advisory board of the Posse Foundation, a non-profit organization that partners with colleges and universities to provide student scholarships and leadership training.",
+      "firm_claim_source": "https://www.ares.com/us/who-we-are/our-people",
+      "quote": "Sagati Aghili currently serves on the Los Angeles advisory board of the Posse Foundation, a non-profit organization that partners with colleges and universities to provide student scholarships and leadership training.",
+      "basis": "campus_or_early_careers_programs"
+    },
+    {
+      "text": "Since 2007, Ares has been investing in the sports, media, and entertainment ecosystem, bringing flexible private capital solutions and a hands-on approach to generating what we believe to be long-term value creation to franchises.",
+      "firm_claim_source": "https://www.ares.com/",
+      "quote": "Since 2007, Ares has been investing in the sports, media, and entertainment ecosystem, bringing flexible private capital solutions and a hands-on approach to generating what we believe to be long-term value creation to franchises.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Apply for roles in Credit, Private Equity, Real Assets, Secondaries, Wealth Management, Technology and Corporate Functions—each offering unique opportunities to advance your career and make a meaningful impact.",
+      "firm_claim_source": "https://www.ares.com/us/careers",
+      "quote": "Apply for roles in Credit, Private Equity, Real Assets, Secondaries, Wealth Management, Technology and Corporate Functions—each offering unique opportunities to advance your career and make a meaningful impact.",
+      "basis": "asset_classes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.ares.com/us/who-we-are/our-people",
+    "https://www.ares.com/",
+    "https://www.ares.com/us/careers"
+  ],
+  "confidence": "medium",
+  "gaps": [
+    "no citable content found for recruiting_timeline_signals",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

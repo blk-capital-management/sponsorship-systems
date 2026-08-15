@@ -1,0 +1,161 @@
+{
+  "_comment": "Domain -> observed email format. Patterns MUST be derived only from public sources: press releases, investor relations pages, published bios, conference programs. Never from LinkedIn. Every entry carries the source_url the pattern was derived from. Entries missing a source_url are ignored by contacts/discover.py. This registry starts empty on purpose: a pattern is only added once a real published address has been seen at that domain.",
+  "_pattern_tokens": {
+    "{first}": "given name, lowercased",
+    "{last}": "family name, lowercased",
+    "{f}": "first initial, lowercased",
+    "{l}": "last initial, lowercased",
+    "{First}": "given name, capitalized",
+    "{Last}": "family name, capitalized"
+  },
+  "_entry_shape": {
+    "pattern": "one of the token strings above, plus @domain",
+    "confidence": "0.0 to 1.0",
+    "source_url": "required; the public page the pattern was read off",
+    "derived_from": "one line on what was on that page",
+    "observed_examples": "how many distinct real addresses supported it",
+    "last_verified": "YYYY-MM-DD"
+  },
+  "patterns": {
+    "bamfunds.com": {
+      "pattern": "{f}{last}@bamfunds.com",
+      "confidence": 0.9,
+      "source_url": "https://www.google.com/search?q=site:linkedin.com%20chris%20pulman%20bamfunds",
+      "derived_from": "Hunter domain-search, corroborated by 10 address(es) attributed to public pages",
+      "observed_examples": 10,
+      "provider": "hunter",
+      "evidence": [
+        {
+          "address": "cpulman@bamfunds.com",
+          "name": "Chris Pulman",
+          "position": "Chief Economist",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20chris%20pulman%20bamfunds"
+        },
+        {
+          "address": "sschroeder@bamfunds.com",
+          "name": "Scott Schröder",
+          "position": "Co-Founder",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20scott%20schr%C3%B6der%20bamfunds"
+        },
+        {
+          "address": "elo@bamfunds.com",
+          "name": "Eddie Lo",
+          "position": "Chief Operating Officer",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20eddie%20lo%20bamfunds"
+        },
+        {
+          "address": "efleming@bamfunds.com",
+          "name": "Eric Fleming",
+          "position": "Chief Operating Officer",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20eric%20fleming%20bamfunds"
+        },
+        {
+          "address": "bharlow@bamfunds.com",
+          "name": "Brooke Harlow",
+          "position": "Chief Global Affairs Officer",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20brooke%20harlow%20bamfunds"
+        },
+        {
+          "address": "wtan@bamfunds.com",
+          "name": "Wei Tan",
+          "position": "Managing Director",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20wei%20tan%20bamfunds"
+        },
+        {
+          "address": "cneumann@bamfunds.com",
+          "name": "Christopher Neumann",
+          "position": "Deputy Chief Operating Officer",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20christopher%20neumann%20bamfunds"
+        },
+        {
+          "address": "klewis@bamfunds.com",
+          "name": "Kate Lewis",
+          "position": "Chief Operating Officer",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20kate%20lewis%20bamfunds"
+        },
+        {
+          "address": "dmatz@bamfunds.com",
+          "name": "David Matz",
+          "position": "Managing Director",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20david%20matz%20bamfunds"
+        },
+        {
+          "address": "hdinardo@bamfunds.com",
+          "name": "Hannah Dinardo",
+          "position": "Head of Campus Recruiting",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20hannah%20dinardo%20bamfunds"
+        }
+      ]
+    },
+    "sixthstreet.com": {
+      "pattern": "{f}{last}@sixthstreet.com",
+      "confidence": 0.9,
+      "source_url": "https://www.google.com/search?q=site:linkedin.com%20chandler%20pryor%20sixthstreet",
+      "derived_from": "Hunter domain-search, corroborated by 10 address(es) attributed to public pages",
+      "observed_examples": 10,
+      "provider": "hunter",
+      "evidence": [
+        {
+          "address": "cpryor@sixthstreet.com",
+          "name": "Chandler Pryor",
+          "position": "Vice President, Human Resources",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20chandler%20pryor%20sixthstreet"
+        },
+        {
+          "address": "kmatthews@sixthstreet.com",
+          "name": "Kyle Matthews",
+          "position": "Vice President, CFS Engineering",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20kyle%20matthews%20sixthstreet"
+        },
+        {
+          "address": "vmohan@sixthstreet.com",
+          "name": "Vijay Mohan",
+          "position": "Co-Founder",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20vijay%20mohan%20sixthstreet"
+        },
+        {
+          "address": "clairezhang@sixthstreet.com",
+          "name": "Claire Zhang",
+          "position": "Vice President, Growth Equity",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20claire%20zhang%20sixthstreet"
+        },
+        {
+          "address": "cmartin@sixthstreet.com",
+          "name": "Christine Martin",
+          "position": "Managing Director",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20christine%20martin%20sixthstreet"
+        },
+        {
+          "address": "mpettinicchi@sixthstreet.com",
+          "name": "Michael Pettinicchi",
+          "position": "Vice President",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20michael%20pettinicchi%20sixthstreet"
+        },
+        {
+          "address": "ccapece@sixthstreet.com",
+          "name": "Christopher Capece",
+          "position": "Vice President",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20christopher%20capece%20sixthstreet"
+        },
+        {
+          "address": "amaheshwari@sixthstreet.com",
+          "name": "Anirudh Maheshwari",
+          "position": "Vice President of Engineering",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20anirudh%20maheshwari%20sixthstreet"
+        },
+        {
+          "address": "bmonaghan@sixthstreet.com",
+          "name": "Brian Monaghan",
+          "position": "Managing Director",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20brian%20monaghan%20sixthstreet"
+        },
+        {
+          "address": "mayala@sixthstreet.com",
+          "name": "Maria Ayala",
+          "position": "Vice President",
+          "source_url": "https://www.google.com/search?q=site:linkedin.com%20maria%20ayala%20sixthstreet"
+        }
+      ]
+    }
+  }
+}

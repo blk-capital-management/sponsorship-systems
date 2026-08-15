@@ -1,0 +1,25 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# BLK Resume Book Builder — Sponsor Configuration
+#
+# List every sponsor/company you want to generate a resume book for.
+# Each entry maps a sponsor name to the exact column header in your
+# spreadsheet that holds that sponsor's rating/interest values.
+#
+# Modes:
+#   threshold   — include only students with rating >= min_rating
+#   all_interested — include any student with a non-empty, non-zero value
+# ─────────────────────────────────────────────────────────────────────────────
+
+sponsors:
+  # Example entry — copy and edit for each sponsor:
+  #
+  # - name: "Goldman Sachs"
+  #   column: "Goldman Sachs"       # exact column header in the spreadsheet
+  #   mode: threshold
+  #   min_rating: 4                 # only used when mode = threshold
+  #   output_filename: "Goldman_Sachs_Resume_Book.pdf"   # optional override
+
+  # ── Add your sponsors below ──────────────────────────────────────────────
+  # (Wells Fargo is handled separately by `build-wells-fargo` — it needs
+  # graduation-year-range + free-text interest matching, not a single rating
+  # column, so it isn't configured here.)

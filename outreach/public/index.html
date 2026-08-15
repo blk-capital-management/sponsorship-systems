@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="BLK Bridge sponsor outreach workspace">
+    <title>BLK Bridge</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2362318b'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Arial' font-size='34' font-weight='700' fill='white'%3EB%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="/styles.css?v=20260814.2">
+  </head>
+  <body>
+    <main id="login-view" class="login-shell">
+      <div class="login-layout">
+        <section class="login-intro" aria-labelledby="login-intro-title">
+          <div class="brand-lockup inverse">
+            <div class="brand-mark">B</div>
+            <div><strong>BLK Bridge</strong><span>Capital Management</span></div>
+          </div>
+          <p class="eyebrow light">Sponsor outreach workspace</p>
+          <h1 id="login-intro-title">Move from research to a review-ready draft with confidence.</h1>
+          <p class="login-lede">One owner-scoped workspace for firm research, contact discovery, evidence-backed drafting, and human approval.</p>
+          <ol class="login-steps" aria-label="Bridge workflow">
+            <li><span>01</span><div><strong>Add firms</strong><p>Build and organize your sponsor pipeline.</p></div></li>
+            <li><span>02</span><div><strong>Research and verify</strong><p>Keep every firm-specific claim connected to a public source.</p></div></li>
+            <li><span>03</span><div><strong>Review every draft</strong><p>Approve or reject before anything leaves the system.</p></div></li>
+          </ol>
+          <div class="safety-strip" aria-label="Workflow safeguards">
+            <span>No automatic sending</span>
+            <span>Owner-scoped access</span>
+            <span>Human approval required</span>
+          </div>
+        </section>
+
+        <section class="login-card" aria-labelledby="login-title">
+          <div class="login-card-top">
+            <span class="secure-dot" aria-hidden="true"></span>
+            Private workspace
+          </div>
+          <p class="eyebrow">Authorized access</p>
+          <h2 id="login-title">Welcome back</h2>
+          <p class="login-copy">Sign in to your owner lane. Access is limited to Jamari and Fola.</p>
+          <form id="login-form" class="stack">
+            <label for="login-email">Work email</label>
+            <input id="login-email" type="email" autocomplete="username" placeholder="name@blkcapitalmanagement.org" required>
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" autocomplete="current-password" required>
+            <button id="login-submit" class="button primary wide" type="submit" disabled>Preparing secure sign in</button>
+            <p id="login-error" class="form-error" role="alert"></p>
+          </form>
+          <div class="access-note">
+            <strong>Private by design</strong>
+            <span>There is no public signup and no automatic email sending.</span>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div id="app-view" class="app-shell hidden" hidden>
+      <aside id="sidebar" class="sidebar">
+        <div class="brand-row">
+          <div class="brand-mark small">B</div>
+          <div><strong>BLK Bridge</strong><span>Sponsor workflow</span></div>
+        </div>
+
+        <p class="nav-section-label">Workspace</p>
+        <nav id="nav" aria-label="Primary navigation">
+          <button class="nav-item active" data-view="overview" aria-current="page">
+            <span class="nav-step">01</span><span class="nav-copy"><strong>Overview</strong><small>Priorities and progress</small></span>
+          </button>
+          <button class="nav-item" data-view="pipeline">
+            <span class="nav-step">02</span><span class="nav-copy"><strong>Firm pipeline</strong><small>Research and contacts</small></span><span id="nav-target-count" class="nav-count"></span>
+          </button>
+          <button class="nav-item" data-view="drafts">
+            <span class="nav-step">03</span><span class="nav-copy"><strong>Draft review</strong><small>Evidence and approval</small></span><span id="nav-draft-count" class="nav-count alert"></span>
+          </button>
+          <button class="nav-item" data-view="manual">
+            <span class="nav-step">04</span><span class="nav-copy"><strong>Manual queue</strong><small>Resolve exceptions</small></span><span id="nav-manual-count" class="nav-count"></span>
+          </button>
+          <button class="nav-item" data-view="cross-owner">
+            <span class="nav-step">05</span><span class="nav-copy"><strong>Cross-owner</strong><small>Controlled exception</small></span>
+          </button>
+        </nav>
+
+        <div class="sidebar-safety">
+          <span class="safety-icon">✓</span>
+          <div><strong>Human review is the final gate</strong><p>Bridge creates reviewable work. It never sends outreach automatically.</p></div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="avatar" id="user-avatar">BLK</div>
+          <div class="identity"><span id="user-name">Loading</span><span id="user-email"></span></div>
+          <button id="logout-button" class="icon-text-button" type="button" aria-label="Sign out" title="Sign out">↗</button>
+        </div>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <div class="topbar-title">
+            <button id="mobile-menu" class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+            <div>
+              <p class="eyebrow">Owner-scoped workspace</p>
+              <h2 id="page-title">Overview</h2>
+              <p id="page-description" class="page-description">See what needs attention and choose the next best action.</p>
+            </div>
+          </div>
+          <div class="top-actions">
+            <div class="sync-status"><span class="live-dot"></span><span id="sync-status">Connecting</span></div>
+            <span id="owner-badge" class="owner-badge"></span>
+            <button id="refresh-button" class="button secondary" type="button">Refresh data</button>
+          </div>
+        </header>
+
+        <div id="loading-bar" class="loading-bar hidden" role="progressbar" aria-label="Loading workspace"><span></span></div>
+
+        <section id="view-overview" class="view active">
+          <article class="welcome-panel">
+            <div>
+              <p class="eyebrow light">Recommended next step</p>
+              <h3 id="welcome-title">Welcome to your workspace</h3>
+              <p id="next-action-copy">Bridge is reviewing your lane and preparing the clearest next action.</p>
+            </div>
+            <button id="primary-next-action" class="button light" type="button" data-view="pipeline">Open firm pipeline</button>
+          </article>
+
+          <div id="workflow-progress" class="workflow-progress" aria-label="Outreach workflow progress"></div>
+          <div id="metrics" class="metric-grid"></div>
+
+          <div class="split-grid overview-grid">
+            <article class="panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow">Priority work</p><h3>Firms to move forward</h3><p class="section-copy">Highest-priority firms in your owner lane.</p></div>
+                <button class="text-button jump" type="button" data-jump="pipeline">View full pipeline</button>
+              </div>
+              <div id="overview-targets" class="compact-list"></div>
+            </article>
+            <article class="panel hunter-panel">
+              <div class="panel-heading"><div><p class="eyebrow light">Contact provider</p><h3>Hunter capacity</h3></div><span class="provider-status">Protected</span></div>
+              <div id="hunter-balance" class="balance-display"></div>
+              <div class="provider-rule"><strong>Credit safeguard</strong><p>Every credit-bearing run shows a live preview and requires a hard cap that you confirm.</p></div>
+            </article>
+          </div>
+
+          <div class="split-grid overview-grid">
+            <article class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Approval queue</p><h3>Drafts needing attention</h3><p class="section-copy">Read the email, inspect its sources, then approve or reject.</p></div><button class="text-button jump" type="button" data-jump="drafts">Open draft review</button></div>
+              <div id="overview-drafts" class="compact-list"></div>
+            </article>
+            <article class="panel guide-panel">
+              <p class="eyebrow">How Bridge protects quality</p>
+              <h3>Three checks before approval</h3>
+              <ul class="check-list">
+                <li><span>1</span><div><strong>Source evidence</strong><p>Firm claims must trace to captured public URLs.</p></div></li>
+                <li><span>2</span><div><strong>Copy validation</strong><p>BLK facts and house style are checked before review.</p></div></li>
+                <li><span>3</span><div><strong>Human decision</strong><p>You approve or reject every finished draft.</p></div></li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-pipeline" class="view">
+          <article class="context-banner">
+            <div><span class="context-step">Step 2</span><h3>Build the evidence before the email</h3><p>Add firms, derive relationship status, run public-source research, then find contacts only when the Hunter gate permits it.</p></div>
+            <div class="status-legend"><span>Relationship</span><span>Research</span><span>Contact</span><span>Draft</span></div>
+          </article>
+
+          <article class="panel intake-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">Add targets</p><h3>Batch intake</h3><p class="section-copy">Paste one or many firms. A domain lets Bridge begin research immediately.</p></div>
+              <span class="step-chip">1 of 4</span>
+            </div>
+            <form id="intake-form">
+              <label for="intake-lines">Firms to add</label>
+              <textarea id="intake-lines" rows="5" placeholder="General Atlantic | generalatlantic.com | US | Growth Equity | 1"></textarea>
+              <div class="format-guide">
+                <strong>Required format</strong>
+                <code>firm | domain | region | firm type | priority</code>
+                <span>Priority runs from 1, highest, to 5, lowest. Missing domains route to manual review.</span>
+              </div>
+              <div class="form-row">
+                <label class="check"><input id="intake-research" type="checkbox" checked> Run research after adding firms</label>
+                <button class="button primary" type="submit">Add firms to my lane</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="panel pipeline-panel">
+            <div class="panel-heading table-heading">
+              <div><p class="eyebrow">Your owner lane</p><h3>Firm pipeline</h3><p class="section-copy">Select firms, then run the next eligible action from left to right.</p></div>
+              <div class="selection-summary"><strong id="selection-count">0 selected</strong><span>Batch actions apply only to your selection.</span></div>
+            </div>
+            <div class="pipeline-toolbar">
+              <div class="filter-group">
+                <label class="search-field" for="pipeline-search"><span>Search</span><input id="pipeline-search" type="search" placeholder="Firm or domain"></label>
+                <label class="filter-field" for="pipeline-filter"><span>Status</span><select id="pipeline-filter"><option value="all">All statuses</option><option value="cold_prospect">Cold prospects</option><option value="existing_partner">Existing partners</option><option value="lapsed_partner">Lapsed partners</option><option value="unknown">Unknown</option></select></label>
+              </div>
+              <div class="button-row">
+                <button id="derive-selected" class="button secondary" type="button" disabled>1. Derive status</button>
+                <button id="research-selected" class="button secondary" type="button" disabled>2. Run research</button>
+                <button id="contacts-selected" class="button primary" type="button" disabled>3. Find contacts</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th><input id="select-all" type="checkbox" aria-label="Select all visible firms"></th><th>Firm</th><th>Relationship</th><th>Research</th><th>Hunter gate</th><th>Contacts</th><th>Draft</th><th><span class="sr-only">Action</span></th></tr></thead>
+                <tbody id="pipeline-body"></tbody>
+              </table>
+            </div>
+            <div id="pipeline-results-summary" class="table-footer"></div>
+          </article>
+        </section>
+
+        <section id="view-drafts" class="view">
+          <article class="context-banner compact">
+            <div><span class="context-step">Step 3</span><h3>Review the complete record</h3><p>Check the recipient, email body, source evidence, and validation results. Approval is always a human decision.</p></div>
+          </article>
+          <div class="review-layout">
+            <article class="panel draft-list-panel">
+              <div class="panel-heading"><div><p class="eyebrow">Approval queue</p><h3>Drafts</h3><p id="draft-queue-summary" class="section-copy"></p></div></div>
+              <div id="draft-list" class="draft-list"></div>
+            </article>
+            <article id="draft-detail" class="panel draft-detail empty-state">
+              <div class="empty-state-content"><span class="empty-icon">✦</span><strong>Select a draft</strong><p>Its email body, evidence, validators, and approval controls will appear here.</p></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-manual" class="view">
+          <article class="context-banner compact amber">
+            <div><span class="context-step">Step 4</span><h3>Resolve what automation should not guess</h3><p>These firms need a person to fill a missing fact, inspect weak research, or correct an upstream issue. Bridge preserves the reason and missing fields.</p></div>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">Human follow-up</p><h3>Manual queue</h3><p id="manual-queue-summary" class="section-copy"></p></div><button class="text-button jump" type="button" data-jump="pipeline">Return to pipeline</button></div>
+            <div id="manual-list" class="manual-list"></div>
+          </article>
+        </section>
+
+        <section id="view-cross-owner" class="view">
+          <article class="context-banner compact warning">
+            <div><span class="context-step">Step 5</span><h3>Use only for an explicit owner exception</h3><p>Normal cross-owner reads are blocked. This flow grants one target context for ten minutes and records who confirmed it.</p></div>
+          </article>
+          <div class="split-grid cross-owner-grid">
+            <article class="panel">
+              <div class="panel-heading"><div><p class="eyebrow">Controlled exception</p><h3>Generate in the other lane</h3><p class="section-copy">Complete all four fields. The confirmation sentence must match exactly.</p></div></div>
+              <form id="cross-owner-form" class="stack numbered-form">
+                <label for="cross-owner-target"><span class="field-number">1</span> Target owner</label>
+                <select id="cross-owner-target"></select>
+                <label for="cross-owner-slug"><span class="field-number">2</span> Exact target slug</label>
+                <input id="cross-owner-slug" pattern="[a-z0-9_]+" placeholder="houlihan_lokey" required>
+                <label for="cross-owner-paragraph"><span class="field-number">3</span> Human-authored firm paragraph, if cold</label>
+                <textarea id="cross-owner-paragraph" rows="6" placeholder="Use only facts from the reviewed research artifact."></textarea>
+                <div class="confirmation-box">
+                  <p><span class="field-number">4</span> Copy and type this confirmation exactly</p>
+                  <code id="cross-owner-prompt"></code>
+                </div>
+                <label for="cross-owner-confirmation">Typed confirmation</label>
+                <input id="cross-owner-confirmation" autocomplete="off" required>
+                <button class="button primary" type="submit">Confirm exception and generate</button>
+              </form>
+            </article>
+            <article class="panel audit-panel">
+              <div class="panel-heading"><div><p class="eyebrow">Audit trail</p><h3>Your confirmations</h3><p class="section-copy">Open confirmations expire after ten minutes and can be used once.</p></div></div>
+              <div id="confirmation-list" class="compact-list"></div>
+            </article>
+          </div>
+        </section>
+      </div>
+      <button id="sidebar-scrim" class="sidebar-scrim" type="button" aria-label="Close navigation"></button>
+    </div>
+
+    <dialog id="draft-dialog" class="modal">
+      <form id="draft-form" method="dialog" class="stack">
+        <div class="modal-heading"><div><p class="eyebrow">Validated workflow</p><h3 id="draft-dialog-title">Generate draft</h3><p class="section-copy">Bridge will create a review item. It will not send an email.</p></div><button class="icon-button" type="button" data-close="draft-dialog" aria-label="Close">×</button></div>
+        <input id="draft-target-id" type="hidden">
+        <label id="draft-contact-label" for="draft-contact">Verified contact</label>
+        <select id="draft-contact"></select>
+        <label id="draft-paragraph-label" for="draft-paragraph">Human-authored firm paragraph</label>
+        <textarea id="draft-paragraph" rows="7" placeholder="Write two or three original sentences grounded only in the sourced hooks."></textarea>
+        <span id="draft-paragraph-help" class="field-help">Bridge validates this language against the stored research artifact. It does not invent a firm-specific paragraph.</span>
+        <div class="modal-actions"><button class="button secondary" type="button" data-close="draft-dialog">Cancel</button><button id="draft-submit" class="button primary" type="submit">Generate review draft</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="contact-dialog" class="modal">
+      <form id="contact-run-form" method="dialog" class="stack">
+        <div class="modal-heading"><div><p class="eyebrow">Credit safeguard</p><h3>Confirm contact discovery</h3><p class="section-copy">Review eligibility and set the most Bridge may spend.</p></div><button class="icon-button" type="button" data-close="contact-dialog" aria-label="Close">×</button></div>
+        <div id="contact-preview"></div>
+        <label for="contact-cap">Hard credit cap for this run</label>
+        <input id="contact-cap" type="number" min="0" max="10" required>
+        <span class="field-help">The run stops at this number even if more firms are eligible.</span>
+        <input id="contact-run-id" type="hidden">
+        <div class="modal-actions"><button class="button secondary" type="button" data-close="contact-dialog">Cancel</button><button class="button primary" type="submit">Confirm capped run</button></div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    <script src="/app.js?v=20260814.2" defer></script>
+  </body>
+</html>

@@ -1,0 +1,3 @@
+firm,domain,status,presents_as,resolved_url,detail
+Citadel,citadel.com,bot_blocked,,https://www.citadel.com/,bot protection declined automated access (HTTP 403). Domain is probably correct. Research this firm manually.
+Houlihan Lokey,hl.com,bot_blocked,,https://hl.com/,"bot protection served a challenge page for hl.com, so its identity could not be confirmed. This is not evidence the domain is wrong. Confirm 'Houlihan Lokey' by hand and research it manually."

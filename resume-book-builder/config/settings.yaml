@@ -1,0 +1,97 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# BLK Resume Book Builder — Main Settings
+# Edit this file before each run to match your data sources and output needs.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Authentication ────────────────────────────────────────────────────────────
+auth:
+  # "oauth" (default) — interactive browser login, token cached locally.
+  # "service_account" — headless, requires GOOGLE_SERVICE_ACCOUNT_FILE in .env.
+  mode: oauth
+
+  # Paths are relative to this config file's directory (or absolute).
+  # Override via .env: GOOGLE_CREDENTIALS_FILE, GOOGLE_TOKEN_FILE
+  credentials_file: ../credentials.json
+  token_file: ../token.json
+
+  # Google API permission scopes.
+  # Add "https://www.googleapis.com/auth/spreadsheets" only if write-back is needed.
+  scopes:
+    - https://www.googleapis.com/auth/drive.readonly
+    - https://www.googleapis.com/auth/spreadsheets.readonly
+
+# ── Data Source ───────────────────────────────────────────────────────────────
+data:
+  # "excel" — read a local .xlsx file (used by build-general).
+  # "sheets" — read a Google Sheet (used by build-sponsors; can also be used for build-general).
+  source: excel
+
+  # Path to the local Excel file (only used when source = excel).
+  # Relative to the project root (resume-book-builder/).
+  excel_file: "input/BLK Undergraduate Audit 2026 (Responses) .xlsx"
+
+  # Sheet/tab name to read. Used for both excel and sheets sources.
+  # Workbooks with multiple tabs default to the first tab if this is blank,
+  # which may not be the tab with clean headers (e.g. a "Sheet1" scratch tab).
+  sheet_name: "Form Link (dont edit)"
+
+  # Google Sheet details (only used when source = sheets).
+  spreadsheet_id: ""          # paste your Sheet ID here
+
+# ── Input Assets ─────────────────────────────────────────────────────────────
+input:
+  # Folder containing Canva-exported transition/divider PDFs.
+  # Files must be named like: "2025 Transition.pdf", "2026 Transition.pdf", etc.
+  transition_pages_dir: input/transition_pages
+
+  # Folder containing Canva-exported cover page PDFs.
+  cover_pages_dir: input/cover_pages
+
+# ── Output ────────────────────────────────────────────────────────────────────
+output:
+  general_dir: output/general
+  sponsor_books_dir: output/sponsor_books
+  reports_dir: output/reports
+
+  # Set to true to save an uncompressed "raw" copy alongside the final book.
+  keep_raw: false
+
+  # Google Drive folder ID to upload sponsor books to (leave blank to skip upload).
+  drive_upload_folder_id: ""
+
+# ── Compression ───────────────────────────────────────────────────────────────
+compression:
+  # Backend: "ghostscript" (default, requires `gs` installed) or "ilovepdf" (future).
+  backend: ghostscript
+
+  # Default tier applied to individual resumes before merging.
+  # Options: high_quality | email_quality | small_size
+  per_resume_tier: email_quality
+
+  # Tier applied to the final merged book.
+  final_book_tier: email_quality
+
+  # Warning threshold (MB). A warning is added to the error report if the
+  # final compressed book exceeds this size.
+  max_pdf_mb: 20
+
+  # If true, automatically retry final book compression at the next lower tier
+  # when it still exceeds max_pdf_mb. false = warn only.
+  auto_downgrade: false
+
+# ── Processing ────────────────────────────────────────────────────────────────
+processing:
+  # Extract only the first page of each resume (strongly recommended).
+  first_page_only: true
+
+  # Sort members by graduation year (descending = newest class last).
+  sort_by_grad_year: true
+  grad_year_sort_order: ascending   # ascending (2025 first) or descending (2028 first)
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+logging:
+  # Console log level: DEBUG | INFO | WARNING | ERROR
+  level: INFO
+
+  # Write a debug log file to output/reports/ on every run.
+  log_to_file: true

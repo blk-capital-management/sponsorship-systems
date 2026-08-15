@@ -1,0 +1,27 @@
+# BLK Resume Book Builder — Python dependencies
+# Install with: pip install -r requirements.txt
+
+# Data
+pandas>=2.0
+openpyxl>=3.1          # Excel .xlsx support for pandas
+
+# PDF
+pypdf>=4.0             # First-page extraction and merging
+reportlab>=4.0         # Auto-generated fallback divider pages
+pikepdf>=8.0           # Python PDF compression fallback (when Ghostscript is absent)
+
+# Google APIs
+google-api-python-client>=2.100
+google-auth>=2.22
+google-auth-oauthlib>=1.1
+google-auth-httplib2>=0.1
+
+# Config / env
+pyyaml>=6.0
+python-dotenv>=1.0
+
+# Progress / UX
+tqdm>=4.66
+
+# Testing
+pytest>=8.0

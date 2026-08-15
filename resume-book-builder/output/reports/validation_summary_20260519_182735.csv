@@ -1,0 +1,2 @@
+run_timestamp,command,data_source_type,total_rows,valid_rows,error_count,warning_count,unique_grad_years_detected,sponsor_columns_detected,output_error_report_path,output_summary_path,validation_passed
+2026-05-19 18:27:35,validate,excel,0,0,1,0,0,0,output/reports/validation_errors_20260519_182735.csv,output/reports/validation_summary_20260519_182735.csv,False

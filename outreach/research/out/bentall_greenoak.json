@@ -1,0 +1,207 @@
+{
+  "firm": "Bentall GreenOak",
+  "firm_slug": "bentall_greenoak",
+  "domain": "bentallgreenoak.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:31:54+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://bgo.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://bgo.com/careers",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://bgo.com/culture-talent-and-belonging-at-bgo",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://bgo.com/press-release/j.g.-petrucci-and-bgo-cold-chain-announce-bethlehem-cold-storage-development-fully-leased-to-freshpet-ahead-of-year-end-completion",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Our investment, lending, and property management services are led by experts rooted in the global markets where we deliver value for our clients.",
+      "source_url": "https://bgo.com/",
+      "quote": "Our investment, lending, and property management services are led by experts rooted in the global markets where we deliver value for our clients.",
+      "category": "landing"
+    },
+    {
+      "value": "We are a fast-paced, entrepreneurial company that values integrity, and an enterprising attitude to serving the needs of our clients.",
+      "source_url": "https://bgo.com/careers",
+      "quote": "We are a fast-paced, entrepreneurial company that values integrity, and an enterprising attitude to serving the needs of our clients.",
+      "category": "careers"
+    },
+    {
+      "value": "It's our people that differentiate our business.",
+      "source_url": "https://bgo.com/careers",
+      "quote": "It's our people that differentiate our business.",
+      "category": "careers"
+    },
+    {
+      "value": "Here's how we value their precious time and turn it into something renewable and ever-lasting.",
+      "source_url": "https://bgo.com/careers",
+      "quote": "Here's how we value their precious time and turn it into something renewable and ever-lasting.",
+      "category": "careers"
+    },
+    {
+      "value": "Each employee's unique experience strengthens our ability to deliver value to our clients, partners, investors and other stakeholders.",
+      "source_url": "https://bgo.com/culture-talent-and-belonging-at-bgo",
+      "quote": "Each employee's unique experience strengthens our ability to deliver value to our clients, partners, investors and other stakeholders.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [
+    {
+      "value": "To achieve that, we examine opportunities we create through internships, scholarships and community engagement.",
+      "source_url": "https://bgo.com/culture-talent-and-belonging-at-bgo",
+      "quote": "To achieve that, we examine opportunities we create through internships, scholarships and community engagement.",
+      "category": "values_culture"
+    },
+    {
+      "value": "BGO has invested in annual scholarships in partnership with Ozîja Thiha Education Trust, Onion Lake Education Trust Fund, and University of British Columbia with a focus on First Nations/Indigenous students.",
+      "source_url": "https://bgo.com/culture-talent-and-belonging-at-bgo",
+      "quote": "BGO has invested in annual scholarships in partnership with Ozîja Thiha Education Trust, Onion Lake Education Trust Fund, and University of British Columbia with a focus on First Nations/Indigenous students.",
+      "category": "values_culture"
+    },
+    {
+      "value": "At Schulich School of Business, The Gary Whitelaw Strength in Diversity scholarship is a 10-year, $250,000 commitment to supporting Black, Indigenous, or female students pursuing a career in commercial real estate.",
+      "source_url": "https://bgo.com/culture-talent-and-belonging-at-bgo",
+      "quote": "At Schulich School of Business, The Gary Whitelaw Strength in Diversity scholarship is a 10-year, $250,000 commitment to supporting Black, Indigenous, or female students pursuing a career in commercial real estate.",
+      "category": "values_culture"
+    }
+  ],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "Our investment, lending, and property management services are led by experts rooted in the global markets where we deliver value for our clients.",
+      "source_url": "https://bgo.com/",
+      "quote": "Our investment, lending, and property management services are led by experts rooted in the global markets where we deliver value for our clients.",
+      "category": "landing"
+    },
+    {
+      "value": "BGO is a leading, global real estate investment management advisor and a globally-recognized provider of real estate services.",
+      "source_url": "https://bgo.com/",
+      "quote": "BGO is a leading, global real estate investment management advisor and a globally-recognized provider of real estate services.",
+      "category": "landing"
+    },
+    {
+      "value": "BGO has offices in more than 25 cities across twelve countries with deep, local knowledge, experience, and extensive networks in the regions where we invest in and manage real estate assets on behalf of our clients in primary, secondary and co-investment markets.",
+      "source_url": "https://bgo.com/",
+      "quote": "BGO has offices in more than 25 cities across twelve countries with deep, local knowledge, experience, and extensive networks in the regions where we invest in and manage real estate assets on behalf of our clients in primary, secondary and co-investment markets.",
+      "category": "landing"
+    },
+    {
+      "value": "Our strength in teamwork enables us to bring together individuals and groups from across our global workforce.",
+      "source_url": "https://bgo.com/careers",
+      "quote": "Our strength in teamwork enables us to bring together individuals and groups from across our global workforce.",
+      "category": "careers"
+    },
+    {
+      "value": "Throughout the year, our offices in cities around the world are active in their local communities to help make a difference.",
+      "source_url": "https://bgo.com/careers",
+      "quote": "Throughout the year, our offices in cities around the world are active in their local communities to help make a difference.",
+      "category": "careers"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "BGO is a leading, global real estate investment management advisor and a globally-recognized provider of real estate services.",
+      "source_url": "https://bgo.com/",
+      "quote": "BGO is a leading, global real estate investment management advisor and a globally-recognized provider of real estate services.",
+      "category": "landing"
+    },
+    {
+      "value": "BGO has offices in more than 25 cities across twelve countries with deep, local knowledge, experience, and extensive networks in the regions where we invest in and manage real estate assets on behalf of our clients in primary, secondary and co-investment markets.",
+      "source_url": "https://bgo.com/",
+      "quote": "BGO has offices in more than 25 cities across twelve countries with deep, local knowledge, experience, and extensive networks in the regions where we invest in and manage real estate assets on behalf of our clients in primary, secondary and co-investment markets.",
+      "category": "landing"
+    },
+    {
+      "value": "BGO is a part of SLC Management, the institutional alternatives and traditional asset management business of Sun Life.",
+      "source_url": "https://bgo.com/",
+      "quote": "BGO is a part of SLC Management, the institutional alternatives and traditional asset management business of Sun Life.",
+      "category": "landing"
+    },
+    {
+      "value": "We're looking for people who share our passion for real estate and who are committed to delivering exceptional client service.",
+      "source_url": "https://bgo.com/careers",
+      "quote": "We're looking for people who share our passion for real estate and who are committed to delivering exceptional client service.",
+      "category": "careers"
+    },
+    {
+      "value": "BGO has invested in programs to foster greater representation within the Commercial Real Estate industry.",
+      "source_url": "https://bgo.com/culture-talent-and-belonging-at-bgo",
+      "quote": "BGO has invested in programs to foster greater representation within the Commercial Real Estate industry.",
+      "category": "values_culture"
+    }
+  ],
+  "existing_student_org_partnerships": [
+    {
+      "value": "BGO has invested in annual scholarships in partnership with Ozîja Thiha Education Trust, Onion Lake Education Trust Fund, and University of British Columbia with a focus on First Nations/Indigenous students.",
+      "source_url": "https://bgo.com/culture-talent-and-belonging-at-bgo",
+      "quote": "BGO has invested in annual scholarships in partnership with Ozîja Thiha Education Trust, Onion Lake Education Trust Fund, and University of British Columbia with a focus on First Nations/Indigenous students.",
+      "category": "values_culture"
+    },
+    {
+      "value": "At Schulich School of Business, The Gary Whitelaw Strength in Diversity scholarship is a 10-year, $250,000 commitment to supporting Black, Indigenous, or female students pursuing a career in commercial real estate.",
+      "source_url": "https://bgo.com/culture-talent-and-belonging-at-bgo",
+      "quote": "At Schulich School of Business, The Gary Whitelaw Strength in Diversity scholarship is a 10-year, $250,000 commitment to supporting Black, Indigenous, or female students pursuing a career in commercial real estate.",
+      "category": "values_culture"
+    },
+    {
+      "value": "BGO is also a founding sponsor of Project Destined’s Black Student Athlete-focused programs providing training in financial literacy, entrepreneurship, and real estate, and the first-ever accredited Certificate Program in commercial real estate.",
+      "source_url": "https://bgo.com/culture-talent-and-belonging-at-bgo",
+      "quote": "BGO is also a founding sponsor of Project Destined’s Black Student Athlete-focused programs providing training in financial literacy, entrepreneurship, and real estate, and the first-ever accredited Certificate Program in commercial real estate.",
+      "category": "values_culture"
+    }
+  ],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "To achieve that, we examine opportunities we create through internships, scholarships and community engagement.",
+      "firm_claim_source": "https://bgo.com/culture-talent-and-belonging-at-bgo",
+      "quote": "To achieve that, we examine opportunities we create through internships, scholarships and community engagement.",
+      "basis": "campus_or_early_careers_programs"
+    },
+    {
+      "text": "Our investment, lending, and property management services are led by experts rooted in the global markets where we deliver value for our clients.",
+      "firm_claim_source": "https://bgo.com/",
+      "quote": "Our investment, lending, and property management services are led by experts rooted in the global markets where we deliver value for our clients.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "We're looking for people who share our passion for real estate and who are committed to delivering exceptional client service.",
+      "firm_claim_source": "https://bgo.com/careers",
+      "quote": "We're looking for people who share our passion for real estate and who are committed to delivering exceptional client service.",
+      "basis": "asset_classes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://bgo.com/culture-talent-and-belonging-at-bgo",
+    "https://bgo.com/",
+    "https://bgo.com/careers"
+  ],
+  "confidence": "medium",
+  "gaps": [
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for recent_relevant_news",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "firm": "Balyasny Asset Management",
+  "firm_slug": "balyasny",
+  "owner": "jamari",
+  "contact_status": "cold_prospect",
+  "contact": {
+    "owner": "jamari",
+    "name": "Hannah Dinardo",
+    "first_name": "Hannah",
+    "title": "Head of Campus Recruiting",
+    "email": "hdinardo@bamfunds.com"
+  },
+  "subject": null,
+  "subject_status": "required_but_unset",
+  "email_body": "Hi Hannah,\n\nMy name is Jamari Myers, and I am the Co-Chair of Sponsorships at BLK Capital Management, a student-run finance nonprofit now in its tenth year.\n\nBLK exists to give firms direct access to a pre-vetted pipeline of undergraduate finance talent. Members are accepted through a multi-round selection process, and we received 1,750+ applications this past cycle. What that process produces is a network of 1500+ members across 200+ universities in the US and EMEA who consistently place into investment banking, private equity, private credit, and public markets roles. More on our members, outcomes, and current partners is at blkcapitalmanagement.org.\n\nBalyasny runs its internship program across the Investment, Technology, and Business Infrastructure teams, with an explicit track from intern to full-time offer for top performers. BLK's own members go through a comparable multi-round selection process, so the undergraduates in our network arrive already prepared to compete for a seat on one of those teams.\n\nPartner firms engage with our members across the year through virtual programming, resume access, and in-person touchpoints, anchored by our Fall Conference on November 12 and 13 in New York, hosted at Wells Fargo this year. What a partnership provides is access rather than obligation. Your team meets prepared candidates early, and those candidates go through your process on their own merits. If it would be useful, I am happy to follow up with our full sponsorship prospectus ahead of a call.\n\nWe would welcome the chance to talk with Balyasny Asset Management about beginning a partnership that grows over time. If this is of interest, please connect me with the right people on your team and we will get a call scheduled.\n\nThank you for your time and consideration.\n\nBest,\nJamari Myers\nCo-Chair of Sponsorships, BLK Capital Management\n",
+  "evidence_block": "## Evidence\n\n1. Balyasny runs its internship program across the Investment, Technology, and Business Infrastructure teams, with an explicit track from intern to full-time offer for top performers.\n   Source: https://www.bamfunds.com/careers/internships\n   Supporting text: We hire interns for roles on our Investment, Technology, and Business Infrastructure Teams, seeking to convert top performers to full-time employees.\n\n2. BLK's own members go through a comparable multi-round selection process, so the undergraduates in our network arrive already prepared to compete for a seat on one of those teams.\n   Source: no firm-specific claim in this sentence\n\n## Contact provenance (internal only, never sent)\n\nDiscovery: https://www.google.com/search?q=site:linkedin.com hannah dinardo bamfunds\nPattern: https://www.google.com/search?q=site:linkedin.com hannah dinardo bamfunds\nMethod: pattern_inference / hunter\n",
+  "validator_results": {
+    "status": "pass",
+    "checks": [
+      "no_em_or_en_dash",
+      "blk_facts_exact_match",
+      "no_provenance_leak",
+      "no_outcome_promise",
+      "no_attachment_claim",
+      "subject_required_but_unset",
+      "owner_lane_match",
+      "firm_claims_trace_to_research_hooks",
+      "no_verbatim_hook_copy"
+    ]
+  },
+  "fields": {
+    "contact_first_name": "Hannah",
+    "firm_name": "Balyasny Asset Management",
+    "firm_specific_paragraph": "Balyasny runs its internship program across the Investment, Technology, and Business Infrastructure teams, with an explicit track from intern to full-time offer for top performers. BLK's own members go through a comparable multi-round selection process, so the undergraduates in our network arrive already prepared to compete for a seat on one of those teams.",
+    "applications_last_cycle": "1,750+",
+    "member_count": "1500+",
+    "university_count": "200+",
+    "conference_dates": "November 12 and 13",
+    "conference_venue": "Wells Fargo"
+  },
+  "generated_at": "2026-08-13T18:27:03+00:00"
+}

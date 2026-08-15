@@ -1,0 +1,3 @@
+2026-07-26 14:18:22  DEBUG     blk  Log file: output/reports/debug_20260726_141822.log
+2026-07-26 14:18:22  INFO      blk.main  BLK Resume Book Builder — command: doctor
+2026-07-26 14:18:22  DEBUG     blk.main  Config: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/config/settings.yaml

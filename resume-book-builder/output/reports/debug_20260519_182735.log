@@ -1,0 +1,17 @@
+2026-05-19 18:27:35  DEBUG     blk  Log file: output/reports/debug_20260519_182735.log
+2026-05-19 18:27:35  INFO      blk.main  BLK Resume Book Builder — command: validate
+2026-05-19 18:27:35  DEBUG     blk.main  Config: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/config/settings.yaml
+2026-05-19 18:27:35  WARNING   blk.validation.validator  DataFrame could not be loaded; skipping per-row and downstream checks.
+2026-05-19 18:27:35  INFO      blk.reporting.error_report  Error report written: output/reports/validation_errors_20260519_182735.csv  (1 errors, 0 warnings)
+2026-05-19 18:27:35  INFO      blk.reporting.run_summary  Run summary written: output/reports/validation_summary_20260519_182735.csv
+2026-05-19 18:27:35  INFO      blk.main  ────────────────────────────────────────────────────────────
+2026-05-19 18:27:35  INFO      blk.main  Validation complete
+2026-05-19 18:27:35  INFO      blk.main    Total rows checked : 0
+2026-05-19 18:27:35  INFO      blk.main    Valid rows         : 0
+2026-05-19 18:27:35  INFO      blk.main    Errors             : 1
+2026-05-19 18:27:35  INFO      blk.main    Warnings           : 0
+2026-05-19 18:27:35  INFO      blk.main    Result             : FAILED ✗
+2026-05-19 18:27:35  INFO      blk.main    Error report       : output/reports/validation_errors_20260519_182735.csv
+2026-05-19 18:27:35  INFO      blk.main    Run summary        : output/reports/validation_summary_20260519_182735.csv
+2026-05-19 18:27:35  INFO      blk.main  ────────────────────────────────────────────────────────────
+2026-05-19 18:27:35  ERROR     blk.main  Validation failed with 1 error(s). Fix the issues listed in the error report before running build-general or build-sponsors.

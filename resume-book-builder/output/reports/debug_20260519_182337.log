@@ -1,0 +1,24 @@
+2026-05-19 18:23:37  DEBUG     blk  Log file: output/reports/debug_20260519_182337.log
+2026-05-19 18:23:37  INFO      blk.main  BLK Resume Book Builder — command: validate
+2026-05-19 18:23:37  DEBUG     blk.main  Config: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/config/settings.yaml
+2026-05-19 18:23:37  INFO      blk.loaders.excel_loader  Loading Excel file: /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/Member Registration _ Fall 2025 (Responses).xlsx
+2026-05-19 18:23:37  INFO      blk.loaders.excel_loader  Excel loaded: 4 rows × 4 columns.
+2026-05-19 18:23:37  DEBUG     blk.loaders.excel_loader  Columns: ['First Name', 'Last Name', 'Graduation Year', 'Updated Resume']
+2026-05-19 18:23:37  DEBUG     blk.loaders.column_resolver  Field 'first_name' resolved to column 'First Name'
+2026-05-19 18:23:37  DEBUG     blk.loaders.column_resolver  Field 'last_name' resolved to column 'Last Name'
+2026-05-19 18:23:37  DEBUG     blk.loaders.column_resolver  Field 'graduation_year' resolved to column 'Graduation Year'
+2026-05-19 18:23:37  DEBUG     blk.loaders.column_resolver  Field 'resume_link' resolved to column 'Updated Resume'
+2026-05-19 18:23:37  INFO      blk.processing.pdf_merger  Loaded 0 transition page(s) from /Users/jamarimyers/Desktop/blk-sponsorship-systems/resume-book-builder/input/transition_pages.
+2026-05-19 18:23:37  INFO      blk.reporting.error_report  Error report written: output/reports/validation_errors_20260519_182337.csv  (5 errors, 2 warnings)
+2026-05-19 18:23:37  INFO      blk.reporting.run_summary  Run summary written: output/reports/validation_summary_20260519_182337.csv
+2026-05-19 18:23:37  INFO      blk.main  ────────────────────────────────────────────────────────────
+2026-05-19 18:23:37  INFO      blk.main  Validation complete
+2026-05-19 18:23:37  INFO      blk.main    Total rows checked : 4
+2026-05-19 18:23:37  INFO      blk.main    Valid rows         : 2
+2026-05-19 18:23:37  INFO      blk.main    Errors             : 5
+2026-05-19 18:23:37  INFO      blk.main    Warnings           : 2
+2026-05-19 18:23:37  INFO      blk.main    Result             : FAILED ✗
+2026-05-19 18:23:37  INFO      blk.main    Error report       : output/reports/validation_errors_20260519_182337.csv
+2026-05-19 18:23:37  INFO      blk.main    Run summary        : output/reports/validation_summary_20260519_182337.csv
+2026-05-19 18:23:37  INFO      blk.main  ────────────────────────────────────────────────────────────
+2026-05-19 18:23:37  ERROR     blk.main  Validation failed with 5 error(s). Fix the issues listed in the error report before running build-general or build-sponsors.

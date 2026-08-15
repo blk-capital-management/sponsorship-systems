@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BLK outreach research artifact",
+  "description": "One artifact per firm. Every substantive field carries a firm-namespace URL, because a claim without a URL never reaches an email (rule 1). Drafting reads this file and nothing else (rule 6). This file holds the FIRM namespace only. How a contact was discovered lives in contact_provenance on the contact record, is marked internal_only, and never appears here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "firm", "firm_slug", "domain", "region", "relationship", "fetched_at",
+    "pages_crawled", "values_themes", "campus_or_early_careers_programs",
+    "recruiting_timeline_signals", "offices_and_regions", "asset_classes",
+    "existing_student_org_partnerships", "recent_relevant_news",
+    "alignment_hooks", "firm_claim_sources", "confidence", "gaps"
+  ],
+  "$defs": {
+    "firm_claim_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://",
+      "description": "A direct URL on a page the firm published. Search result pages and LinkedIn-scoped strings are rejected here: a search URL records what was typed into a box rather than what a firm said, and LinkedIn provenance belongs in contact_provenance (rules 1 and 3).",
+      "allOf": [
+        {
+          "not": { "pattern": "[Ll][Ii][Nn][Kk][Ee][Dd][Ii][Nn]" },
+          "$comment": "Rejects linkedin.com hosts and encoded site:linkedin.com search scopes alike."
+        },
+        {
+          "not": {
+            "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://([A-Za-z0-9-]+\\.)*([Gg]oogle|[Bb]ing|[Dd]uck[Dd]uck[Gg]o|[Yy]ahoo|[Yy]andex|[Bb]aidu|[Ee]cosia)\\.[A-Za-z.]+(/|$)"
+          },
+          "$comment": "Rejects search-engine result pages."
+        }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "source_url", "quote"],
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The extracted claim, in the firm's own words."
+        },
+        "source_url": {
+          "$ref": "#/$defs/firm_claim_url",
+          "description": "The firm page this text was read off. Firm namespace, so the same direct-URL rules apply. Required, always."
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "description": "Surrounding text supporting the value, for 30-second review."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["landing", "careers", "university_recruiting", "values_culture", "news"]
+        }
+      }
+    },
+    "evidence_list": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidence" }
+    }
+  },
+  "properties": {
+    "firm": { "type": "string", "minLength": 1 },
+    "firm_slug": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "domain": { "type": "string", "minLength": 3 },
+    "region": { "type": "string" },
+    "relationship": { "type": "string", "enum": ["prospect", "existing"] },
+    "fetched_at": { "type": "string" },
+
+    "pages_crawled": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["category", "url", "status"],
+        "properties": {
+          "category": { "type": "string" },
+          "url": { "type": "string" },
+          "status": { "type": "integer" },
+          "from_cache": { "type": "boolean" },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+
+    "values_themes": { "$ref": "#/$defs/evidence_list" },
+    "campus_or_early_careers_programs": { "$ref": "#/$defs/evidence_list" },
+    "recruiting_timeline_signals": { "$ref": "#/$defs/evidence_list" },
+    "offices_and_regions": { "$ref": "#/$defs/evidence_list" },
+    "asset_classes": { "$ref": "#/$defs/evidence_list" },
+    "existing_student_org_partnerships": { "$ref": "#/$defs/evidence_list" },
+    "recent_relevant_news": { "$ref": "#/$defs/evidence_list" },
+
+    "alignment_hooks": {
+      "type": "array",
+      "maxItems": 3,
+      "description": "At most 3. Each is one sentence with its own firm_claim_source. These are the ONLY inputs drafting is allowed to see.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "firm_claim_source", "quote", "basis"],
+        "properties": {
+          "text": { "type": "string", "minLength": 1 },
+          "firm_claim_source": {
+            "$ref": "#/$defs/firm_claim_url",
+            "description": "The URL that backs this hook. Named for the namespace it belongs to, so it can never be confused with contact discovery provenance."
+          },
+          "quote": { "type": "string", "minLength": 1, "maxLength": 600 },
+          "basis": {
+            "type": "string",
+            "description": "Which artifact field this hook was drawn from."
+          }
+        }
+      }
+    },
+
+    "firm_claim_sources": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "Every distinct URL backing a firm claim in this artifact, in hook order. The evidence block maps each claim in a draft to one of these. A URL that is not in this list cannot be cited.",
+      "items": { "$ref": "#/$defs/firm_claim_url" }
+    },
+
+    "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+    "gaps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "What could not be found. Read by the manual queue."
+    }
+  }
+}

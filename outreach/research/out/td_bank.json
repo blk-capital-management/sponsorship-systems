@@ -1,0 +1,86 @@
+{
+  "firm": "TD Bank",
+  "firm_slug": "td_bank",
+  "domain": "td.com",
+  "region": "EMEA",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:32:20+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.td.com/us/en/personal-banking",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.td.com/us/en/about-us",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "At TD, we believe as banking gets more digital, it should also be more intuitive, more helpful, and more human.",
+      "source_url": "https://www.td.com/us/en/personal-banking",
+      "quote": "At TD, we believe as banking gets more digital, it should also be more intuitive, more helpful, and more human.",
+      "category": "landing"
+    },
+    {
+      "value": "At TD, we believe the digital future should also be a human one.",
+      "source_url": "https://www.td.com/us/en/about-us",
+      "quote": "At TD, we believe the digital future should also be a human one.",
+      "category": "values_culture"
+    },
+    {
+      "value": "You inspire what we do, from new products to more inclusive features.",
+      "source_url": "https://www.td.com/us/en/about-us",
+      "quote": "You inspire what we do, from new products to more inclusive features.",
+      "category": "values_culture"
+    },
+    {
+      "value": "The TD Way unites our ambition, values and leadership principles under one shared framework that drives how we serve our clients, empower our colleagues and strengthen our communities.",
+      "source_url": "https://www.td.com/us/en/about-us",
+      "quote": "The TD Way unites our ambition, values and leadership principles under one shared framework that drives how we serve our clients, empower our colleagues and strengthen our communities.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [],
+  "asset_classes": [],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "At TD, we believe as banking gets more digital, it should also be more intuitive, more helpful, and more human.",
+      "firm_claim_source": "https://www.td.com/us/en/personal-banking",
+      "quote": "At TD, we believe as banking gets more digital, it should also be more intuitive, more helpful, and more human.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "At TD, we believe the digital future should also be a human one.",
+      "firm_claim_source": "https://www.td.com/us/en/about-us",
+      "quote": "At TD, we believe the digital future should also be a human one.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.td.com/us/en/personal-banking",
+    "https://www.td.com/us/en/about-us"
+  ],
+  "confidence": "low",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for offices_and_regions",
+    "no citable content found for asset_classes",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news",
+    "no careers page found on the firm's domain",
+    "no news page found on the firm's domain",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

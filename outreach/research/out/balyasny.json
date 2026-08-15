@@ -1,0 +1,201 @@
+{
+  "firm": "Balyasny Asset Management",
+  "firm_slug": "balyasny",
+  "domain": "bamfunds.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-13T05:05:23+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.bamfunds.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "university_recruiting",
+      "url": "https://www.bamfunds.com/careers/internships",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.bamfunds.com/careers",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.bamfunds.com/about-us",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.bamfunds.com/news-and-insights",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "I gained hands-on experience from day one and was always working on important tasks that drove value for my PM and the team.",
+      "source_url": "https://www.bamfunds.com/careers/internships",
+      "quote": "I gained hands-on experience from day one and was always working on important tasks that drove value for my PM and the team.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "My team offered a fast-paced, collaborative environment, and it was particularly rewarding to directly contribute to production systems and witness the immediate impact of my work.",
+      "source_url": "https://www.bamfunds.com/careers/internships",
+      "quote": "My team offered a fast-paced, collaborative environment, and it was particularly rewarding to directly contribute to production systems and witness the immediate impact of my work.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "At Balyasny, we believe great ideas emerge from the connections between people.",
+      "source_url": "https://www.bamfunds.com/careers",
+      "quote": "At Balyasny, we believe great ideas emerge from the connections between people.",
+      "category": "careers"
+    },
+    {
+      "value": "We are a meritocracy, dedicated to giving outstanding performers the opportunity to grow and to lead.",
+      "source_url": "https://www.bamfunds.com/careers",
+      "quote": "We are a meritocracy, dedicated to giving outstanding performers the opportunity to grow and to lead.",
+      "category": "careers"
+    },
+    {
+      "value": "Accessibility to our Investment Committee, Management Committee, and Investment Team partners underpins the firm’s culture of curiosity, innovation, partnership, and smart risk-taking.",
+      "source_url": "https://www.bamfunds.com/careers",
+      "quote": "Accessibility to our Investment Committee, Management Committee, and Investment Team partners underpins the firm’s culture of curiosity, innovation, partnership, and smart risk-taking.",
+      "category": "careers"
+    }
+  ],
+  "campus_or_early_careers_programs": [
+    {
+      "value": "We hire interns for roles on our Investment, Technology, and Business Infrastructure Teams, seeking to convert top performers to full-time employees.",
+      "source_url": "https://www.bamfunds.com/careers/internships",
+      "quote": "We hire interns for roles on our Investment, Technology, and Business Infrastructure Teams, seeking to convert top performers to full-time employees.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "I’ve had many internships, but my experience at BAM was the most rewarding.",
+      "source_url": "https://www.bamfunds.com/careers/internships",
+      "quote": "I’ve had many internships, but my experience at BAM was the most rewarding.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Successful interns returning to full-time positions in Macro, Commodities, and Technology participate in our rotational programs, which integrate them into top-performing teams across our business.",
+      "source_url": "https://www.bamfunds.com/careers/internships",
+      "quote": "Successful interns returning to full-time positions in Macro, Commodities, and Technology participate in our rotational programs, which integrate them into top-performing teams across our business.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Undergraduates, graduate students, and recent graduates can explore our hands-on internship opportunities.",
+      "source_url": "https://www.bamfunds.com/careers",
+      "quote": "Undergraduates, graduate students, and recent graduates can explore our hands-on internship opportunities.",
+      "category": "careers"
+    },
+    {
+      "value": "Recent graduates looking to start as technology and data professionals can explore our rotational programs, which provide exposure to a range of teams and disciplines.",
+      "source_url": "https://www.bamfunds.com/careers",
+      "quote": "Recent graduates looking to start as technology and data professionals can explore our rotational programs, which provide exposure to a range of teams and disciplines.",
+      "category": "careers"
+    }
+  ],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "Assets under management, investment team and support professionals, and global locations as of August 1, 2026.",
+      "source_url": "https://www.bamfunds.com/",
+      "quote": "Assets under management, investment team and support professionals, and global locations as of August 1, 2026.",
+      "category": "landing"
+    },
+    {
+      "value": "Balyasny comprises more than 2,000 employees working across an international network of offices.",
+      "source_url": "https://www.bamfunds.com/careers",
+      "quote": "Balyasny comprises more than 2,000 employees working across an international network of offices.",
+      "category": "careers"
+    },
+    {
+      "value": "Balyasny teams work across more than 20 global offices.",
+      "source_url": "https://www.bamfunds.com/about-us",
+      "quote": "Balyasny teams work across more than 20 global offices.",
+      "category": "values_culture"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Balyasny is a multi-strategy asset management firm.",
+      "source_url": "https://www.bamfunds.com/",
+      "quote": "Balyasny is a multi-strategy asset management firm.",
+      "category": "landing"
+    },
+    {
+      "value": "Our Business Infrastructure Teams enable the pursuit of performance.",
+      "source_url": "https://www.bamfunds.com/",
+      "quote": "Our Business Infrastructure Teams enable the pursuit of performance.",
+      "category": "landing"
+    },
+    {
+      "value": "We hire interns for roles on our Investment, Technology, and Business Infrastructure Teams, seeking to convert top performers to full-time employees.",
+      "source_url": "https://www.bamfunds.com/careers/internships",
+      "quote": "We hire interns for roles on our Investment, Technology, and Business Infrastructure Teams, seeking to convert top performers to full-time employees.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Our Business Infrastructure Teams enable the pursuit of performance.",
+      "source_url": "https://www.bamfunds.com/careers",
+      "quote": "Our Business Infrastructure Teams enable the pursuit of performance.",
+      "category": "careers"
+    },
+    {
+      "value": "Our Investment, Risk, Technology, and Business Infrastructure Teams merge their expertise to achieve a shared goal: uncorrelated returns for our investors.",
+      "source_url": "https://www.bamfunds.com/careers",
+      "quote": "Our Investment, Risk, Technology, and Business Infrastructure Teams merge their expertise to achieve a shared goal: uncorrelated returns for our investors.",
+      "category": "careers"
+    }
+  ],
+  "existing_student_org_partnerships": [
+    {
+      "value": "Do you sponsor work authorization for international intern candidates?",
+      "source_url": "https://www.bamfunds.com/careers/internships",
+      "quote": "Do you sponsor work authorization for international intern candidates?",
+      "category": "university_recruiting"
+    }
+  ],
+  "recent_relevant_news": [],
+  "alignment_hooks": [
+    {
+      "text": "We hire interns for roles on our Investment, Technology, and Business Infrastructure Teams, seeking to convert top performers to full-time employees.",
+      "firm_claim_source": "https://www.bamfunds.com/careers/internships",
+      "quote": "We hire interns for roles on our Investment, Technology, and Business Infrastructure Teams, seeking to convert top performers to full-time employees.",
+      "basis": "campus_or_early_careers_programs"
+    },
+    {
+      "text": "At Balyasny, we believe great ideas emerge from the connections between people.",
+      "firm_claim_source": "https://www.bamfunds.com/careers",
+      "quote": "At Balyasny, we believe great ideas emerge from the connections between people.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Balyasny is a multi-strategy asset management firm.",
+      "firm_claim_source": "https://www.bamfunds.com/",
+      "quote": "Balyasny is a multi-strategy asset management firm.",
+      "basis": "asset_classes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.bamfunds.com/careers/internships",
+    "https://www.bamfunds.com/careers",
+    "https://www.bamfunds.com/"
+  ],
+  "confidence": "high",
+  "gaps": [
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for recent_relevant_news"
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "firm": "Makena Capital Management",
+  "firm_slug": "makena",
+  "domain": "makenacapital.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:32:06+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.makenacap.com",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.makenacap.com/category/in-the-news/",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Our Mission is to achieve the multi-generational goals and aspirations of our clients through the stewardship of our firm, our clients' capital, and our relationships.",
+      "source_url": "https://www.makenacap.com",
+      "quote": "Our Mission is to achieve the multi-generational goals and aspirations of our clients through the stewardship of our firm, our clients' capital, and our relationships.",
+      "category": "landing"
+    },
+    {
+      "value": "We are focused on excellence in all aspects of our business, inclusive of investment performance, client relationships, and operational excellence.",
+      "source_url": "https://www.makenacap.com",
+      "quote": "We are focused on excellence in all aspects of our business, inclusive of investment performance, client relationships, and operational excellence.",
+      "category": "landing"
+    },
+    {
+      "value": "We continuously reflect, improve our approach, and mitigate risk to be the best stewards and fulfill our mission to our clients and colleagues.",
+      "source_url": "https://www.makenacap.com",
+      "quote": "We continuously reflect, improve our approach, and mitigate risk to be the best stewards and fulfill our mission to our clients and colleagues.",
+      "category": "landing"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [],
+  "asset_classes": [
+    {
+      "value": "In an interview with Chief Investment Officer Magazine, our Co-Managing Partner Brian Rodde shared his insights on the venture capital investment landscape and takes the long-term view on the industry’s potential.",
+      "source_url": "https://www.makenacap.com/category/in-the-news/",
+      "quote": "In an interview with Chief Investment Officer Magazine, our Co-Managing Partner Brian Rodde shared his insights on the venture capital investment landscape and takes the long-term view on the industry’s potential.",
+      "category": "news"
+    },
+    {
+      "value": "Makena Capital Management’s Jonathan Van Gorp recently spoke with Pensions & Investments on the industrial real estate sector and how new competitive dynamics are impacting asset owners and real estate managers.",
+      "source_url": "https://www.makenacap.com/category/in-the-news/",
+      "quote": "Makena Capital Management’s Jonathan Van Gorp recently spoke with Pensions & Investments on the industrial real estate sector and how new competitive dynamics are impacting asset owners and real estate managers.",
+      "category": "news"
+    },
+    {
+      "value": "In a recent Pensions & Investments article, Makena Chief Investment Officer, Larry Kochard shares his thoughts on how when it comes to asset owners’ private equity portfolios, there is “no silver bullet” to benchmarking private equity investments.",
+      "source_url": "https://www.makenacap.com/category/in-the-news/",
+      "quote": "In a recent Pensions & Investments article, Makena Chief Investment Officer, Larry Kochard shares his thoughts on how when it comes to asset owners’ private equity portfolios, there is “no silver bullet” to benchmarking private equity investments.",
+      "category": "news"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [
+    {
+      "value": "Makena Capital Management, a leading endowment-style investment firm, is pleased to announce that Bryan Yeo, Group Chief Investment Officer of GIC, has been appointed to its Board of Directors, effective June 1, 2025.",
+      "source_url": "https://www.makenacap.com",
+      "quote": "Makena Capital Management, a leading endowment-style investment firm, is pleased to announce that Bryan Yeo, Group Chief Investment Officer of GIC, has been appointed to its Board of Directors, effective June 1, 2025.",
+      "category": "landing"
+    },
+    {
+      "value": "Makena Capital announced that it has appointed Jackson Garton as Chief Investment Officer (CIO).",
+      "source_url": "https://www.makenacap.com",
+      "quote": "Makena Capital announced that it has appointed Jackson Garton as Chief Investment Officer (CIO).",
+      "category": "landing"
+    },
+    {
+      "value": "Makena Capital Management, a leading endowment-style investment firm, is pleased to announce that Bryan Yeo, Group Chief Investment Officer of GIC, has been appointed to its Board of Directors, effective June 1, 2025.",
+      "source_url": "https://www.makenacap.com/category/in-the-news/",
+      "quote": "Makena Capital Management, a leading endowment-style investment firm, is pleased to announce that Bryan Yeo, Group Chief Investment Officer of GIC, has been appointed to its Board of Directors, effective June 1, 2025.",
+      "category": "news"
+    },
+    {
+      "value": "Makena Capital announced that it has appointed Jackson Garton as Chief Investment Officer (CIO).",
+      "source_url": "https://www.makenacap.com/category/in-the-news/",
+      "quote": "Makena Capital announced that it has appointed Jackson Garton as Chief Investment Officer (CIO).",
+      "category": "news"
+    }
+  ],
+  "alignment_hooks": [
+    {
+      "text": "Our Mission is to achieve the multi-generational goals and aspirations of our clients through the stewardship of our firm, our clients' capital, and our relationships.",
+      "firm_claim_source": "https://www.makenacap.com",
+      "quote": "Our Mission is to achieve the multi-generational goals and aspirations of our clients through the stewardship of our firm, our clients' capital, and our relationships.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "In an interview with Chief Investment Officer Magazine, our Co-Managing Partner Brian Rodde shared his insights on the venture capital investment landscape and takes the long-term view on the industry’s potential.",
+      "firm_claim_source": "https://www.makenacap.com/category/in-the-news/",
+      "quote": "In an interview with Chief Investment Officer Magazine, our Co-Managing Partner Brian Rodde shared his insights on the venture capital investment landscape and takes the long-term view on the industry’s potential.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "We are focused on excellence in all aspects of our business, inclusive of investment performance, client relationships, and operational excellence.",
+      "firm_claim_source": "https://www.makenacap.com",
+      "quote": "We are focused on excellence in all aspects of our business, inclusive of investment performance, client relationships, and operational excellence.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.makenacap.com",
+    "https://www.makenacap.com/category/in-the-news/"
+  ],
+  "confidence": "low",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for offices_and_regions",
+    "no citable content found for existing_student_org_partnerships",
+    "no careers page found on the firm's domain",
+    "no university_recruiting page found on the firm's domain",
+    "no values_culture page found on the firm's domain"
+  ]
+}

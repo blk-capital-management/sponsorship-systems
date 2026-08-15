@@ -1,0 +1,165 @@
+{
+  "firm": "Piper Sandler",
+  "firm_slug": "piper_sandler",
+  "domain": "pipersandler.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:32:18+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.pipersandler.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://www.pipersandler.com/careers",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://www.pipersandler.com/who-we-are",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://www.pipersandler.com/news",
+      "status": 200,
+      "from_cache": false,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "M&A announced activity across all industries with deal value <$2B; rankings based on number of deals announced for the same criteria.",
+      "source_url": "https://www.pipersandler.com/",
+      "quote": "M&A announced activity across all industries with deal value <$2B; rankings based on number of deals announced for the same criteria.",
+      "category": "landing"
+    },
+    {
+      "value": "We enable growth and success for our clients through deep sector expertise, candid advice and a differentiated, highly productive culture.",
+      "source_url": "https://www.pipersandler.com/careers",
+      "quote": "We enable growth and success for our clients through deep sector expertise, candid advice and a differentiated, highly productive culture.",
+      "category": "careers"
+    },
+    {
+      "value": "We are firm believers in the importance of a strong, highly productive culture that empowers employees to achieve their professional and personal goals.",
+      "source_url": "https://www.pipersandler.com/careers",
+      "quote": "We are firm believers in the importance of a strong, highly productive culture that empowers employees to achieve their professional and personal goals.",
+      "category": "careers"
+    },
+    {
+      "value": "We're headquartered in Minneapolis, Minnesota, and pride ourselves on being a Wall Street bank with midwest values.",
+      "source_url": "https://www.pipersandler.com/careers",
+      "quote": "We're headquartered in Minneapolis, Minnesota, and pride ourselves on being a Wall Street bank with midwest values.",
+      "category": "careers"
+    },
+    {
+      "value": "We enable growth and success for our clients through deep sector expertise, candid advice and a differentiated, highly productive culture.",
+      "source_url": "https://www.pipersandler.com/who-we-are",
+      "quote": "We enable growth and success for our clients through deep sector expertise, candid advice and a differentiated, highly productive culture.",
+      "category": "values_culture"
+    }
+  ],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "We're headquartered in Minneapolis, Minnesota, and pride ourselves on being a Wall Street bank with midwest values.",
+      "source_url": "https://www.pipersandler.com/careers",
+      "quote": "We're headquartered in Minneapolis, Minnesota, and pride ourselves on being a Wall Street bank with midwest values.",
+      "category": "careers"
+    },
+    {
+      "value": "Nancy Lazar, chief global economist, named to Barron's 2024 100 Most Influential Women in U.S.",
+      "source_url": "https://www.pipersandler.com/news",
+      "quote": "Nancy Lazar, chief global economist, named to Barron's 2024 100 Most Influential Women in U.S.",
+      "category": "news"
+    },
+    {
+      "value": "Nancy Lazar, chief global economist, named to Barron's 2023 100 Most Influential Women in U.S.",
+      "source_url": "https://www.pipersandler.com/news",
+      "quote": "Nancy Lazar, chief global economist, named to Barron's 2023 100 Most Influential Women in U.S.",
+      "category": "news"
+    },
+    {
+      "value": "Chief global economist Nancy Lazar named to Barron's 100 Most Influential Women in U.S.",
+      "source_url": "https://www.pipersandler.com/news",
+      "quote": "Chief global economist Nancy Lazar named to Barron's 100 Most Influential Women in U.S.",
+      "category": "news"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "Piper Sandler is a leading investment bank that provides comprehensive advisory, capital raising and restructuring services alongside specialized investment research, sales and trading solutions across fixed income and equity markets.",
+      "source_url": "https://www.pipersandler.com/who-we-are",
+      "quote": "Piper Sandler is a leading investment bank that provides comprehensive advisory, capital raising and restructuring services alongside specialized investment research, sales and trading solutions across fixed income and equity markets.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Piper Sandler equities trading team voted No.",
+      "source_url": "https://www.pipersandler.com/news",
+      "quote": "Piper Sandler equities trading team voted No.",
+      "category": "news"
+    },
+    {
+      "value": "Piper Jaffray Completes the Sale of the Midstream Energy Asset Management Business of Advisory Research, Inc.",
+      "source_url": "https://www.pipersandler.com/news",
+      "quote": "Piper Jaffray Completes the Sale of the Midstream Energy Asset Management Business of Advisory Research, Inc.",
+      "category": "news"
+    },
+    {
+      "value": "Piper Jaffray Launches European Equities Distribution to U.S.",
+      "source_url": "https://www.pipersandler.com/news",
+      "quote": "Piper Jaffray Launches European Equities Distribution to U.S.",
+      "category": "news"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [
+    {
+      "value": "M&A announced activity across all industries with deal value <$2B; rankings based on number of deals announced for the same criteria.",
+      "source_url": "https://www.pipersandler.com/",
+      "quote": "M&A announced activity across all industries with deal value <$2B; rankings based on number of deals announced for the same criteria.",
+      "category": "landing"
+    }
+  ],
+  "alignment_hooks": [
+    {
+      "text": "M&A announced activity across all industries with deal value <$2B; rankings based on number of deals announced for the same criteria.",
+      "firm_claim_source": "https://www.pipersandler.com/",
+      "quote": "M&A announced activity across all industries with deal value <$2B; rankings based on number of deals announced for the same criteria.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "Piper Sandler is a leading investment bank that provides comprehensive advisory, capital raising and restructuring services alongside specialized investment research, sales and trading solutions across fixed income and equity markets.",
+      "firm_claim_source": "https://www.pipersandler.com/who-we-are",
+      "quote": "Piper Sandler is a leading investment bank that provides comprehensive advisory, capital raising and restructuring services alongside specialized investment research, sales and trading solutions across fixed income and equity markets.",
+      "basis": "asset_classes"
+    },
+    {
+      "text": "We enable growth and success for our clients through deep sector expertise, candid advice and a differentiated, highly productive culture.",
+      "firm_claim_source": "https://www.pipersandler.com/careers",
+      "quote": "We enable growth and success for our clients through deep sector expertise, candid advice and a differentiated, highly productive culture.",
+      "basis": "values_themes"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://www.pipersandler.com/",
+    "https://www.pipersandler.com/who-we-are",
+    "https://www.pipersandler.com/careers"
+  ],
+  "confidence": "high",
+  "gaps": [
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships",
+    "no university_recruiting page found on the firm's domain"
+  ]
+}

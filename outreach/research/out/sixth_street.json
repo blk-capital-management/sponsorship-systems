@@ -1,0 +1,207 @@
+{
+  "firm": "Sixth Street",
+  "firm_slug": "sixth_street",
+  "domain": "sixthstreet.com",
+  "region": "US",
+  "relationship": "existing",
+  "fetched_at": "2026-08-13T05:05:23+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://sixthstreet.com/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "university_recruiting",
+      "url": "https://sixthstreet.com/careers/#early-careers-programs",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "careers",
+      "url": "https://sixthstreet.com/careers/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "values_culture",
+      "url": "https://sixthstreet.com/values-and-culture/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    },
+    {
+      "category": "news",
+      "url": "https://sixthstreet.com/newsroom/",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    }
+  ],
+  "values_themes": [
+    {
+      "value": "Our firm is designed for cross-platform collaboration at scale: we build businesses, invest for growth, acquire assets, provide direct financing, identify value in public markets, purchase royalty streams, and regularly develop first-of-their-kind structures to meet the strategic objectives of management teams.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "Our firm is designed for cross-platform collaboration at scale: we build businesses, invest for growth, acquire assets, provide direct financing, identify value in public markets, purchase royalty streams, and regularly develop first-of-their-kind structures to meet the strategic objectives of management teams.",
+      "category": "landing"
+    },
+    {
+      "value": "We believe adhering to our core values is a competitive advantage.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "We believe adhering to our core values is a competitive advantage.",
+      "category": "landing"
+    },
+    {
+      "value": "This transaction helped unlock $4.1 billion in value and freed up regulatory capital for Allianz.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "This transaction helped unlock $4.1 billion in value and freed up regulatory capital for Allianz.",
+      "category": "landing"
+    },
+    {
+      "value": "At Sixth Street, we embody our One Team culture and strive to support team members and their loved ones wellbeing.",
+      "source_url": "https://sixthstreet.com/careers/#early-careers-programs",
+      "quote": "At Sixth Street, we embody our One Team culture and strive to support team members and their loved ones wellbeing.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Sixth Street’s shared values and One Team culture are the core of our firm.",
+      "source_url": "https://sixthstreet.com/careers/#early-careers-programs",
+      "quote": "Sixth Street’s shared values and One Team culture are the core of our firm.",
+      "category": "university_recruiting"
+    }
+  ],
+  "campus_or_early_careers_programs": [
+    {
+      "value": "Sixth Street’s Homegrown Talent model begins with our Early Careers programs – opportunities for undergraduate students to connect with and learn from Sixth Street professionals.",
+      "source_url": "https://sixthstreet.com/careers/#early-careers-programs",
+      "quote": "Sixth Street’s Homegrown Talent model begins with our Early Careers programs – opportunities for undergraduate students to connect with and learn from Sixth Street professionals.",
+      "category": "university_recruiting"
+    },
+    {
+      "value": "Sixth Street’s Homegrown Talent model begins with our Early Careers programs – opportunities for undergraduate students to connect with and learn from Sixth Street professionals.",
+      "source_url": "https://sixthstreet.com/careers/",
+      "quote": "Sixth Street’s Homegrown Talent model begins with our Early Careers programs – opportunities for undergraduate students to connect with and learn from Sixth Street professionals.",
+      "category": "careers"
+    },
+    {
+      "value": "People at Sixth Street are intellectually curious by nature and students of their craft.",
+      "source_url": "https://sixthstreet.com/values-and-culture/",
+      "quote": "People at Sixth Street are intellectually curious by nature and students of their craft.",
+      "category": "values_culture"
+    },
+    {
+      "value": "We recruit talented professionals from schools that might not ordinarily send students to our industry.",
+      "source_url": "https://sixthstreet.com/values-and-culture/",
+      "quote": "We recruit talented professionals from schools that might not ordinarily send students to our industry.",
+      "category": "values_culture"
+    },
+    {
+      "value": "Harlem Academy is an independent school that drives the equity of opportunity for promising students, guiding them to thrive at the highest academic levels and one day leave a mark on the world.",
+      "source_url": "https://sixthstreet.com/values-and-culture/",
+      "quote": "Harlem Academy is an independent school that drives the equity of opportunity for promising students, guiding them to thrive at the highest academic levels and one day leave a mark on the world.",
+      "category": "values_culture"
+    }
+  ],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [
+    {
+      "value": "Founded in 2009, Sixth Street is a leading global investment firm dedicated to developing themes and offering solutions to companies across all stages of growth.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "Founded in 2009, Sixth Street is a leading global investment firm dedicated to developing themes and offering solutions to companies across all stages of growth.",
+      "category": "landing"
+    },
+    {
+      "value": "We do all this globally and as one unified team of investment and control-side professionals working on behalf of our institutional investors and their beneficiaries around the world.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "We do all this globally and as one unified team of investment and control-side professionals working on behalf of our institutional investors and their beneficiaries around the world.",
+      "category": "landing"
+    },
+    {
+      "value": "In 2021, Sixth Street made a majority investment in Legends, a premium experience platform partnered with the most iconic global brands in sports, entertainment, and attractions.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "In 2021, Sixth Street made a majority investment in Legends, a premium experience platform partnered with the most iconic global brands in sports, entertainment, and attractions.",
+      "category": "landing"
+    },
+    {
+      "value": "Sixth Street's annual Offsite brings our global team together to reaffirm our strategy and strengthen our One Team culture.",
+      "source_url": "https://sixthstreet.com/values-and-culture/",
+      "quote": "Sixth Street's annual Offsite brings our global team together to reaffirm our strategy and strengthen our One Team culture.",
+      "category": "values_culture"
+    }
+  ],
+  "asset_classes": [
+    {
+      "value": "In 2013, Sixth Street partnered with Caixabank to become the majority owner of Spanish real estate company Servihabitat.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "In 2013, Sixth Street partnered with Caixabank to become the majority owner of Spanish real estate company Servihabitat.",
+      "category": "landing"
+    },
+    {
+      "value": "In 2025, Sixth Street invested in Sorgenia in partnership with F2i SGR to create one of the leading, diversified energy infrastructure platforms in Europe.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "In 2025, Sixth Street invested in Sorgenia in partnership with F2i SGR to create one of the leading, diversified energy infrastructure platforms in Europe.",
+      "category": "landing"
+    },
+    {
+      "value": "The investment represents our commitment to providing scaled, creative solutions in global energy infrastructure.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "The investment represents our commitment to providing scaled, creative solutions in global energy infrastructure.",
+      "category": "landing"
+    }
+  ],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [
+    {
+      "value": "In 2025, Sixth Street and The San Francisco Giants announced a new strategic partnership.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "In 2025, Sixth Street and The San Francisco Giants announced a new strategic partnership.",
+      "category": "landing"
+    },
+    {
+      "value": "In 2022, Real Madrid, Sixth Street, and Legends announced a long-term partnership to elevate the Santiago Bernabéu Stadium as a worldwide benchmark for sports, leisure, and entertainment.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "In 2022, Real Madrid, Sixth Street, and Legends announced a long-term partnership to elevate the Santiago Bernabéu Stadium as a worldwide benchmark for sports, leisure, and entertainment.",
+      "category": "landing"
+    },
+    {
+      "value": "AirTrunk was acquired in April 2020 by Macquarie Infrastructure and Real Assets (MIRA) for A$3 billion.",
+      "source_url": "https://sixthstreet.com/",
+      "quote": "AirTrunk was acquired in April 2020 by Macquarie Infrastructure and Real Assets (MIRA) for A$3 billion.",
+      "category": "landing"
+    }
+  ],
+  "alignment_hooks": [
+    {
+      "text": "Sixth Street’s Homegrown Talent model begins with our Early Careers programs – opportunities for undergraduate students to connect with and learn from Sixth Street professionals.",
+      "firm_claim_source": "https://sixthstreet.com/careers/#early-careers-programs",
+      "quote": "Sixth Street’s Homegrown Talent model begins with our Early Careers programs – opportunities for undergraduate students to connect with and learn from Sixth Street professionals.",
+      "basis": "campus_or_early_careers_programs"
+    },
+    {
+      "text": "Our firm is designed for cross-platform collaboration at scale: we build businesses, invest for growth, acquire assets, provide direct financing, identify value in public markets, purchase royalty streams, and regularly develop first-of-their-kind structures to meet the strategic objectives of management teams.",
+      "firm_claim_source": "https://sixthstreet.com/",
+      "quote": "Our firm is designed for cross-platform collaboration at scale: we build businesses, invest for growth, acquire assets, provide direct financing, identify value in public markets, purchase royalty streams, and regularly develop first-of-their-kind structures to meet the strategic objectives of management teams.",
+      "basis": "values_themes"
+    },
+    {
+      "text": "People at Sixth Street are intellectually curious by nature and students of their craft.",
+      "firm_claim_source": "https://sixthstreet.com/values-and-culture/",
+      "quote": "People at Sixth Street are intellectually curious by nature and students of their craft.",
+      "basis": "campus_or_early_careers_programs"
+    }
+  ],
+  "firm_claim_sources": [
+    "https://sixthstreet.com/careers/#early-careers-programs",
+    "https://sixthstreet.com/",
+    "https://sixthstreet.com/values-and-culture/"
+  ],
+  "confidence": "high",
+  "gaps": [
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for existing_student_org_partnerships"
+  ]
+}

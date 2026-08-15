@@ -1,0 +1,48 @@
+{
+  "firm": "Point72 Asset Management",
+  "firm_slug": "point72",
+  "owner": "jamari",
+  "contact_status": "lapsed_partner",
+  "contact": {
+    "owner": "jamari",
+    "name": "Kelli",
+    "first_name": "Kelli",
+    "title": "",
+    "email": "Kelli.Dougherty@point72.com"
+  },
+  "subject": null,
+  "subject_status": "required_but_unset",
+  "email_body": "Hi Kelli,\n\nI am reaching out with Point72 Asset Management's prior Diamond partnership with BLK Capital Management in mind. Our records mark the relationship as Not Renewing and note: Budget cuts; cannot re-sponsor. I wanted to acknowledge that directly rather than write as if this were a first conversation.\n\nBLK connects 1500+ members across 200+ universities in the US and EMEA. Our partners engage with this community through year-round programming and our Fall Conference on November 12 and 13 in New York at Wells Fargo.\n\nIf circumstances have changed, we would welcome a conversation about what re-engagement could look like. If it would be useful, I am happy to follow up with our full sponsorship prospectus ahead of a call.\n\nThank you for your time and consideration.\n\nBest,\nJamari Myers\nCo-Chair of Sponsorships, BLK Capital Management\n",
+  "evidence_block": "## Relationship evidence\n\nCRM source: Archive!r11\n\nEvery relationship claim is rendered from these targets.csv fields:\n- relationship_tier: Diamond\n- relationship_status: Not Renewing\n- relationship_contact_name: Kelli & Holly\n- relationship_contact_email: Kelli.Dougherty@point72.com\n- relationship_decline_reason: Budget cuts; cannot re-sponsor.\n- relationship_expiration: 2025-12-31\n\n## Contact provenance (internal only, never sent)\n\nMethod: crm_derived / sponsor_crm\n",
+  "validator_results": {
+    "status": "pass",
+    "checks": [
+      "no_em_or_en_dash",
+      "blk_facts_exact_match",
+      "no_provenance_leak",
+      "no_outcome_promise",
+      "no_attachment_claim",
+      "subject_required_but_unset",
+      "owner_lane_match",
+      "relationship_claims_trace_to_targets_csv",
+      "crm_source_internal_only"
+    ]
+  },
+  "fields": {
+    "contact_first_name": "Kelli",
+    "firm_name": "Point72 Asset Management",
+    "relationship_tier": "Diamond",
+    "relationship_status": "Not Renewing",
+    "relationship_contact_name": "Kelli & Holly",
+    "relationship_contact_email": "Kelli.Dougherty@point72.com",
+    "relationship_expiration": "2025-12-31",
+    "relationship_decline_reason": "Budget cuts; cannot re-sponsor.",
+    "relationship_crm_source": "Archive!r11",
+    "applications_last_cycle": "1,750+",
+    "member_count": "1500+",
+    "university_count": "200+",
+    "conference_dates": "November 12 and 13",
+    "conference_venue": "Wells Fargo"
+  },
+  "generated_at": "2026-08-14T04:06:25+00:00"
+}

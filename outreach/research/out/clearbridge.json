@@ -1,0 +1,40 @@
+{
+  "firm": "ClearBridge Investments",
+  "firm_slug": "clearbridge",
+  "domain": "clearbridge.com",
+  "region": "US",
+  "relationship": "prospect",
+  "fetched_at": "2026-08-14T04:32:05+00:00",
+  "pages_crawled": [
+    {
+      "category": "landing",
+      "url": "https://www.clearbridge.com",
+      "status": 200,
+      "from_cache": true,
+      "error": null
+    }
+  ],
+  "values_themes": [],
+  "campus_or_early_careers_programs": [],
+  "recruiting_timeline_signals": [],
+  "offices_and_regions": [],
+  "asset_classes": [],
+  "existing_student_org_partnerships": [],
+  "recent_relevant_news": [],
+  "alignment_hooks": [],
+  "firm_claim_sources": [],
+  "confidence": "low",
+  "gaps": [
+    "no citable content found for values_themes",
+    "no citable content found for campus_or_early_careers_programs",
+    "no citable content found for recruiting_timeline_signals",
+    "no citable content found for offices_and_regions",
+    "no citable content found for asset_classes",
+    "no citable content found for existing_student_org_partnerships",
+    "no citable content found for recent_relevant_news",
+    "no careers page found on the firm's domain",
+    "no news page found on the firm's domain",
+    "no university_recruiting page found on the firm's domain",
+    "no values_culture page found on the firm's domain"
+  ]
+}
