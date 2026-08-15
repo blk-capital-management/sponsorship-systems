@@ -345,8 +345,8 @@ def test_health_and_static_shell_are_served_with_security_headers() -> None:
     assert 'id="login-submit"' in index.text
     assert 'type="submit" disabled' in index.text
     assert 'id="app-view" class="app-shell hidden" hidden' in index.text
-    assert '/styles.css?v=20260815.2' in index.text
-    assert '/app.js?v=20260815.2' in index.text
+    assert '/styles.css?v=20260815.3' in index.text
+    assert '/app.js?v=20260815.3' in index.text
     assert "Recommended next step" in index.text
     assert "Build the evidence before the email" in index.text
 
