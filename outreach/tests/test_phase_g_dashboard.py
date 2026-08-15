@@ -345,8 +345,8 @@ def test_health_and_static_shell_are_served_with_security_headers() -> None:
     assert 'id="login-submit"' in index.text
     assert 'type="submit" disabled' in index.text
     assert 'id="app-view" class="app-shell hidden" hidden' in index.text
-    assert '/styles.css?v=20260815.1' in index.text
-    assert '/app.js?v=20260815.1' in index.text
+    assert '/styles.css?v=20260815.2' in index.text
+    assert '/app.js?v=20260815.2' in index.text
     assert "Recommended next step" in index.text
     assert "Build the evidence before the email" in index.text
 
@@ -508,9 +508,17 @@ def test_gmail_link_is_compose_only_and_never_a_send_call() -> None:
     """The compose URL prefills a window. Nothing in the client transmits (rule 2)."""
     javascript = (PROJECT_ROOT / "public" / "app.js").read_text(encoding="utf-8")
     assert "https://mail.google.com/mail/?" in javascript
-    assert 'view: "cm"' in javascript
+    assert '"view=cm"' in javascript
     assert "gmail.googleapis.com" not in javascript
     assert "messages/send" not in javascript
+
+
+def test_compose_url_encodes_spaces_as_percent_twenty() -> None:
+    """URLSearchParams would encode a space as '+', which Gmail renders literally
+    in the body. encodeURIComponent is the only safe choice here."""
+    javascript = (PROJECT_ROOT / "public" / "app.js").read_text(encoding="utf-8")
+    assert "encodeURIComponent(draft.email_body)" in javascript
+    assert "new URLSearchParams" not in javascript
 
 
 def test_sent_migration_adds_status_without_dropping_existing_ones() -> None:

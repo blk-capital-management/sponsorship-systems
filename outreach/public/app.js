@@ -428,10 +428,15 @@ function bindSendPanel(draft, recipient) {
   const compose = $("#gmail-compose");
   if (compose) {
     const updateHref = () => {
-      const params = new URLSearchParams({
-        view: "cm", fs: "1", to: recipient, su: values.subject, body: draft.email_body,
-      });
-      compose.href = `https://mail.google.com/mail/?${params.toString()}`;
+      // encodeURIComponent, not URLSearchParams: the latter encodes a space as
+      // "+", and a body rendered with literal plus signs would be unusable.
+      const query = [
+        "view=cm", "fs=1",
+        `to=${encodeURIComponent(recipient)}`,
+        `su=${encodeURIComponent(values.subject)}`,
+        `body=${encodeURIComponent(draft.email_body)}`,
+      ].join("&");
+      compose.href = `https://mail.google.com/mail/?${query}`;
     };
     updateHref();
     subjectInput?.addEventListener("input", updateHref);
