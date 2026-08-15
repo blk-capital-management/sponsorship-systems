@@ -17,6 +17,7 @@ from typing import Any, Iterable
 
 from common.config import load_settings
 from common.http import Fetcher
+from common.logging import get_logger
 from common.namespaces import build_contact_provenance
 from common.owners import normalize_owner
 from common.slugify import firm_slug
@@ -33,6 +34,9 @@ from drafts.generate import generate_draft
 from drafts.routing import COLD_PROSPECT
 from research.fetch import build_artifact, crawl_firm, validate_artifact
 from scripts.derive_target_status import CrmRow, derive, normalize_firm
+
+
+log = get_logger("dashboard.services")
 
 
 class DashboardServiceError(RuntimeError):
@@ -545,7 +549,15 @@ def _hunter_provider(
 
 def hunter_balance(
     storage: SupabaseStorage, user: DashboardUser
-) -> dict[str, int | None]:
+) -> dict[str, Any]:
+    """Read the provider balance, reporting why rather than returning a bare null.
+
+    HunterProvider.account() swallows its own errors, and the audit log this
+    call writes first depends on the Supabase service key. A null balance can
+    therefore mean a bad Hunter key, a bad service key, or a provider outage.
+    Collapsing all three into "Unavailable" hides a broken deployment behind
+    what looks like a provider hiccup, so the cause travels with the result.
+    """
     targets = storage.select("targets", user.access_token, select="domain")
     provider = _hunter_provider(
         storage, user, max_calls=1,
@@ -553,6 +565,13 @@ def hunter_balance(
         action_run_id=f"balance-{utc_now():%Y%m%dT%H%M%SZ}",
     )
     account = provider.account() or {}
+    if not account:
+        log.warning("Hunter account balance came back empty for owner %s.", user.owner)
+        return {
+            "used": None, "available": None, "remaining": None,
+            "error": "Hunter returned no account balance. Check HUNTER_API_KEY and "
+                     "the Supabase service key, which the credit audit log writes with.",
+        }
     searches = (account.get("requests") or {}).get("searches") or {}
     used = searches.get("used")
     available = searches.get("available")
@@ -563,6 +582,7 @@ def hunter_balance(
             max(0, int(available) - int(used))
             if used is not None and available is not None else None
         ),
+        "error": None,
     }
 
 
@@ -900,6 +920,21 @@ def mark_draft_sent(
     return dict(result or {})
 
 
+def resolve_manual_item(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    item_id: str,
+    note: str,
+) -> dict[str, Any]:
+    """Close a manual-queue item the owner handled outside Bridge."""
+    result = storage.rpc(
+        "resolve_manual_queue_item",
+        {"p_item_id": item_id, "p_note": note},
+        user.access_token,
+    )
+    return dict(result or {})
+
+
 def dashboard_state(
     storage: SupabaseStorage, user: DashboardUser
 ) -> dict[str, Any]:
@@ -952,10 +987,16 @@ def dashboard_state(
                 "reason": decision.describe(),
             },
         })
+    # A provider problem must not take the whole workspace down, but it must not
+    # be invisible either: the reason is carried through to the UI.
     try:
         balance = hunter_balance(storage, user)
-    except Exception:
-        balance = {"used": None, "available": None, "remaining": None}
+    except Exception as exc:
+        log.warning("Hunter balance lookup failed for owner %s: %s", user.owner, exc)
+        balance = {
+            "used": None, "available": None, "remaining": None,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
     return {
         "user": {
             "id": user.user_id,
@@ -979,6 +1020,16 @@ def dashboard_state(
             "pending_review": sum(d.get("status") == "pending_review" for d in drafts),
             "approved": sum(d.get("status") == "approved" for d in drafts),
             "sent": sum(d.get("status") == "sent" for d in drafts),
+            # Exceeding the per-mailbox daily cap damages domain reputation,
+            # which degrades deliverability on live sponsor threads. The cap was
+            # unenforceable until drafts recorded when they were sent.
+            "sent_today": sum(
+                str(d.get("sent_at") or "").startswith(utc_now().date().isoformat())
+                for d in drafts
+            ),
+            "daily_send_cap": int(
+                (dashboard_settings().get("send") or {}).get("daily_cap_per_mailbox", 40)
+            ),
             "manual_queue": len(manual),
         },
     }

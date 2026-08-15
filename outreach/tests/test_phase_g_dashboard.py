@@ -556,3 +556,83 @@ def test_mark_draft_sent_service_calls_the_rpc_under_the_caller_token(jamari) ->
     assert storage.calls == [
         ("mark_draft_sent", {"p_draft_id": "draft-1"}, "jamari-user-jwt")
     ]
+
+
+# ── Phase G.2: failure visibility, draft readiness, queue resolution ──────────
+
+RESOLVE_MIGRATION = PROJECT_ROOT / "supabase" / "migrations" / "003_manual_queue_resolution.sql"
+
+
+def test_hunter_balance_reports_why_it_is_unavailable(jamari) -> None:
+    """A null balance that says nothing hid a broken service key for a day."""
+    class BrokenStorage:
+        def select(self, *_args: Any, **_kwargs: Any) -> list[dict[str, Any]]:
+            return [{"domain": "example.com"}]
+
+        def service_insert(self, *_args: Any, **_kwargs: Any) -> None:
+            raise RuntimeError("Invalid API key")
+
+    from dashboard.services import hunter_balance
+
+    import os as _os
+    _os.environ.setdefault("HUNTER_API_KEY", "test-key")
+    result = hunter_balance(BrokenStorage(), jamari)
+    assert result["remaining"] is None
+    assert result["error"], "a null balance must carry its cause"
+    assert "service key" in result["error"] or "Invalid API key" in result["error"]
+
+
+def test_dashboard_state_surfaces_balance_failure_without_breaking(jamari, monkeypatch) -> None:
+    class OwnStorage:
+        def select(self, table: str, *_args: Any, **_kwargs: Any) -> list[dict[str, Any]]:
+            if table == "targets":
+                return [{"id": "t1", "owner": "jamari", "firm": "X",
+                         "contact_status": "cold_prospect"}]
+            return []
+
+    def boom(*_args: Any, **_kwargs: Any):
+        raise RuntimeError("Invalid API key")
+
+    monkeypatch.setattr("dashboard.services.hunter_balance", boom)
+    state = dashboard_state(OwnStorage(), jamari)
+    assert state["hunter_balance"]["remaining"] is None
+    assert "Invalid API key" in state["hunter_balance"]["error"]
+    assert state["counts"]["targets"] == 1, "a provider fault must not empty the lane"
+
+
+def test_state_exposes_the_daily_send_cap(jamari, monkeypatch) -> None:
+    class OwnStorage:
+        def select(self, table: str, *_args: Any, **_kwargs: Any) -> list[dict[str, Any]]:
+            return []
+
+    monkeypatch.setattr("dashboard.services.hunter_balance",
+                        lambda *_a, **_k: {"used": 0, "available": 60, "remaining": 60})
+    counts = dashboard_state(OwnStorage(), jamari)["counts"]
+    assert counts["daily_send_cap"] >= 1
+    assert counts["sent_today"] == 0
+
+
+def test_pipeline_explains_why_a_firm_cannot_be_drafted() -> None:
+    javascript = (PROJECT_ROOT / "public" / "app.js").read_text(encoding="utf-8")
+    assert "function draftBlocker(" in javascript
+    assert "Cold prospects need a verified contact" in javascript
+    assert "Cold prospects need research before drafting" in javascript
+
+
+def test_manual_queue_resolution_requires_a_note_and_owns_the_lane() -> None:
+    sql = RESOLVE_MIGRATION.read_text(encoding="utf-8")
+    assert "create or replace function public.resolve_manual_queue_item" in sql
+    assert "security definer" in sql
+    assert "set search_path = public" in sql
+    assert "owner = public.current_owner()" in sql
+    assert "A resolution note is required" in sql
+    assert "revoke execute on function public.resolve_manual_queue_item(uuid, text) from public, anon;" in sql
+    assert "grant execute on function public.resolve_manual_queue_item(uuid, text) to authenticated;" in sql
+
+
+def test_resolve_manual_request_rejects_a_blank_note() -> None:
+    from dashboard.models import ResolveManualRequest
+
+    assert ResolveManualRequest(note="  found by hand  ").note == "found by hand"
+    with pytest.raises(ValidationError):
+        ResolveManualRequest(note="   ")

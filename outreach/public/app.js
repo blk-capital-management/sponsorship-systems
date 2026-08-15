@@ -248,7 +248,8 @@ function renderOverview() {
 
   const balance = state.hunter_balance || {};
   $("#hunter-balance").innerHTML = balance.remaining == null
-    ? `<strong>Unavailable</strong><span>Contact discovery is paused until the provider responds.</span>`
+    ? `<strong>Unavailable</strong><span>Contact discovery is paused.</span>${
+        balance.error ? `<span class="balance-error">${escapeHtml(balance.error)}</span>` : ""}`
     : `<strong>${balance.remaining}</strong><span>search credits remaining · ${balance.used} of ${balance.available} used</span>`;
 
   const research = researchByTarget();
@@ -267,6 +268,21 @@ function renderOverview() {
     switchView("drafts");
     renderDrafts();
   }));
+}
+
+// Why this firm cannot produce a draft yet, or null when it can. The server
+// enforces all of this too; surfacing it here turns a dead-end click and a 400
+// into a row that says what is missing.
+function draftBlocker(target, artifact, targetContacts) {
+  if ((target.contact_status || "unknown") === "unknown") {
+    return "Derive this firm's relationship status first, step 1 in the toolbar.";
+  }
+  if (target.contact_status !== "cold_prospect") return null;
+  if (!artifact) return "Cold prospects need research before drafting. Run step 2.";
+  if (!targetContacts.length) {
+    return "Cold prospects need a verified contact. Run step 3, find contacts.";
+  }
+  return null;
 }
 
 function renderPipeline() {
@@ -293,7 +309,9 @@ function renderPipeline() {
       <td><span title="${escapeHtml(gate.reason)}">${pill(gate.status)}</span></td>
       <td>${targetContacts.length ? `${targetContacts.length} verified` : `<span class="quiet">None yet</span>`}</td>
       <td>${latestDraft ? pill(latestDraft.status) : "None"}</td>
-      <td><button class="text-button create-draft" data-id="${target.id}">Create draft</button></td>
+      <td>${draftBlocker(target, artifact, targetContacts)
+        ? `<span class="quiet" title="${escapeHtml(draftBlocker(target, artifact, targetContacts))}">Not ready</span>`
+        : `<button class="text-button create-draft" data-id="${target.id}">Create draft</button>`}</td>
     </tr>`;
   }).join("") : `<tr><td colspan="8">${emptyState(state.targets.length ? "No matching firms" : "Your pipeline is empty", state.targets.length ? "Clear the search or change the status filter." : "Add a batch above to begin.")}</td></tr>`;
 
@@ -397,8 +415,23 @@ function renderSendPanel(draft, recipient) {
         <a class="button primary" id="gmail-compose" href="#" target="_blank" rel="noopener noreferrer">Open in Gmail</a>
       </div>
       ${recipient ? "" : `<p class="send-warning">No email address is on file for this contact. Run contact discovery for this firm before sending.</p>`}
+      ${sendCapNotice()}
       ${sent ? "" : `<div class="review-actions"><button class="button primary" id="mark-sent">I sent this</button></div>`}
     </div>`;
+}
+
+// Sending past the per-mailbox daily cap damages domain reputation, which costs
+// deliverability on live sponsor threads. Advisory, because the send happens in
+// Gmail where Bridge cannot enforce anything.
+function sendCapNotice() {
+  const { sent_today: today = 0, daily_send_cap: cap = 40 } = state?.counts || {};
+  if (today >= cap) {
+    return `<p class="send-warning">You have recorded ${today} sends today, at the ${cap} daily cap for this mailbox. Continue tomorrow to protect deliverability.</p>`;
+  }
+  if (today >= cap * 0.8) {
+    return `<p class="send-note">${today} of ${cap} recorded sends used today.</p>`;
+  }
+  return "";
 }
 
 function bindSendPanel(draft, recipient) {
@@ -451,9 +484,32 @@ function renderManualQueue() {
   $("#manual-list").innerHTML = rows.length ? rows.map((row) => `
     <article class="manual-item">
       <div><header><div><strong>${escapeHtml(row.firm)}</strong><span class="quiet">${escapeHtml(row.owner)} lane · ${escapeHtml(humanize(row.source_stage))}</span></div>${pill(row.confidence)}</header><p><strong>Why it stopped:</strong> ${escapeHtml(row.reason)}</p></div>
-      <div class="manual-next-step"><strong>What to resolve</strong><p>${escapeHtml((row.gaps || []).length ? row.gaps.join(" · ") : "Review the reason, correct the source-stage issue, and rerun the eligible pipeline action.")}</p></div>
+      <div class="manual-next-step"><strong>What to resolve</strong><p>${escapeHtml((row.gaps || []).length ? row.gaps.join(" · ") : "Review the reason, correct the source-stage issue, and rerun the eligible pipeline action.")}</p>
+      <button class="button secondary resolve-manual" type="button" data-id="${row.id}" data-firm="${escapeHtml(row.firm)}">Mark resolved</button></div>
     </article>
   `).join("") : emptyState("Manual queue is clear", "Every visible firm can continue through the standard workflow.");
+
+  $$(".resolve-manual").forEach((button) => button.addEventListener("click", () => {
+    const note = window.prompt(`How was ${button.dataset.firm} resolved? This is kept as the audit note.`)?.trim();
+    if (!note) return showToast("A resolution note is required.", true);
+    resolveManualItem(button.dataset.id, note);
+  }));
+}
+
+async function resolveManualItem(itemId, note) {
+  setLoading(true);
+  try {
+    await api(`/api/manual-queue/${itemId}/resolve`, {
+      method: "POST",
+      body: JSON.stringify({ note }),
+    });
+    showToast("Item resolved and note recorded.");
+    await loadState();
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setLoading(false);
+  }
 }
 
 function crossOwnerPrompt() {

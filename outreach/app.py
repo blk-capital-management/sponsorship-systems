@@ -16,6 +16,7 @@ from dashboard.models import (
     CrossOwnerDraftRequest,
     DraftRequest,
     IntakeRequest,
+    ResolveManualRequest,
     ReviewRequest,
     TargetBatchRequest,
 )
@@ -28,6 +29,7 @@ from dashboard.services import (
     intake_targets,
     mark_draft_sent,
     preview_contact_run,
+    resolve_manual_item,
     research_batch,
     review_draft,
     run_contact_discovery,
@@ -230,6 +232,16 @@ def mark_draft_sent_endpoint(
 ) -> dict[str, Any]:
     """Human reports that they sent an approved draft. Bridge sends nothing."""
     return mark_draft_sent(storage, user, draft_id)
+
+
+@app.post("/api/manual-queue/{item_id}/resolve")
+def resolve_manual_endpoint(
+    item_id: str,
+    payload: ResolveManualRequest,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> dict[str, Any]:
+    return resolve_manual_item(storage, user, item_id, payload.note)
 
 
 @app.get("/app.js", include_in_schema=False)

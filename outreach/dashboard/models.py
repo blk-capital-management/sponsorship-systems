@@ -73,3 +73,15 @@ class ReviewRequest(BaseModel):
         if self.action == "rejected" and not self.reason:
             raise ValueError("A rejection reason is required.")
         return self
+
+
+class ResolveManualRequest(BaseModel):
+    note: str = Field(min_length=1, max_length=1500)
+
+    @field_validator("note")
+    @classmethod
+    def clean_note(cls, value: str) -> str:
+        cleaned = " ".join(value.strip().split())
+        if not cleaned:
+            raise ValueError("A resolution note is required.")
+        return cleaned

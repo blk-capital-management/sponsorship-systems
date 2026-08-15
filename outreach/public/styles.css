@@ -315,6 +315,9 @@ td input[type=checkbox], th input[type=checkbox] { width: 14px; min-height: auto
 .send-actions .button { text-decoration: none; }
 .sent-badge { flex: 0 0 auto; padding: 5px 8px; border-radius: 999px; color: var(--green); background: var(--green-bg); font-size: 8px; font-weight: 850; text-transform: uppercase; letter-spacing: .045em; }
 .send-warning { margin: 12px 0 0; color: var(--red); font-size: 10px; font-weight: 700; }
+.send-note { margin: 12px 0 0; color: var(--amber); font-size: 10px; font-weight: 700; }
+.balance-error { display: block; margin-top: 8px; color: var(--red); font-size: 9px; font-weight: 700; overflow-wrap: anywhere; }
+.manual-next-step .resolve-manual { margin-top: 12px; }
 .pill.sent { color: var(--violet) !important; background: var(--lilac-light); }
 .manual-item { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .5fr); gap: 18px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: white; }
 .manual-item header { display: flex; justify-content: space-between; gap: 12px; }
