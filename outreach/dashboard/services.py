@@ -884,6 +884,22 @@ def review_draft(
     return dict(result or {})
 
 
+def mark_draft_sent(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    draft_id: str,
+) -> dict[str, Any]:
+    """Record that a human copied an approved draft into Gmail and sent it.
+
+    Bridge never transmits. This is the human reporting back, so that a later
+    run can tell which firms were already contacted.
+    """
+    result = storage.rpc(
+        "mark_draft_sent", {"p_draft_id": draft_id}, user.access_token
+    )
+    return dict(result or {})
+
+
 def dashboard_state(
     storage: SupabaseStorage, user: DashboardUser
 ) -> dict[str, Any]:
@@ -962,6 +978,7 @@ def dashboard_state(
             "lapsed_partner": sum(t.get("contact_status") == "lapsed_partner" for t in targets),
             "pending_review": sum(d.get("status") == "pending_review" for d in drafts),
             "approved": sum(d.get("status") == "approved" for d in drafts),
+            "sent": sum(d.get("status") == "sent" for d in drafts),
             "manual_queue": len(manual),
         },
     }

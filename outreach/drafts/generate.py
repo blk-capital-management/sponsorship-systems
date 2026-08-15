@@ -83,6 +83,21 @@ TEMPLATE_BY_STATUS = {
     EXISTING_PARTNER: WARM_TEMPLATE_PATH,
     LAPSED_PARTNER: RECOVERY_TEMPLATE_PATH,
 }
+
+# Subject lines by routing status. These are fixed house lines, not composed
+# copy: nothing here interpolates research text, so a subject can never carry an
+# unsourced firm claim (rule 1). The cold line is the canonical one already
+# recorded at the top of config/template.md. No em dashes (rule 4), asserted at
+# import time below.
+SUBJECT_BY_STATUS = {
+    COLD_PROSPECT: "BLK Capital Management | Partnership for the 2026-27 Cycle",
+    EXISTING_PARTNER: "BLK Capital Management | Renewing Our Partnership for 2026-27",
+    LAPSED_PARTNER: "BLK Capital Management | Revisiting Our Partnership for 2026-27",
+}
+for _subject in SUBJECT_BY_STATUS.values():
+    assert_no_em_dash(_subject)
+del _subject
+
 TARGETS_CSV = PROJECT_ROOT / "data" / "targets.csv"
 OUT_DIR = PROJECT_ROOT / "review" / "drafts"
 MANUAL_QUEUE_CSV = PROJECT_ROOT / "review" / "manual_queue.csv"
@@ -498,7 +513,7 @@ def validator_results(status: str) -> dict[str, Any]:
         "no_provenance_leak",
         "no_outcome_promise",
         "no_attachment_claim",
-        "subject_required_but_unset",
+        "subject_set_from_template",
         "owner_lane_match",
     ]
     specific = (
@@ -723,8 +738,8 @@ def generate_draft(
         "owner": owner,
         "contact_status": status,
         "contact": renderable_contact,
-        "subject": None,
-        "subject_status": "required_but_unset",
+        "subject": SUBJECT_BY_STATUS[status],
+        "subject_status": "template_default",
         "email_body": email_body,
     }
     assert_renderable(payload, "email_body")

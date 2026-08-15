@@ -1,5 +1,5 @@
 """Part D tests for drafts/generate.py: the locked cold-prospect template,
-the C5 email_body validators, zero-hook routing, and the unset subject field.
+the C5 email_body validators, zero-hook routing, and the house subject line.
 """
 
 import json
@@ -7,8 +7,10 @@ import json
 import pytest
 
 from common.namespaces import build_contact_provenance
+from common.provenance import assert_no_em_dash
 from contacts.record import ContactRecord
 from drafts import generate
+from drafts.routing import COLD_PROSPECT
 
 LOCKED_TEMPLATE_TEXT = """Hi {contact_first_name},
 
@@ -191,14 +193,25 @@ def test_contact_provenance_url_never_appears_in_the_rendered_body(artifact, con
     assert record["evidence_block"] != record["email_body"]
 
 
-def test_subject_is_unset_and_flagged_not_silently_defaulted(artifact, contact, facts, tmp_path):
+def test_subject_comes_from_the_house_template_and_is_flagged_as_such(
+    artifact, contact, facts, tmp_path
+):
     record = _generate(artifact, contact, facts, tmp_path)
-    assert record["subject"] is None
-    assert record["subject_status"] == "required_but_unset"
+    assert record["subject"] == generate.SUBJECT_BY_STATUS[COLD_PROSPECT]
+    assert record["subject_status"] == "template_default"
 
     on_disk = json.loads((tmp_path / "drafts" / "balyasny.json").read_text(encoding="utf-8"))
-    assert on_disk["subject"] is None
-    assert on_disk["subject_status"] == "required_but_unset"
+    assert on_disk["subject"] == record["subject"]
+    assert on_disk["subject_status"] == "template_default"
+
+
+def test_no_subject_line_carries_a_firm_specific_claim_or_an_em_dash(artifact, contact, facts, tmp_path):
+    """Subjects are fixed house lines. A firm name in one would be an unsourced claim."""
+    record = _generate(artifact, contact, facts, tmp_path)
+    assert "Balyasny" not in record["subject"]
+    for subject in generate.SUBJECT_BY_STATUS.values():
+        assert_no_em_dash(subject)
+        assert "{" not in subject and "}" not in subject
 
 
 # ── C5 validators ──────────────────────────────────────────────────────────────

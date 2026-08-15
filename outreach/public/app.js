@@ -16,6 +16,15 @@ const VIEW_META = {
   "cross-owner": ["Cross-owner exception", "Create one logged, time-limited exception for another owner lane."],
 };
 
+// Mirrors SUBJECT_BY_STATUS in drafts/generate.py, used only for drafts stored
+// before subjects were templated. tests/test_phase_g_dashboard.py asserts the
+// two stay in step.
+const SUBJECT_FALLBACK = {
+  cold_prospect: "BLK Capital Management | Partnership for the 2026-27 Cycle",
+  existing_partner: "BLK Capital Management | Renewing Our Partnership for 2026-27",
+  lapsed_partner: "BLK Capital Management | Revisiting Our Partnership for 2026-27",
+};
+
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const escapeHtml = (value) => String(value ?? "")
@@ -185,6 +194,14 @@ function recommendedAction() {
       view: "drafts",
     };
   }
+  if ((c.approved ?? 0) > 0) {
+    return {
+      title: `${c.approved} approved draft${c.approved === 1 ? " is" : "s are"} ready for you to send`,
+      copy: "Open the draft, copy it into Gmail, send it, then record it as sent.",
+      label: "Open approved drafts",
+      view: "drafts",
+    };
+  }
   if ((c.manual_queue ?? 0) > 0) {
     return {
       title: `${c.manual_queue} item${c.manual_queue === 1 ? " needs" : "s need"} human follow-up`,
@@ -222,7 +239,8 @@ function renderOverview() {
     ["01", "Targets", "Firms in lane", c.targets ?? 0],
     ["02", "Evidence", "Research artifacts", (state.research || []).length],
     ["03", "Contacts", "Verified people", (state.contacts || []).length],
-    ["04", "Review", "Draft decisions", (c.approved ?? 0) + (c.rejected ?? 0)],
+    ["04", "Approved", "Ready to send", c.approved ?? 0],
+    ["05", "Sent", "Emails out", c.sent ?? 0],
   ];
   $("#workflow-progress").innerHTML = stages.map(([number, name, label, count]) => `
     <div class="workflow-stage"><span class="stage-number">${number}</span><div><strong>${escapeHtml(name)}</strong><span>${escapeHtml(label)}</span></div><b>${count}</b></div>
@@ -329,20 +347,97 @@ function renderDrafts() {
   }
   $("#draft-detail").className = "panel draft-detail";
   const checks = draft.validator_results?.checks || [];
+  const recipient = draft.contact?.email || "";
+  const subject = draftSubject(draft);
   const reviewButtons = draft.status === "pending_review" ? `
     <div class="review-actions">
       <button class="button danger" id="reject-draft">Reject with reason</button>
       <button class="button primary" id="approve-draft">Approve draft</button>
     </div>` : "";
   $("#draft-detail").innerHTML = `
-    <div class="draft-detail-header"><div><p class="eyebrow">${escapeHtml(humanize(draft.contact_status))}</p><h3>${escapeHtml(draft.firm)}</h3><div class="draft-meta"><span><strong>Recipient:</strong> ${escapeHtml(draft.contact?.name || "Relationship contact")}</span><span><strong>Subject status:</strong> ${escapeHtml(humanize(draft.subject_status))}</span></div></div>${pill(draft.status)}</div>
+    <div class="draft-detail-header"><div><p class="eyebrow">${escapeHtml(humanize(draft.contact_status))}</p><h3>${escapeHtml(draft.firm)}</h3><div class="draft-meta"><span><strong>Recipient:</strong> ${escapeHtml(draft.contact?.name || "Relationship contact")}</span><span><strong>Email:</strong> ${escapeHtml(recipient || "not on file")}</span></div></div>${pill(draft.status)}</div>
     <div class="review-guide"><strong>Review order:</strong> Read the email, confirm the cited evidence supports every firm-specific claim, then make the approval decision.</div>
+    <div class="detail-section-heading"><h4>Subject</h4><span class="quiet">${escapeHtml(humanize(draft.subject_status))}, editable before you copy</span></div>
+    <input id="draft-subject-line" class="subject-input" type="text" value="${escapeHtml(subject)}" aria-label="Email subject line">
     <div class="detail-section-heading"><h4>Email body</h4><span class="quiet">Reviewable draft only. Nothing is sent.</span></div><div class="document">${escapeHtml(draft.email_body)}</div>
     <div class="detail-section-heading"><h4>Validator results</h4><div class="validator-list">${checks.map((check) => `<span class="validator">✓ ${escapeHtml(humanize(check))}</span>`).join("")}</div></div>
     <div class="detail-section-heading"><h4>Evidence and provenance</h4><span class="quiet">Internal review record</span></div><div class="evidence">${escapeHtml(draft.evidence_block)}</div>
-    ${reviewButtons}`;
+    ${reviewButtons}
+    ${renderSendPanel(draft, recipient)}`;
   $("#approve-draft")?.addEventListener("click", () => reviewSelectedDraft("approved"));
   $("#reject-draft")?.addEventListener("click", () => reviewSelectedDraft("rejected"));
+  bindSendPanel(draft, recipient);
+}
+
+// Drafts created before subjects were templated have subject === null. Fall back
+// so that existing approved work stays sendable without regenerating it.
+function draftSubject(draft) {
+  if (draft.subject) return draft.subject;
+  return SUBJECT_FALLBACK[draft.contact_status] || SUBJECT_FALLBACK.cold_prospect;
+}
+
+// Copy-out is deliberately gated on approval: a human decision comes before an
+// email can leave the workspace, even by clipboard.
+function renderSendPanel(draft, recipient) {
+  if (draft.status === "rejected") return "";
+  if (draft.status === "pending_review") {
+    return `<div class="send-panel locked"><span class="send-lock">🔒</span><div><strong>Approve before sending</strong><p>Copy and compose actions unlock once you approve this draft.</p></div></div>`;
+  }
+  const sent = draft.status === "sent";
+  return `
+    <div class="send-panel">
+      <div class="send-panel-heading">
+        <div><p class="eyebrow">Step 4</p><h4>Send it yourself</h4><p class="section-copy">Bridge does not transmit email. Copy this into Gmail, send it, then record that you did.</p></div>
+        ${sent ? `<span class="sent-badge">Sent${draft.sent_at ? ` ${escapeHtml(String(draft.sent_at).slice(0, 10))}` : ""}</span>` : ""}
+      </div>
+      <div class="send-actions">
+        <button class="button secondary" type="button" data-copy="recipient">Copy address</button>
+        <button class="button secondary" type="button" data-copy="subject">Copy subject</button>
+        <button class="button secondary" type="button" data-copy="body">Copy body</button>
+        <a class="button primary" id="gmail-compose" href="#" target="_blank" rel="noopener noreferrer">Open in Gmail</a>
+      </div>
+      ${recipient ? "" : `<p class="send-warning">No email address is on file for this contact. Run contact discovery for this firm before sending.</p>`}
+      ${sent ? "" : `<div class="review-actions"><button class="button primary" id="mark-sent">I sent this</button></div>`}
+    </div>`;
+}
+
+function bindSendPanel(draft, recipient) {
+  const subjectInput = $("#draft-subject-line");
+  const values = {
+    recipient,
+    get subject() { return subjectInput?.value ?? draftSubject(draft); },
+    body: draft.email_body,
+  };
+
+  $$("#draft-detail [data-copy]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const key = button.dataset.copy;
+      const value = values[key];
+      if (!value) return showToast(`There is no ${key} to copy.`, true);
+      try {
+        await navigator.clipboard.writeText(value);
+        showToast(`${key[0].toUpperCase()}${key.slice(1)} copied.`);
+      } catch {
+        showToast("Your browser blocked the clipboard. Select the text and copy manually.", true);
+      }
+    });
+  });
+
+  // A compose URL only prefills a window. It transmits nothing; a person still
+  // has to press send inside Gmail.
+  const compose = $("#gmail-compose");
+  if (compose) {
+    const updateHref = () => {
+      const params = new URLSearchParams({
+        view: "cm", fs: "1", to: recipient, su: values.subject, body: draft.email_body,
+      });
+      compose.href = `https://mail.google.com/mail/?${params.toString()}`;
+    };
+    updateHref();
+    subjectInput?.addEventListener("input", updateHref);
+  }
+
+  $("#mark-sent")?.addEventListener("click", markSelectedDraftSent);
 }
 
 function renderManualQueue() {
@@ -466,6 +561,20 @@ async function reviewSelectedDraft(action) {
       body: JSON.stringify({ action, reason }),
     });
     showToast(action === "approved" ? "Draft approved." : "Draft rejected and reason logged.");
+    await loadState();
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function markSelectedDraftSent() {
+  if (!window.confirm("Confirm you have already sent this email from Gmail. This only records what you did; Bridge sends nothing.")) return;
+  setLoading(true);
+  try {
+    await api(`/api/drafts/${selectedDraftId}/sent`, { method: "POST" });
+    showToast("Recorded as sent.");
     await loadState();
   } catch (error) {
     showToast(error.message, true);

@@ -22,6 +22,7 @@ from dashboard.services import (
     generate_cross_owner_draft,
     get_target,
     intake_targets,
+    mark_draft_sent,
     research_batch,
 )
 from dashboard.storage import SupabaseSettings, SupabaseStorage
@@ -344,8 +345,8 @@ def test_health_and_static_shell_are_served_with_security_headers() -> None:
     assert 'id="login-submit"' in index.text
     assert 'type="submit" disabled' in index.text
     assert 'id="app-view" class="app-shell hidden" hidden' in index.text
-    assert '/styles.css?v=20260814.2' in index.text
-    assert '/app.js?v=20260814.2' in index.text
+    assert '/styles.css?v=20260815.1' in index.text
+    assert '/app.js?v=20260815.1' in index.text
     assert "Recommended next step" in index.text
     assert "Build the evidence before the email" in index.text
 
@@ -480,3 +481,70 @@ def test_seed_preserves_balyasny_human_approval_identity_and_event() -> None:
         "reason": "Imported from the existing human-approved Balyasny draft.",
         "created_at": balyasny["generated_at"],
     }]
+
+
+# ── Phase G.1: subject lines and the human copy-out path ──────────────────────
+
+SENT_MIGRATION = PROJECT_ROOT / "supabase" / "migrations" / "002_sent_tracking.sql"
+
+
+def test_dashboard_javascript_subject_fallback_matches_generate_py() -> None:
+    """The browser fallback for pre-templating drafts must not drift from Python."""
+    from drafts.generate import SUBJECT_BY_STATUS
+
+    javascript = (PROJECT_ROOT / "public" / "app.js").read_text(encoding="utf-8")
+    for status, subject in SUBJECT_BY_STATUS.items():
+        assert f'{status}: "{subject}"' in javascript
+
+
+def test_copy_out_is_gated_on_human_approval() -> None:
+    """A pending draft must not expose copy or compose controls."""
+    javascript = (PROJECT_ROOT / "public" / "app.js").read_text(encoding="utf-8")
+    assert 'if (draft.status === "pending_review") {' in javascript
+    assert "Copy and compose actions unlock once you approve this draft." in javascript
+
+
+def test_gmail_link_is_compose_only_and_never_a_send_call() -> None:
+    """The compose URL prefills a window. Nothing in the client transmits (rule 2)."""
+    javascript = (PROJECT_ROOT / "public" / "app.js").read_text(encoding="utf-8")
+    assert "https://mail.google.com/mail/?" in javascript
+    assert 'view: "cm"' in javascript
+    assert "gmail.googleapis.com" not in javascript
+    assert "messages/send" not in javascript
+
+
+def test_sent_migration_adds_status_without_dropping_existing_ones() -> None:
+    sql = SENT_MIGRATION.read_text(encoding="utf-8")
+    for status in ("pending_review", "approved", "rejected", "gmail_created", "sent"):
+        assert f"'{status}'" in sql
+    assert "add column if not exists sent_at timestamptz" in sql
+    assert "add column if not exists sent_by uuid references auth.users(id)" in sql
+
+
+def test_mark_draft_sent_enforces_owner_lane_and_prior_approval() -> None:
+    sql = SENT_MIGRATION.read_text(encoding="utf-8")
+    assert "create or replace function public.mark_draft_sent(p_draft_id uuid)" in sql
+    assert "security definer" in sql
+    assert "set search_path = public" in sql
+    assert "owner = public.current_owner()" in sql
+    assert "for update" in sql
+    assert "Only an approved draft may be marked as sent." in sql
+    assert "revoke execute on function public.mark_draft_sent(uuid) from public, anon;" in sql
+    assert "grant execute on function public.mark_draft_sent(uuid) to authenticated;" in sql
+
+
+def test_mark_draft_sent_service_calls_the_rpc_under_the_caller_token(jamari) -> None:
+    class RpcStorage:
+        def __init__(self) -> None:
+            self.calls: list[tuple[str, dict, str]] = []
+
+        def rpc(self, function, payload, token):
+            self.calls.append((function, payload, token))
+            return {"id": "draft-1", "status": "sent"}
+
+    storage = RpcStorage()
+    result = mark_draft_sent(storage, jamari, "draft-1")
+    assert result == {"id": "draft-1", "status": "sent"}
+    assert storage.calls == [
+        ("mark_draft_sent", {"p_draft_id": "draft-1"}, "jamari-user-jwt")
+    ]

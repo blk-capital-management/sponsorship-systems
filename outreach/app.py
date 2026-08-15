@@ -26,6 +26,7 @@ from dashboard.services import (
     generate_cross_owner_draft,
     generate_owner_draft,
     intake_targets,
+    mark_draft_sent,
     preview_contact_run,
     research_batch,
     review_draft,
@@ -219,6 +220,16 @@ def review_draft_endpoint(
     storage: SupabaseStorage = Depends(get_storage),
 ) -> dict[str, Any]:
     return review_draft(storage, user, draft_id, payload.action, payload.reason)
+
+
+@app.post("/api/drafts/{draft_id}/sent")
+def mark_draft_sent_endpoint(
+    draft_id: str,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> dict[str, Any]:
+    """Human reports that they sent an approved draft. Bridge sends nothing."""
+    return mark_draft_sent(storage, user, draft_id)
 
 
 @app.get("/app.js", include_in_schema=False)

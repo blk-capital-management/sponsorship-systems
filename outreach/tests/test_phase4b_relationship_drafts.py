@@ -99,8 +99,8 @@ def test_warm_draft_uses_crm_relationship_fields_and_does_not_reintroduce_blk(tm
     assert body.startswith("Hi Maddy,")
     assert record["owner"] == "jamari"
     assert record["contact"]["owner"] == "jamari"
-    assert record["subject"] is None
-    assert record["subject_status"] == "required_but_unset"
+    assert record["subject"] == generate.SUBJECT_BY_STATUS[EXISTING_PARTNER]
+    assert record["subject_status"] == "template_default"
     assert record["validator_results"]["status"] == "pass"
     assert "Jamari!r21" not in body
     assert "relationship_tier: Gold" in record["evidence_block"]
