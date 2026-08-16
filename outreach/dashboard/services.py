@@ -10,7 +10,6 @@ from __future__ import annotations
 import os
 import tempfile
 from copy import deepcopy
-from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
