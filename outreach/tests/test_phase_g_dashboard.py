@@ -403,6 +403,46 @@ def test_status_batch_finalizes_and_preserves_success_when_one_target_fails(
     assert run["completed_at"]
 
 
+def test_derive_status_reconstructs_crm_rows_from_the_database(jamari: DashboardUser) -> None:
+    """derive_status() referenced _crm_rows_from_database without ever defining
+    it -- every real call raised NameError. Undetected because the only other
+    test touching derive_status replaces the whole function with a fake. This
+    exercises the real function against DB-shaped rows (the inverse of what
+    scripts/seed_supabase.py::seed_crm writes when it imports the workbook).
+    """
+    from datetime import date, timedelta
+
+    from dashboard.services import derive_status
+
+    future_expiration = (date.today() + timedelta(days=365)).isoformat()
+
+    class CrmStorage:
+        def select(self, table, token, *, params=None, lane=None):
+            assert table == "targets"
+            return [{"id": "t1", "firm": "Acme Capital", "owner": "jamari",
+                     "contact_needs_refresh": False}]
+
+        def service_select(self, table, *, select="*", params=None):
+            assert table == "crm_records"
+            return [{
+                "tab": "Active", "row_number": 5, "firm": "Acme Capital",
+                "status": "Active", "expiration_raw": future_expiration,
+                "expiration": future_expiration, "contacts": ["Jane Doe"],
+                "emails": ["jane@acme.com"], "is_ledger": True,
+                "record_id": "REC-1", "tier": "Gold", "decline_reason": "",
+            }]
+
+        def update(self, table, values, token, *, params, return_rows=True, lane=None):
+            assert table == "targets"
+            return []
+
+    result = derive_status(CrmStorage(), jamari, "t1")
+    assert result["contact_status"] == "existing_partner"
+    assert result["has_known_contact"] is True
+    assert result["relationship_tier"] == "Gold"
+    assert result["relationship_contact_email"] == "jane@acme.com"
+
+
 def test_reject_request_requires_logged_reason() -> None:
     with pytest.raises(ValidationError, match="rejection reason"):
         ReviewRequest(action="rejected", reason="  ")

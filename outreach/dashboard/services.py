@@ -517,6 +517,28 @@ def research_batch(
     )
 
 
+def _crm_rows_from_database(raw_rows: list[dict[str, Any]]) -> list[CrmRow]:
+    """Reconstruct CrmRow objects from crm_records, the inverse of the mapping
+    scripts/seed_supabase.py::seed_crm writes when it imports the CRM workbook.
+    """
+    return [
+        CrmRow(
+            tab=str(row.get("tab") or ""),
+            row_number=int(row.get("row_number") or 0),
+            firm=str(row.get("firm") or ""),
+            status=str(row.get("status") or ""),
+            expiration_raw=row.get("expiration_raw"),
+            contacts=list(row.get("contacts") or []),
+            is_ledger=bool(row.get("is_ledger")),
+            record_id=str(row.get("record_id") or ""),
+            tier=str(row.get("tier") or ""),
+            emails=list(row.get("emails") or []),
+            decline_reason=str(row.get("decline_reason") or ""),
+        )
+        for row in raw_rows
+    ]
+
+
 def derive_status(
     storage: SupabaseStorage, user: DashboardUser, target_id: str
 ) -> dict[str, Any]:
