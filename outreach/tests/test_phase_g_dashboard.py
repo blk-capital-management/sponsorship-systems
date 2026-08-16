@@ -642,6 +642,41 @@ def test_dashboard_exposes_no_signup_or_send_route() -> None:
     assert not any("send" in path.lower() for path in paths)
 
 
+def test_unhandled_error_is_logged_in_full_but_never_echoed_to_the_client(
+    jamari: DashboardUser,
+) -> None:
+    """A bug in an uncurated exception must not leak its message to the client
+    (unlike the app's own custom exception types, whose messages are already
+    reviewed and safe) -- only a request id the server log can be matched to.
+    """
+    from dashboard.auth import current_user as current_user_dep
+    from dashboard.storage import get_storage as get_storage_dep
+
+    secret_looking_message = "connection to postgres://svc:s3cr3t@db failed"
+
+    def boom(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError(secret_looking_message)
+
+    import app as app_module  # the module, distinct from `app` (the FastAPI instance)
+
+    app.dependency_overrides[current_user_dep] = lambda: jamari
+    app.dependency_overrides[get_storage_dep] = lambda: None
+    original = app_module.dashboard_state
+    app_module.dashboard_state = boom
+    try:
+        with TestClient(app, raise_server_exceptions=False) as client:
+            response = client.get("/api/state", headers={"Authorization": "Bearer t"})
+    finally:
+        app_module.dashboard_state = original
+        app.dependency_overrides.pop(current_user_dep, None)
+        app.dependency_overrides.pop(get_storage_dep, None)
+
+    assert response.status_code == 500
+    body = response.json()
+    assert secret_looking_message not in body["detail"]
+    assert "ref " in body["detail"]
+
+
 def test_health_and_static_shell_are_served_with_security_headers() -> None:
     with TestClient(app) as client:
         health = client.get("/health")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -107,13 +108,20 @@ async def supabase_error(_request: Request, exc: SupabaseRequestError):
 @app.exception_handler(Exception)
 async def unhandled_error(request: Request, exc: Exception):
     # Every expected failure mode above already has its own handler and a
-    # useful message. Anything reaching here is a bug: log the full traceback
-    # so it shows up in Vercel's function logs instead of vanishing into a
-    # bare 500, and return a diagnosable-but-safe body to the client.
-    log.exception("Unhandled error on %s %s", request.method, request.url.path)
+    # curated, safe message. Anything reaching here is a bug in an arbitrary,
+    # uncurated exception -- unlike the handlers above, its message could
+    # contain internals (payload contents, driver errors, file paths), so it
+    # is logged in full server-side (shows up in Vercel's function logs) but
+    # never echoed to the client. The request id lets a report be matched
+    # back to that log line without exposing anything itself.
+    request_id = uuid.uuid4().hex[:12]
+    log.exception(
+        "Unhandled error [%s] on %s %s", request_id, request.method, request.url.path
+    )
     return JSONResponse(
         status_code=500,
-        content={"detail": f"{type(exc).__name__}: {exc}"[:500]},
+        content={"detail": f"Something went wrong (ref {request_id}). "
+                            "Check the server logs for that reference."},
     )
 
 
