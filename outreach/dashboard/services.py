@@ -77,7 +77,7 @@ def get_target(
     storage: SupabaseStorage, user: DashboardUser, target_id: str
 ) -> dict[str, Any]:
     rows = storage.select(
-        "targets", user.access_token, params={"id": _eq(target_id), "limit": "1"}
+        "targets", user.access_token, lane=user.owner, params={"id": _eq(target_id), "limit": "1"}
     )
     if len(rows) != 1 or not _owner_is(rows[0], user.owner):
         raise DashboardServiceError(
@@ -91,7 +91,7 @@ def get_artifact(
 ) -> dict[str, Any] | None:
     rows = storage.select(
         "research_artifacts",
-        user.access_token,
+        user.access_token, lane=user.owner,
         params={"target_id": _eq(target_id), "limit": "1"},
     )
     if not rows:
@@ -122,7 +122,7 @@ def _existing_target_index(
     """Slugs, domains, and normalized firm names already in the owner's lane."""
     try:
         existing = storage.select(
-            "targets", user.access_token,
+            "targets", user.access_token, lane=user.owner,
             params={"select": "firm,firm_slug,domain", "limit": "1000"},
         )
     except Exception as exc:  # pragma: no cover - surfaced as a warning, not a failure
@@ -217,7 +217,7 @@ def intake_targets(
             "created_by": user.user_id,
         }
         try:
-            inserted_rows = storage.insert("targets", row, user.access_token)
+            inserted_rows = storage.insert("targets", row, user.access_token, lane=user.owner)
         except Exception as exc:
             log.warning("Intake failed for %s: %s", item.firm, exc)
             skipped.append({"firm": item.firm, "reason": _intake_error_reason(exc)})
@@ -251,7 +251,7 @@ def intake_targets(
                 "gaps": ["domain missing from human batch intake"],
                 "source_stage": "intake",
             },
-            user.access_token,
+            user.access_token, lane=user.owner,
         )
     storage.insert(
         "action_runs",
@@ -268,7 +268,7 @@ def intake_targets(
             },
             "completed_at": utc_now().isoformat(),
         },
-        user.access_token,
+        user.access_token, lane=user.owner,
         return_rows=False,
     )
     return {"accepted": accepted, "skipped": skipped, "warnings": warnings}
@@ -293,7 +293,7 @@ def _upsert_manual_queue(
     """
     existing = storage.select(
         "manual_queue",
-        user.access_token,
+        user.access_token, lane=user.owner,
         params={
             "target_id": _eq(str(target["id"])),
             "source_stage": _eq(source_stage),
@@ -314,13 +314,13 @@ def _upsert_manual_queue(
     }
     if existing:
         storage.update(
-            "manual_queue", values, user.access_token,
+            "manual_queue", values, user.access_token, lane=user.owner,
             params={"id": _eq(str(existing[0]["id"]))}, return_rows=False,
         )
     else:
         storage.insert(
             "manual_queue", {"target_id": target["id"], **values},
-            user.access_token, return_rows=False,
+            user.access_token, lane=user.owner, return_rows=False,
         )
 
 
@@ -419,7 +419,7 @@ def research_target(
             "gaps": artifact.get("gaps", []),
             "researched_at": artifact["fetched_at"],
         },
-        user.access_token,
+        user.access_token, lane=user.owner,
         on_conflict="target_id",
         return_rows=False,
     )
@@ -427,7 +427,7 @@ def research_target(
         _write_manual_queue(storage, user, target, artifact)
     else:
         storage.update(
-            "manual_queue", {"resolved_at": utc_now().isoformat()}, user.access_token,
+            "manual_queue", {"resolved_at": utc_now().isoformat()}, user.access_token, lane=user.owner,
             params={
                 "target_id": _eq(str(target["id"])),
                 "source_stage": "eq.research",
@@ -462,7 +462,7 @@ def _run_owned_batch(
             "status": "running",
             "target_ids": target_ids,
         },
-        user.access_token,
+        user.access_token, lane=user.owner,
     )[0]
 
     results: list[dict[str, Any]] = []
@@ -488,7 +488,7 @@ def _run_owned_batch(
             "error": f"{len(errors)} target(s) failed" if errors else "",
             "completed_at": utc_now().isoformat(),
         },
-        user.access_token,
+        user.access_token, lane=user.owner,
         params={"id": _eq(str(run["id"]))},
         return_rows=False,
     )
@@ -548,7 +548,7 @@ def derive_status(
         "relationship_crm_source": deciding.where() if deciding else "",
     }
     updated = storage.update(
-        "targets", values, user.access_token,
+        "targets", values, user.access_token, lane=user.owner,
         params={"id": _eq(target_id)},
     )
     return updated[0] if updated else {**target, **values}
@@ -632,7 +632,7 @@ def hunter_balance(
     Collapsing all three into "Unavailable" hides a broken deployment behind
     what looks like a provider hiccup, so the cause travels with the result.
     """
-    targets = storage.select("targets", user.access_token, select="domain")
+    targets = storage.select("targets", user.access_token, lane=user.owner, select="domain")
     provider = _hunter_provider(
         storage, user, max_calls=1,
         target_domains={normalize_domain(row.get("domain", "")) for row in targets},
@@ -702,7 +702,7 @@ def preview_contact_run(
             "details": {"skipped": skipped, "requested_target_ids": target_ids},
             "expires_at": expires.isoformat(),
         },
-        user.access_token,
+        user.access_token, lane=user.owner,
     )[0]
     return {
         "run_id": run["id"],
@@ -756,7 +756,7 @@ def run_contact_discovery(
     confirmed_credit_cap: int,
 ) -> dict[str, Any]:
     previews = storage.select(
-        "action_runs", user.access_token,
+        "action_runs", user.access_token, lane=user.owner,
         params={"id": _eq(run_id), "status": "eq.waiting_confirmation", "limit": "1"},
     )
     if len(previews) != 1:
@@ -779,7 +779,7 @@ def run_contact_discovery(
     storage.update(
         "action_runs",
         {"action_type": "contact_discovery", "status": "running"},
-        user.access_token, params={"id": _eq(run_id)}, return_rows=False,
+        user.access_token, lane=user.owner, params={"id": _eq(run_id)}, return_rows=False,
     )
 
     results: list[dict[str, Any]] = []
@@ -808,7 +808,7 @@ def run_contact_discovery(
                 target, discovered, provider=provider, settings=dashboard_settings()
             )
             storage.delete(
-                "contacts", user.access_token,
+                "contacts", user.access_token, lane=user.owner,
                 params={"target_id": _eq(str(target["id"]))},
             )
             rows = [
@@ -816,7 +816,7 @@ def run_contact_discovery(
                 *[_contact_db_row(target, row, dropped=True) for row in dropped],
             ]
             if rows:
-                storage.insert("contacts", rows, user.access_token, return_rows=False)
+                storage.insert("contacts", rows, user.access_token, lane=user.owner, return_rows=False)
             results.append({
                 "firm": target["firm"], "status": "completed",
                 "discovered": len(discovered), "kept": len(kept), "dropped": len(dropped),
@@ -827,7 +827,7 @@ def run_contact_discovery(
             {"status": "failed", "credits_spent": provider.guard.credits_spent,
              "error": str(exc), "details": {"results": results},
              "completed_at": utc_now().isoformat()},
-            user.access_token, params={"id": _eq(run_id)}, return_rows=False,
+            user.access_token, lane=user.owner, params={"id": _eq(run_id)}, return_rows=False,
         )
         raise
 
@@ -835,7 +835,7 @@ def run_contact_discovery(
         "action_runs",
         {"status": "completed", "credits_spent": provider.guard.credits_spent,
          "details": {"results": results}, "completed_at": utc_now().isoformat()},
-        user.access_token, params={"id": _eq(run_id)}, return_rows=False,
+        user.access_token, lane=user.owner, params={"id": _eq(run_id)}, return_rows=False,
     )
     return {"run_id": run_id, "credits_spent": provider.guard.credits_spent,
             "results": results}
@@ -892,7 +892,7 @@ def generate_owner_draft(
         }
         if contact_id:
             params["id"] = _eq(contact_id)
-        rows = storage.select("contacts", user.access_token, params=params)
+        rows = storage.select("contacts", user.access_token, lane=user.owner, params=params)
         if not rows:
             raise DashboardServiceError(
                 "A verified owner-scoped contact is required for a cold draft."
@@ -902,7 +902,7 @@ def generate_owner_draft(
     draft_id = storage.rpc(
         "save_validated_draft",
         {"p_target_id": target_id, "p_payload": record},
-        user.access_token,
+        user.access_token, lane=user.owner,
     )
     return {"id": draft_id, **record, "status": "pending_review"}
 
@@ -917,7 +917,7 @@ def review_draft(
     result = storage.rpc(
         "review_draft",
         {"p_draft_id": draft_id, "p_action": action, "p_reason": reason},
-        user.access_token,
+        user.access_token, lane=user.owner,
     )
     return dict(result or {})
 
@@ -933,7 +933,7 @@ def mark_draft_sent(
     run can tell which firms were already contacted.
     """
     result = storage.rpc(
-        "mark_draft_sent", {"p_draft_id": draft_id}, user.access_token
+        "mark_draft_sent", {"p_draft_id": draft_id}, user.access_token, lane=user.owner
     )
     return dict(result or {})
 
@@ -948,7 +948,7 @@ def resolve_manual_item(
     result = storage.rpc(
         "resolve_manual_queue_item",
         {"p_item_id": item_id, "p_note": note},
-        user.access_token,
+        user.access_token, lane=user.owner,
     )
     return dict(result or {})
 
@@ -957,18 +957,18 @@ def dashboard_state(
     storage: SupabaseStorage, user: DashboardUser
 ) -> dict[str, Any]:
     targets = storage.select(
-        "targets", user.access_token, params={"order": "priority.asc,firm.asc"}
+        "targets", user.access_token, lane=user.owner, params={"order": "priority.asc,firm.asc"}
     )
-    research = storage.select("research_artifacts", user.access_token)
+    research = storage.select("research_artifacts", user.access_token, lane=user.owner)
     contacts = storage.select(
-        "contacts", user.access_token,
+        "contacts", user.access_token, lane=user.owner,
         params={"dropped": "eq.false", "order": "verification_score.desc.nullslast"},
     )
     drafts = storage.select(
-        "drafts", user.access_token, params={"order": "generated_at.desc"}
+        "drafts", user.access_token, lane=user.owner, params={"order": "generated_at.desc"}
     )
     manual = storage.select(
-        "manual_queue", user.access_token,
+        "manual_queue", user.access_token, lane=user.owner,
         params={"resolved_at": "is.null", "order": "queued_at.desc"},
     )
     scoped_groups = {

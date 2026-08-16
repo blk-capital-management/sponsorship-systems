@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from contacts.hunter_guard import HunterBudgetError, HunterScopeError
 from common.config import load_firm_categories
+from common.logging import get_logger
 from dashboard.auth import DashboardUser, current_user
 from dashboard.models import (
     ContactPreviewRequest,
@@ -43,6 +44,8 @@ from drafts.generate import DraftGenerationError
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC = ROOT / "public"
+
+log = get_logger("app")
 
 app = FastAPI(
     title="BLK Bridge",
@@ -99,6 +102,19 @@ async def hunter_scope_error(_request: Request, exc: HunterScopeError):
 async def supabase_error(_request: Request, exc: SupabaseRequestError):
     status = 403 if exc.status_code in (401, 403) else 502
     return JSONResponse(status_code=status, content={"detail": str(exc)})
+
+
+@app.exception_handler(Exception)
+async def unhandled_error(request: Request, exc: Exception):
+    # Every expected failure mode above already has its own handler and a
+    # useful message. Anything reaching here is a bug: log the full traceback
+    # so it shows up in Vercel's function logs instead of vanishing into a
+    # bare 500, and return a diagnosable-but-safe body to the client.
+    log.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"{type(exc).__name__}: {exc}"[:500]},
+    )
 
 
 @app.get("/health")

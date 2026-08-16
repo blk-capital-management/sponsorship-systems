@@ -3,36 +3,27 @@
 Normal requests carry the caller's access token so Postgres RLS remains the
 authorization boundary. The secret key is used only by explicit provisioning
 and CRM-snapshot helpers; it is never returned to the browser. Caller-scoped
-requests also carry an X-Blk-Lane header (see set_active_lane below) so
-Postgres' current_owner() resolves the same active lane the Python layer
-resolved in dashboard.auth.current_user() -- RLS re-validates it independently
-rather than trusting the header at face value.
+requests may also carry an explicit `lane` (see `select`/`insert`/etc below),
+sent as an X-Blk-Lane header, so Postgres' current_owner() resolves the same
+active lane dashboard.auth.current_user() resolved -- RLS re-validates it
+independently rather than trusting the header at face value.
+
+`lane` is threaded as an ordinary keyword argument, not request-global state
+(no contextvar, no thread-local): a contextvar was tried first, but FastAPI
+runs the two halves of a sync `yield`-dependency in separate threadpool
+dispatches, which do not share a `contextvars.Context` -- `Token.reset()`
+across that boundary raises `ValueError: ... was created in a different
+Context`. An explicit parameter has no such assumption.
 """
 
 from __future__ import annotations
 
 import os
-from contextvars import ContextVar, Token
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Mapping
 
 import requests
-
-# The active lane for the request currently being handled. Set once by
-# dashboard.auth.current_user() and read by _headers() on every caller-scoped
-# call, so the ~40 storage.select/insert/update/... call sites in services.py
-# don't each need to pass it explicitly. Scoped via contextvars, so concurrent
-# requests (each their own asyncio task) never see each other's lane.
-_active_lane: ContextVar[str | None] = ContextVar("_active_lane", default=None)
-
-
-def set_active_lane(lane: str | None) -> Token:
-    return _active_lane.set(lane)
-
-
-def reset_active_lane(token: Token) -> None:
-    _active_lane.reset(token)
 
 
 class SupabaseConfigurationError(RuntimeError):
@@ -88,6 +79,7 @@ class SupabaseStorage:
         token: str | None = None,
         service: bool = False,
         prefer: str | None = None,
+        lane: str | None = None,
     ) -> dict[str, str]:
         if service:
             if not self.settings.secret_key:
@@ -109,7 +101,6 @@ class SupabaseStorage:
             headers["Authorization"] = f"Bearer {key}"
         elif not service and token:
             headers["Authorization"] = f"Bearer {token}"
-            lane = _active_lane.get()
             if lane:
                 headers["X-Blk-Lane"] = lane
         if prefer:
@@ -127,11 +118,12 @@ class SupabaseStorage:
         params: Mapping[str, Any] | None = None,
         payload: Any = None,
         prefer: str | None = None,
+        lane: str | None = None,
     ) -> Any:
         response = requests.request(
             method,
             url,
-            headers=self._headers(token=token, service=service, prefer=prefer),
+            headers=self._headers(token=token, service=service, prefer=prefer, lane=lane),
             params=dict(params or {}),
             json=payload,
             timeout=self.timeout,
@@ -170,6 +162,7 @@ class SupabaseStorage:
         service: bool,
         select: str,
         params: Mapping[str, Any] | None,
+        lane: str | None = None,
     ) -> list[dict[str, Any]]:
         result = self._request(
             "GET",
@@ -177,6 +170,7 @@ class SupabaseStorage:
             operation=f"{'service ' if service else ''}select {table}",
             token=token,
             service=service,
+            lane=lane,
             params={"select": select, **dict(params or {})},
         )
         return list(result or [])
@@ -193,6 +187,7 @@ class SupabaseStorage:
         params: Mapping[str, Any] | None = None,
         return_rows: bool = True,
         resolution: str = "",
+        lane: str | None = None,
     ) -> list[dict[str, Any]]:
         prefer = f"{resolution}return=" + ("representation" if return_rows else "minimal")
         result = self._request(
@@ -204,6 +199,7 @@ class SupabaseStorage:
             params=params,
             payload=payload,
             prefer=prefer,
+            lane=lane,
         )
         return list(result or []) if return_rows else []
 
@@ -214,9 +210,10 @@ class SupabaseStorage:
         *,
         select: str = "*",
         params: Mapping[str, Any] | None = None,
+        lane: str | None = None,
     ) -> list[dict[str, Any]]:
         return self._do_select(table, token=token, service=False,
-                               select=select, params=params)
+                               select=select, params=params, lane=lane)
 
     def service_select(
         self,
@@ -235,10 +232,11 @@ class SupabaseStorage:
         token: str,
         *,
         return_rows: bool = True,
+        lane: str | None = None,
     ) -> list[dict[str, Any]]:
         return self._do_write("POST", table, token=token, service=False,
                               operation="insert", payload=rows,
-                              return_rows=return_rows)
+                              return_rows=return_rows, lane=lane)
 
     def upsert(
         self,
@@ -248,12 +246,14 @@ class SupabaseStorage:
         *,
         on_conflict: str,
         return_rows: bool = True,
+        lane: str | None = None,
     ) -> list[dict[str, Any]]:
         return self._do_write("POST", table, token=token, service=False,
                               operation="upsert", payload=rows,
                               params={"on_conflict": on_conflict},
                               return_rows=return_rows,
-                              resolution="resolution=merge-duplicates,")
+                              resolution="resolution=merge-duplicates,",
+                              lane=lane)
 
     def service_upsert(
         self,
@@ -288,10 +288,11 @@ class SupabaseStorage:
         *,
         params: Mapping[str, Any],
         return_rows: bool = True,
+        lane: str | None = None,
     ) -> list[dict[str, Any]]:
         return self._do_write("PATCH", table, token=token, service=False,
                               operation="update", payload=values,
-                              params=params, return_rows=return_rows)
+                              params=params, return_rows=return_rows, lane=lane)
 
     def service_update(
         self,
@@ -311,21 +312,25 @@ class SupabaseStorage:
         token: str,
         *,
         params: Mapping[str, Any],
+        lane: str | None = None,
     ) -> None:
         self._do_write("DELETE", table, token=token, service=False,
-                       operation="delete", params=params, return_rows=False)
+                       operation="delete", params=params, return_rows=False, lane=lane)
 
     def service_delete(self, table: str, *, params: Mapping[str, Any]) -> None:
         self._do_write("DELETE", table, token=None, service=True,
                        operation="delete", params=params, return_rows=False)
 
-    def rpc(self, function: str, payload: dict[str, Any], token: str) -> Any:
+    def rpc(
+        self, function: str, payload: dict[str, Any], token: str, *, lane: str | None = None
+    ) -> Any:
         return self._request(
             "POST",
             f"{self.settings.url}/rest/v1/rpc/{function}",
             operation=f"rpc {function}",
             token=token,
             payload=payload,
+            lane=lane,
         )
 
 

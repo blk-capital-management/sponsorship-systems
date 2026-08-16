@@ -25,7 +25,7 @@ from dashboard.services import (
     mark_draft_sent,
     research_batch,
 )
-from dashboard.storage import SupabaseSettings, SupabaseStorage, _active_lane
+from dashboard.storage import SupabaseSettings, SupabaseStorage
 from scripts.seed_supabase import seed_drafts
 
 
@@ -67,7 +67,9 @@ class IntakeStorage:
         self.reject = reject or {}
         self._next = 0
 
-    def select(self, table: str, token: str, *, params: Any = None) -> list[dict[str, Any]]:
+    def select(
+        self, table: str, token: str, *, params: Any = None, lane: str | None = None
+    ) -> list[dict[str, Any]]:
         return list(self.existing) if table == "targets" else []
 
     def insert(
@@ -77,6 +79,7 @@ class IntakeStorage:
         token: str,
         *,
         return_rows: bool = True,
+        lane: str | None = None,
     ) -> list[dict[str, Any]]:
         self.inserts.append((table, rows, token, return_rows))
         if table == "targets":
@@ -305,6 +308,7 @@ class BatchFailureStorage:
         *,
         select: str = "*",
         params: Any = None,
+        lane: str | None = None,
     ) -> list[dict[str, Any]]:
         if table == "targets":
             target_id = str((params or {}).get("id") or "").removeprefix("eq.")
@@ -320,6 +324,7 @@ class BatchFailureStorage:
         _token: str,
         *,
         return_rows: bool = True,
+        lane: str | None = None,
     ) -> list[dict[str, Any]]:
         self.inserts.append((table, rows))
         if table == "action_runs":
@@ -334,6 +339,7 @@ class BatchFailureStorage:
         *,
         params: Any,
         return_rows: bool = True,
+        lane: str | None = None,
     ) -> list[dict[str, Any]]:
         self.updates.append((table, values))
         return []
@@ -448,15 +454,19 @@ def test_headers_carry_the_active_lane_for_caller_scoped_requests() -> None:
     storage = SupabaseStorage(
         SupabaseSettings(url="https://project.supabase.co", publishable_key="pub")
     )
-    reset_token = _active_lane.set("fola")
-    try:
-        headers = storage._headers(token="user-jwt")
-    finally:
-        _active_lane.reset(reset_token)
+    headers = storage._headers(token="user-jwt", lane="fola")
     assert headers["X-Blk-Lane"] == "fola"
 
 
-def test_headers_omit_the_lane_for_service_role_requests() -> None:
+def test_headers_omit_the_lane_when_none_is_given() -> None:
+    storage = SupabaseStorage(
+        SupabaseSettings(url="https://project.supabase.co", publishable_key="pub")
+    )
+    headers = storage._headers(token="user-jwt")
+    assert "X-Blk-Lane" not in headers
+
+
+def test_headers_omit_the_lane_for_service_role_requests_even_if_passed() -> None:
     storage = SupabaseStorage(
         SupabaseSettings(
             url="https://project.supabase.co",
@@ -464,12 +474,41 @@ def test_headers_omit_the_lane_for_service_role_requests() -> None:
             secret_key="service-role-jwt",
         )
     )
-    reset_token = _active_lane.set("fola")
-    try:
-        headers = storage._headers(service=True)
-    finally:
-        _active_lane.reset(reset_token)
+    headers = storage._headers(service=True, lane="fola")
     assert "X-Blk-Lane" not in headers
+
+
+def test_public_storage_methods_forward_lane_to_headers(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Regression test for the contextvar-based design this replaced: it crashed
+    with `ValueError: ... was created in a different Context` because FastAPI
+    runs the two halves of a sync yield-dependency in separate threadpool
+    dispatches, which do not share a contextvars.Context. lane is now passed
+    as an ordinary keyword argument all the way down to _headers, with no
+    global/thread-local state involved anywhere in the chain.
+    """
+    storage = SupabaseStorage(
+        SupabaseSettings(url="https://project.supabase.co", publishable_key="pub")
+    )
+    seen_headers: list[dict[str, str]] = []
+
+    class FakeResponse:
+        status_code = 200
+        content = b"[]"
+
+        def json(self):
+            return []
+
+    def fake_request(method, url, *, headers, params, json, timeout):
+        seen_headers.append(headers)
+        return FakeResponse()
+
+    monkeypatch.setattr("dashboard.storage.requests.request", fake_request)
+    storage.select("targets", "user-jwt", lane="fola")
+    storage.insert("targets", {"firm": "x"}, "user-jwt", lane="fola")
+    storage.update("targets", {"firm": "x"}, "user-jwt", params={"id": "eq.1"}, lane="fola")
+    storage.delete("targets", "user-jwt", params={"id": "eq.1"}, lane="fola")
+    storage.rpc("some_fn", {}, "user-jwt", lane="fola")
+    assert seen_headers and all(h.get("X-Blk-Lane") == "fola" for h in seen_headers)
 
 
 class FakeAuthStorage:
@@ -517,16 +556,12 @@ def test_current_user_viewer_defaults_to_jamaris_lane_with_no_header() -> None:
         ],
         identity=JAMARI_IDENTITY,
     )
-    gen = current_user(token="justin-jwt", storage=storage, x_blk_lane=None)
-    try:
-        user = next(gen)
-        assert user.owner == "jamari"
-        assert user.role == "viewer"
-        assert user.actor_display_name == "Justin"
-        assert user.available_lanes == ("fola", "jamari")
-        assert user.display_name == "Jamari Myers"
-    finally:
-        gen.close()
+    user = current_user(token="justin-jwt", storage=storage, x_blk_lane=None)
+    assert user.owner == "jamari"
+    assert user.role == "viewer"
+    assert user.actor_display_name == "Justin"
+    assert user.available_lanes == ("fola", "jamari")
+    assert user.display_name == "Jamari Myers"
 
 
 def test_current_user_switches_lane_via_header_when_permitted() -> None:
@@ -541,13 +576,9 @@ def test_current_user_switches_lane_via_header_when_permitted() -> None:
         ],
         identity=FOLA_IDENTITY,
     )
-    gen = current_user(token="jamari-jwt", storage=storage, x_blk_lane="fola")
-    try:
-        user = next(gen)
-        assert user.owner == "fola"
-        assert user.gmail_sender == "folakunmi@blkcapitalmanagement.org"
-    finally:
-        gen.close()
+    user = current_user(token="jamari-jwt", storage=storage, x_blk_lane="fola")
+    assert user.owner == "fola"
+    assert user.gmail_sender == "folakunmi@blkcapitalmanagement.org"
 
 
 def test_current_user_rejects_a_lane_the_account_does_not_hold() -> None:
@@ -559,31 +590,9 @@ def test_current_user_rejects_a_lane_the_account_does_not_hold() -> None:
         lane_access=[{"lane": "jamari", "is_default": True}],
         identity=JAMARI_IDENTITY,
     )
-    gen = current_user(token="jamari-jwt", storage=storage, x_blk_lane="fola")
     with pytest.raises(HTTPException) as excinfo:
-        next(gen)
+        current_user(token="jamari-jwt", storage=storage, x_blk_lane="fola")
     assert excinfo.value.status_code == 403
-    gen.close()
-
-
-def test_current_user_sets_and_resets_the_active_lane_around_the_request() -> None:
-    storage = FakeAuthStorage(
-        profile={
-            "user_id": "jamari-id", "email": "jamari@blkcapitalmanagement.org",
-            "role": "owner", "display_name": "Jamari Myers",
-        },
-        lane_access=[
-            {"lane": "jamari", "is_default": True},
-            {"lane": "fola", "is_default": False},
-        ],
-        identity=FOLA_IDENTITY,
-    )
-    assert _active_lane.get() is None
-    gen = current_user(token="jamari-jwt", storage=storage, x_blk_lane="fola")
-    next(gen)
-    assert _active_lane.get() == "fola"
-    gen.close()
-    assert _active_lane.get() is None
 
 
 def test_sql_lane_migration_leaves_owner_columns_and_checks_untouched() -> None:
@@ -848,7 +857,7 @@ def test_mark_draft_sent_service_calls_the_rpc_under_the_caller_token(jamari) ->
         def __init__(self) -> None:
             self.calls: list[tuple[str, dict, str]] = []
 
-        def rpc(self, function, payload, token):
+        def rpc(self, function, payload, token, *, lane=None):
             self.calls.append((function, payload, token))
             return {"id": "draft-1", "status": "sent"}
 

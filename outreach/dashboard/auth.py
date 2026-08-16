@@ -4,13 +4,14 @@ An account is either an "owner" (has its own lane) or a "viewer" (no owned
 lane, access to both lanes only). Every account -- owner or viewer -- may
 switch which lane it is currently acting in via the X-Blk-Lane header,
 validated against public.profile_lane_access; DashboardUser.owner is that
-resolved *active* lane, not a fixed per-account value.
+resolved *active* lane, not a fixed per-account value. Callers must pass
+`user.owner` as the `lane=` keyword on every dashboard.storage call so it
+rides along as a request header for Postgres RLS to re-validate.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterator
 
 from fastapi import Depends, Header, HTTPException, status
 
@@ -19,8 +20,6 @@ from dashboard.storage import (
     SupabaseRequestError,
     SupabaseStorage,
     get_storage,
-    reset_active_lane,
-    set_active_lane,
 )
 
 
@@ -56,7 +55,7 @@ def current_user(
     token: str = Depends(bearer_token),
     storage: SupabaseStorage = Depends(get_storage),
     x_blk_lane: str | None = Header(default=None, alias="X-Blk-Lane"),
-) -> Iterator[DashboardUser]:
+) -> DashboardUser:
     try:
         auth_user = storage.auth_user(token)
         user_id = str(auth_user.get("id") or "")
@@ -100,25 +99,21 @@ def current_user(
             detail=f"Lane {requested!r} is not permitted for this account.",
         )
 
-    reset_token = set_active_lane(active_lane)
     try:
-        try:
-            identity = storage.rpc("lane_identity", {"p_lane": active_lane}, token)
-        except (SupabaseRequestError, SupabaseConfigurationError) as exc:
-            raise HTTPException(status_code=403, detail=str(exc)) from exc
-        if not identity:
-            raise HTTPException(status_code=403, detail="Lane identity is not configured.")
+        identity = storage.rpc("lane_identity", {"p_lane": active_lane}, token)
+    except (SupabaseRequestError, SupabaseConfigurationError) as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    if not identity:
+        raise HTTPException(status_code=403, detail="Lane identity is not configured.")
 
-        yield DashboardUser(
-            user_id=user_id,
-            email=email,
-            owner=active_lane,
-            display_name=str(identity.get("display_name") or ""),
-            gmail_sender=str(identity.get("gmail_sender") or ""),
-            access_token=token,
-            role=str(profile.get("role") or "owner"),
-            actor_display_name=str(profile.get("display_name") or ""),
-            available_lanes=tuple(available),
-        )
-    finally:
-        reset_active_lane(reset_token)
+    return DashboardUser(
+        user_id=user_id,
+        email=email,
+        owner=active_lane,
+        display_name=str(identity.get("display_name") or ""),
+        gmail_sender=str(identity.get("gmail_sender") or ""),
+        access_token=token,
+        role=str(profile.get("role") or "owner"),
+        actor_display_name=str(profile.get("display_name") or ""),
+        available_lanes=tuple(available),
+    )
