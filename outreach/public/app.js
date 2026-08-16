@@ -231,6 +231,16 @@ const escapeHtml = (value) => String(value ?? "")
   .replaceAll('"', "&quot;")
   .replaceAll("'", "&#039;");
 
+/** Only http(s) may reach an href. escapeHtml stops markup, not a javascript: scheme. */
+function safeHttpUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.href : "#";
+  } catch {
+    return "#";
+  }
+}
+
 const humanize = (value) => String(value || "none").replaceAll("_", " ");
 
 function emptyState(title, copy) {
@@ -1063,7 +1073,7 @@ function renderDraftHooks(targetId) {
   $("#draft-hooks-list").innerHTML = hooks.map((hook) => `
     <div class="hook-item">
       <p>${escapeHtml(hook.text)}</p>
-      <a href="${escapeHtml(hook.firm_claim_source)}" target="_blank" rel="noopener noreferrer">${escapeHtml(hook.firm_claim_source)}</a>
+      <a href="${escapeHtml(safeHttpUrl(hook.firm_claim_source))}" target="_blank" rel="noopener noreferrer">${escapeHtml(hook.firm_claim_source)}</a>
     </div>`).join("");
 }
 
