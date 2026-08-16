@@ -88,6 +88,36 @@ credits and crawl budget, not model spend.
 
 ---
 
+## Deploying (blk-bridge.vercel.app)
+
+Vercel deploys this app from `main` (see `outreach/vercel.json`), and the deployed
+code reads a Supabase project via `SUPABASE_URL`. That means the *code on main* and
+*the schema in whatever Supabase project production's Vercel deployment points at*
+have to change together, in the same sitting. They drifted apart once already: a
+migration got applied to the live project while the matching code was still sitting
+on an unmerged branch, and production broke with a 404 on a table the old code still
+queried but the new schema had already dropped.
+
+**Rule: schema and code ship as one release, not two.**
+
+- Before running any `outreach/supabase/migrations/*.sql` file against a project,
+  check whether that project is the one backing a live Vercel deployment (its
+  `SUPABASE_URL`, set in that Vercel project's environment variables). If it is, the
+  branch feeding that deployment must already contain the matching app-code changes,
+  merged and pushed, *before or in the same sitting as* running the migration. Never
+  migrate a live project ahead of the code that expects the new schema.
+- Prefer merging finished, tested work to `main` promptly rather than parking it on a
+  long-lived feature branch. A feature branch plus a Vercel preview is for testing
+  against a non-production Supabase project, or before any migration has touched the
+  production one. Once a migration has to run against production to test end-to-end,
+  that is the signal to merge to `main` first, not after.
+- After pushing to `main`, confirm the Vercel deployment for that commit actually
+  succeeded (Vercel dashboard → Deployments). A clean `git push` is not the same as a
+  live deployment.
+- `outreach/tests/test_phase_g_dashboard.py` must pass locally
+  (`outreach/.venv/bin/python -m pytest`) before any push that touches auth, RLS, or
+  the dashboard schema.
+
 ## Conventions
 
 - Python 3.11+. Style follows `resume-book-builder/src/`: module docstring with a usage
