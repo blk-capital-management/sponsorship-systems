@@ -100,6 +100,35 @@ class IntakeRequest(BaseModel):
     run_research: bool = True
 
 
+class TargetUpdateRequest(BaseModel):
+    """Attach a domain (directly, or read from a website URL) to an existing target.
+
+    The common case this exists for: a firm was added by name only, so research
+    could not start, and the operator now has a domain to give it.
+    """
+
+    domain: str | None = Field(default=None, max_length=253)
+    website: str | None = Field(default=None, max_length=500)
+
+    @field_validator("domain", "website")
+    @classmethod
+    def clean_text(cls, value: str | None) -> str | None:
+        return " ".join(value.strip().split()) if value is not None else None
+
+    @field_validator("domain")
+    @classmethod
+    def clean_domain(cls, value: str | None) -> str | None:
+        return _bare_domain(value) if value else value
+
+    @model_validator(mode="after")
+    def resolve_update(self) -> "TargetUpdateRequest":
+        if not self.domain and self.website:
+            self.domain = _bare_domain(self.website)
+        if not self.domain:
+            raise ValueError("A domain, or a website to read one from, is required.")
+        return self
+
+
 class TargetBatchRequest(BaseModel):
     target_ids: list[str] = Field(min_length=1, max_length=25)
 
@@ -133,6 +162,42 @@ class ReviewRequest(BaseModel):
         if self.action == "rejected" and not self.reason:
             raise ValueError("A rejection reason is required.")
         return self
+
+
+class ManualContactRequest(BaseModel):
+    """A contact the operator found and verified themselves.
+
+    Hunter is one way to find a recruiting contact, not the only way. This is
+    the path for a name sourced by hand, e.g. seen on LinkedIn, referred by
+    someone, or found on a page the crawler missed. source_note is free text
+    for a reviewer, not a firm_claim_source: contact_provenance carries no URL
+    rules (see common/namespaces.py), so a LinkedIn profile URL is fine here.
+    """
+
+    name: str = Field(min_length=1, max_length=160)
+    title: str = Field(default="", max_length=160)
+    email: str = Field(default="", max_length=254)
+    source_note: str = Field(default="", max_length=500)
+
+    @field_validator("title", "email", "source_note")
+    @classmethod
+    def clean_text(cls, value: str) -> str:
+        return " ".join(value.strip().split())
+
+    @field_validator("name")
+    @classmethod
+    def clean_name(cls, value: str) -> str:
+        cleaned = " ".join(value.strip().split())
+        if not cleaned:
+            raise ValueError("A name is required.")
+        return cleaned
+
+    @field_validator("email")
+    @classmethod
+    def clean_email(cls, value: str) -> str:
+        if value and "@" not in value:
+            raise ValueError("email must contain @.")
+        return value.lower()
 
 
 class ResolveManualRequest(BaseModel):

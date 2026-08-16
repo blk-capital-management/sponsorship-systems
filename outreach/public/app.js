@@ -564,17 +564,27 @@ function renderPipeline() {
     const gate = target.hunter_gate || { status: "unknown", reason: "Gate not evaluated." };
     return `<tr>
       <td><input class="target-check" type="checkbox" data-id="${target.id}" ${selectedTargets.has(target.id) ? "checked" : ""}></td>
-      <td class="firm-cell"><strong>${escapeHtml(target.firm)}</strong><span>${escapeHtml(target.domain || "Domain required")} · ${escapeHtml(target.owner)}</span></td>
+      <td class="firm-cell">
+        <strong>${escapeHtml(target.firm)}</strong>
+        <div class="domain-row">
+          <span>${target.domain ? escapeHtml(target.domain) : "Domain required"} · ${escapeHtml(target.owner)}</span>
+          <button class="text-button edit-domain" type="button" data-id="${target.id}" data-firm="${escapeHtml(target.firm)}" data-domain="${escapeHtml(target.domain || "")}">${target.domain ? "Edit" : "Add domain"}</button>
+        </div>
+      </td>
       <td>${pill(target.contact_status)}</td>
       <td>${artifact ? pill(artifact.confidence) : pill("not researched")}</td>
       <td><span title="${escapeHtml(gate.reason)}">${pill(gate.status)}</span></td>
-      <td>${targetContacts.length ? `${targetContacts.length} verified` : `<span class="quiet">None yet</span>`}</td>
+      <td class="contacts-cell">
+        <span>${targetContacts.length ? `${targetContacts.length} verified` : `<span class="quiet">None yet</span>`}</span>
+        <button class="text-button add-contact" type="button" data-id="${target.id}" data-firm="${escapeHtml(target.firm)}">Add contact</button>
+      </td>
       <td>${latestDraft ? pill(latestDraft.status) : "None"}</td>
       <td>${draftBlocker(target, artifact, targetContacts)
         ? `<span class="quiet" title="${escapeHtml(draftBlocker(target, artifact, targetContacts))}">Not ready</span>`
         : `<button class="text-button create-draft" data-id="${target.id}">Create draft</button>`}</td>
+      <td><button class="text-button danger remove-target" type="button" data-id="${target.id}" data-firm="${escapeHtml(target.firm)}">Remove</button></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="8">${emptyState(state.targets.length ? "No matching firms" : "Your pipeline is empty", state.targets.length ? "Clear the search or change the status filter." : "Add a batch above to begin.")}</td></tr>`;
+  }).join("") : `<tr><td colspan="9">${emptyState(state.targets.length ? "No matching firms" : "Your pipeline is empty", state.targets.length ? "Clear the search or change the status filter." : "Add a batch above to begin.")}</td></tr>`;
 
   $$(".target-check").forEach((input) => input.addEventListener("change", () => {
     if (input.checked) selectedTargets.add(input.dataset.id);
@@ -582,6 +592,12 @@ function renderPipeline() {
     updateSelectionControls(visibleTargets);
   }));
   $$(".create-draft").forEach((button) => button.addEventListener("click", () => openDraftDialog(button.dataset.id)));
+  $$(".add-contact").forEach((button) => button.addEventListener("click", () =>
+    openContactFormDialog(button.dataset.id, button.dataset.firm)));
+  $$(".edit-domain").forEach((button) => button.addEventListener("click", () =>
+    promptTargetDomain(button.dataset.id, button.dataset.firm, button.dataset.domain)));
+  $$(".remove-target").forEach((button) => button.addEventListener("click", () =>
+    removeTarget(button.dataset.id, button.dataset.firm)));
   $("#select-all").onchange = (event) => {
     for (const target of visibleTargets) {
       if (event.target.checked) selectedTargets.add(target.id);
@@ -591,6 +607,42 @@ function renderPipeline() {
   };
   $("#pipeline-results-summary").textContent = `Showing ${visibleTargets.length} of ${state.targets.length} firms in your lane`;
   updateSelectionControls(visibleTargets);
+}
+
+/** Add or correct a target's domain in place, so research can run without re-adding the firm. */
+async function promptTargetDomain(targetId, firmName, currentDomain) {
+  const input = window.prompt(`Domain for ${firmName} (e.g. generalatlantic.com)`, currentDomain || "");
+  if (input === null) return;
+  const domain = input.trim();
+  if (!domain) return showToast("A domain is required.", true);
+  setLoading(true);
+  try {
+    await api(`/api/targets/${targetId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ domain }),
+    });
+    showToast(`${firmName} now has a domain. Run research when ready.`);
+    await loadState();
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function removeTarget(targetId, firmName) {
+  if (!window.confirm(`Remove ${firmName} from your pipeline? This also deletes its research, contacts, and drafts.`)) return;
+  setLoading(true);
+  try {
+    await api(`/api/targets/${targetId}`, { method: "DELETE" });
+    selectedTargets.delete(targetId);
+    showToast(`${firmName} removed from your pipeline.`);
+    await loadState();
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setLoading(false);
+  }
 }
 
 function updateSelectionControls(visibleTargets = state?.targets || []) {
@@ -983,6 +1035,7 @@ function openDraftDialog(targetId) {
   const cold = target.contact_status === "cold_prospect";
   $("#draft-contact-label").classList.toggle("hidden", !cold);
   $("#draft-contact").classList.toggle("hidden", !cold);
+  $("#draft-add-contact").classList.toggle("hidden", !cold);
   $("#draft-paragraph-label").classList.toggle("hidden", !cold);
   $("#draft-paragraph").classList.toggle("hidden", !cold);
   $("#draft-paragraph-help").classList.toggle("hidden", !cold);
@@ -990,8 +1043,94 @@ function openDraftDialog(targetId) {
   $("#draft-paragraph").value = "";
   $("#draft-contact").innerHTML = contacts.length
     ? contacts.map((contact) => `<option value="${contact.id}">${escapeHtml(contact.name)} · ${escapeHtml(contact.title)} · ${escapeHtml(contact.email)}</option>`).join("")
-    : `<option value="">No verified contact</option>`;
+    : `<option value="">No contact yet, add one</option>`;
+  renderDraftHooks(targetId);
+  renderDraftPreview();
   $("#draft-dialog").showModal();
+}
+
+/** Show the sourced alignment hooks for a target, the only facts a firm-specific paragraph may draw on. */
+function renderDraftHooks(targetId) {
+  const panel = $("#draft-hooks-panel");
+  const artifact = (researchByTarget().get(targetId) || {}).artifact;
+  const hooks = artifact?.alignment_hooks || [];
+  if (!hooks.length) {
+    panel.classList.add("hidden");
+    $("#draft-hooks-list").innerHTML = "";
+    return;
+  }
+  panel.classList.remove("hidden");
+  $("#draft-hooks-list").innerHTML = hooks.map((hook) => `
+    <div class="hook-item">
+      <p>${escapeHtml(hook.text)}</p>
+      <a href="${escapeHtml(hook.firm_claim_source)}" target="_blank" rel="noopener noreferrer">${escapeHtml(hook.firm_claim_source)}</a>
+    </div>`).join("");
+}
+
+/** Live-fill the locked template with the paragraph being written, so it reads like a finished email while drafting. */
+function renderDraftPreview() {
+  const panel = $("#draft-preview-panel");
+  const targetId = $("#draft-target-id").value;
+  const target = state.targets?.find((item) => item.id === targetId);
+  if (!target || target.contact_status !== "cold_prospect" || !config?.cold_prospect_template) {
+    panel.classList.add("hidden");
+    return;
+  }
+  panel.classList.remove("hidden");
+  const contactId = $("#draft-contact").value;
+  const contact = (state.contacts || []).find((item) => item.id === contactId);
+  const firstName = contact?.name ? contact.name.trim().split(/\s+/)[0] : "[Contact]";
+  const paragraph = $("#draft-paragraph").value.trim()
+    || "[Your firm-specific paragraph will appear here.]";
+
+  let filled = escapeHtml(config.cold_prospect_template);
+  filled = filled.replaceAll("{contact_first_name}", escapeHtml(firstName));
+  filled = filled.replaceAll("{firm_name}", escapeHtml(target.firm));
+  filled = filled.replaceAll("{firm_specific_paragraph}", `<mark>${escapeHtml(paragraph)}</mark>`);
+  filled = filled.replace(/\{[a-z_]+\}/g, (token) => `<span class="preview-auto">${token}</span>`);
+  $("#draft-preview").innerHTML = filled.replaceAll("\n", "<br>");
+}
+
+/** Open the manual-contact dialog, listing what's already on file for this target. */
+function openContactFormDialog(targetId, firmName) {
+  $("#contact-form-target-id").value = targetId;
+  $("#contact-form-heading").textContent = firmName ? `Add a contact for ${firmName}` : "Add a contact";
+  $("#contact-form-name").value = "";
+  $("#contact-form-title").value = "";
+  $("#contact-form-email").value = "";
+  $("#contact-form-source").value = "";
+  renderContactFormExisting(targetId);
+  $("#contact-form-dialog").showModal();
+}
+
+function renderContactFormExisting(targetId) {
+  const existing = (state.contacts || []).filter((item) => item.target_id === targetId);
+  $("#contact-form-existing").innerHTML = existing.length ? `
+    <label>Already on file</label>
+    <ul class="contact-list">
+      ${existing.map((contact) => `
+        <li>
+          <span>${escapeHtml(contact.name)} · ${escapeHtml(contact.title || "no title")} · ${escapeHtml(contact.email || "no email")}
+            ${contact.verification_provider === "human" ? '<span class="pill manual">manual</span>' : ""}</span>
+          <button class="text-button danger remove-contact" type="button" data-id="${contact.id}">Remove</button>
+        </li>`).join("")}
+    </ul>` : "";
+  $$(".remove-contact").forEach((button) => button.addEventListener("click", () => removeContactRow(button.dataset.id, targetId)));
+}
+
+async function removeContactRow(contactId, targetId) {
+  if (!window.confirm("Remove this contact?")) return;
+  setLoading(true);
+  try {
+    await api(`/api/contacts/${contactId}`, { method: "DELETE" });
+    showToast("Contact removed.");
+    await loadState();
+    renderContactFormExisting(targetId);
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    setLoading(false);
+  }
 }
 
 async function reviewSelectedDraft(action) {
@@ -1162,6 +1301,53 @@ function bindEvents() {
       await loadState();
     } catch (error) { showToast(error.message, true); }
     finally { setLoading(false); }
+  });
+
+  $("#draft-paragraph").addEventListener("input", renderDraftPreview);
+  $("#draft-contact").addEventListener("change", renderDraftPreview);
+  $("#draft-add-contact").addEventListener("click", () => {
+    const targetId = $("#draft-target-id").value;
+    const target = state.targets.find((item) => item.id === targetId);
+    openContactFormDialog(targetId, target?.firm || "");
+  });
+
+  $("#contact-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const targetId = $("#contact-form-target-id").value;
+    const name = $("#contact-form-name").value.trim();
+    if (!name) return showToast("A name is required.", true);
+    setLoading(true);
+    try {
+      await api(`/api/targets/${targetId}/contacts`, {
+        method: "POST",
+        body: JSON.stringify({
+          name,
+          title: $("#contact-form-title").value.trim(),
+          email: $("#contact-form-email").value.trim(),
+          source_note: $("#contact-form-source").value.trim(),
+        }),
+      });
+      showToast(`${name} added.`);
+      await loadState();
+      renderContactFormExisting(targetId);
+      $("#contact-form-name").value = "";
+      $("#contact-form-title").value = "";
+      $("#contact-form-email").value = "";
+      $("#contact-form-source").value = "";
+      // The draft dialog may be open underneath this one; keep its contact
+      // picker and preview in sync rather than making the operator reopen it.
+      if ($("#draft-dialog").open && $("#draft-target-id").value === targetId) {
+        const contacts = (state.contacts || []).filter((item) => item.target_id === targetId);
+        $("#draft-contact").innerHTML = contacts.length
+          ? contacts.map((contact) => `<option value="${contact.id}">${escapeHtml(contact.name)} · ${escapeHtml(contact.title)} · ${escapeHtml(contact.email)}</option>`).join("")
+          : `<option value="">No contact yet, add one</option>`;
+        renderDraftPreview();
+      }
+    } catch (error) {
+      showToast(error.message, true);
+    } finally {
+      setLoading(false);
+    }
   });
 
   $("#draft-form").addEventListener("submit", async (event) => {

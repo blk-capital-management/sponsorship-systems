@@ -18,22 +18,28 @@ from dashboard.models import (
     ContactRunRequest,
     DraftRequest,
     IntakeRequest,
+    ManualContactRequest,
     ResolveManualRequest,
     ReviewRequest,
     TargetBatchRequest,
+    TargetUpdateRequest,
 )
 from dashboard.services import (
     DashboardServiceError,
+    add_manual_contact,
     dashboard_state,
+    delete_target,
     derive_status_batch,
     generate_owner_draft,
     intake_targets,
     mark_draft_sent,
     preview_contact_run,
+    remove_contact,
     resolve_manual_item,
     research_batch,
     review_draft,
     run_contact_discovery,
+    update_target_domain,
 )
 from dashboard.storage import (
     SupabaseConfigurationError,
@@ -41,7 +47,7 @@ from dashboard.storage import (
     SupabaseStorage,
     get_storage,
 )
-from drafts.generate import DraftGenerationError
+from drafts.generate import DraftGenerationError, load_template
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC = ROOT / "public"
@@ -138,6 +144,10 @@ def public_config(storage: SupabaseStorage = Depends(get_storage)) -> dict[str, 
         # The intake category list is served from config so the dropdown and the
         # validator can never disagree about what a valid category is.
         "firm_categories": [entry["label"] for entry in load_firm_categories()],
+        # Served raw so the draft dialog can preview the real locked template
+        # around the paragraph the operator is writing, with no second copy of
+        # the wording to drift out of sync.
+        "cold_prospect_template": load_template(),
     }
 
 
@@ -164,6 +174,25 @@ def intake(
         "research_target_ids": [row["id"] for row in rows if row.get("domain")]
         if payload.run_research else [],
     }
+
+
+@app.patch("/api/targets/{target_id}")
+def update_target_endpoint(
+    target_id: str,
+    payload: TargetUpdateRequest,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> dict[str, Any]:
+    return update_target_domain(storage, user, target_id, payload.domain)
+
+
+@app.delete("/api/targets/{target_id}", status_code=204)
+def delete_target_endpoint(
+    target_id: str,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> None:
+    delete_target(storage, user, target_id)
 
 
 @app.post("/api/research")
@@ -210,6 +239,29 @@ def contacts_run(
     return run_contact_discovery(
         storage, user, payload.run_id, payload.confirmed_credit_cap
     )
+
+
+@app.post("/api/targets/{target_id}/contacts")
+def add_manual_contact_endpoint(
+    target_id: str,
+    payload: ManualContactRequest,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> dict[str, Any]:
+    return add_manual_contact(
+        storage, user, target_id,
+        name=payload.name, title=payload.title, email=payload.email,
+        source_note=payload.source_note,
+    )
+
+
+@app.delete("/api/contacts/{contact_id}", status_code=204)
+def delete_contact_endpoint(
+    contact_id: str,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> None:
+    remove_contact(storage, user, contact_id)
 
 
 @app.post("/api/drafts")

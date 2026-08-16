@@ -335,7 +335,7 @@
 
             <div class="table-wrap">
               <table>
-                <thead><tr><th><input id="select-all" type="checkbox" aria-label="Select all visible firms"></th><th>Firm</th><th>Relationship</th><th>Research</th><th>Hunter gate</th><th>Contacts</th><th>Draft</th><th><span class="sr-only">Action</span></th></tr></thead>
+                <thead><tr><th><input id="select-all" type="checkbox" aria-label="Select all visible firms"></th><th>Firm</th><th>Relationship</th><th>Research</th><th>Hunter gate</th><th>Contacts</th><th>Draft</th><th><span class="sr-only">Action</span></th><th><span class="sr-only">Remove</span></th></tr></thead>
                 <tbody id="pipeline-body"></tbody>
               </table>
             </div>
@@ -372,16 +372,53 @@
       <button id="sidebar-scrim" class="sidebar-scrim" type="button" aria-label="Close navigation"></button>
     </div>
 
-    <dialog id="draft-dialog" class="modal">
+    <dialog id="draft-dialog" class="modal modal-wide">
       <form id="draft-form" method="dialog" class="stack">
         <div class="modal-heading"><div><p class="eyebrow">Validated workflow</p><h3 id="draft-dialog-title">Generate draft</h3><p class="section-copy">Bridge will create a review item. It will not send an email.</p></div><button class="icon-button" type="button" data-close="draft-dialog" aria-label="Close">×</button></div>
         <input id="draft-target-id" type="hidden">
+
+        <div id="draft-hooks-panel">
+          <label>Sourced hooks to write from</label>
+          <div id="draft-hooks-list" class="hook-list"></div>
+        </div>
+
         <label id="draft-contact-label" for="draft-contact">Verified contact</label>
-        <select id="draft-contact"></select>
+        <div class="contact-picker-row">
+          <select id="draft-contact"></select>
+          <button id="draft-add-contact" class="text-button" type="button">Add contact</button>
+        </div>
+
         <label id="draft-paragraph-label" for="draft-paragraph">Human-authored firm paragraph</label>
-        <textarea id="draft-paragraph" rows="7" placeholder="Write two or three original sentences grounded only in the sourced hooks."></textarea>
+        <textarea id="draft-paragraph" rows="6" placeholder="Write two or three original sentences grounded only in the sourced hooks."></textarea>
         <span id="draft-paragraph-help" class="field-help">Bridge validates this language against the stored research artifact. It does not invent a firm-specific paragraph.</span>
+
+        <div id="draft-preview-panel">
+          <label>Preview, as it will read with the template</label>
+          <div id="draft-preview" class="draft-preview"></div>
+        </div>
+
         <div class="modal-actions"><button class="button secondary" type="button" data-close="draft-dialog">Cancel</button><button id="draft-submit" class="button primary" type="submit">Generate review draft</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="contact-form-dialog" class="modal">
+      <form id="contact-form" method="dialog" class="stack">
+        <div class="modal-heading"><div><p class="eyebrow">Sourced by hand</p><h3 id="contact-form-heading">Add a contact</h3><p class="section-copy">For a name found on LinkedIn, by referral, or on a page discovery missed. Not fetched or verified by Bridge.</p></div><button class="icon-button" type="button" data-close="contact-form-dialog" aria-label="Close">×</button></div>
+        <input id="contact-form-target-id" type="hidden">
+
+        <div id="contact-form-existing"></div>
+
+        <label for="contact-form-name">Name</label>
+        <input id="contact-form-name" type="text" required maxlength="160" placeholder="Jane Doe">
+        <label for="contact-form-title">Title</label>
+        <input id="contact-form-title" type="text" maxlength="160" placeholder="Campus Recruiting Lead">
+        <label for="contact-form-email">Email</label>
+        <input id="contact-form-email" type="email" maxlength="254" placeholder="jane.doe@firm.com">
+        <label for="contact-form-source">Where this came from</label>
+        <input id="contact-form-source" type="text" maxlength="500" placeholder="LinkedIn profile URL, referral, or the page it was on">
+        <span class="field-help">Kept for your own review trail only. It is never sent to the firm.</span>
+
+        <div class="modal-actions"><button class="button secondary" type="button" data-close="contact-form-dialog">Close</button><button class="button primary" type="submit">Add contact</button></div>
       </form>
     </dialog>
 

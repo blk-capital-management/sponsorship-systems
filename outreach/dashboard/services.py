@@ -102,6 +102,57 @@ def get_artifact(
     return rows[0].get("artifact")
 
 
+def update_target_domain(
+    storage: SupabaseStorage, user: DashboardUser, target_id: str, domain: str
+) -> dict[str, Any]:
+    """Give a target its missing domain so research can start.
+
+    Reuses get_target for the owner-lane check, and the same domain-collision
+    guard intake uses, then closes the intake manual-queue item that missing
+    domain opened, if any -- the operator just resolved it by hand.
+    """
+    target = get_target(storage, user, target_id)
+    domain = domain.lower()
+    if domain != str(target.get("domain") or "").lower():
+        conflict = storage.select(
+            "targets", user.access_token, lane=user.owner,
+            params={"select": "id", "domain": _eq(domain), "id": f"neq.{target_id}", "limit": "1"},
+        )
+        if conflict:
+            raise DashboardServiceError(f"Domain {domain} is already on another target.")
+
+    rows = storage.update(
+        "targets", {"domain": domain}, user.access_token, lane=user.owner,
+        params={"id": _eq(target_id)},
+    )
+    if not rows:
+        raise DashboardServiceError("Update returned no row.")
+
+    storage.update(
+        "manual_queue", {"resolved_at": utc_now().isoformat()}, user.access_token, lane=user.owner,
+        params={
+            "target_id": _eq(target_id),
+            "source_stage": "eq.intake",
+            "resolved_at": "is.null",
+        }, return_rows=False,
+    )
+    return rows[0]
+
+
+def delete_target(storage: SupabaseStorage, user: DashboardUser, target_id: str) -> None:
+    """Remove a target from the owner's lane.
+
+    get_target enforces the owner-lane check before anything is deleted.
+    Research, contacts, drafts, and manual-queue rows cascade at the database
+    level (on delete cascade in 001_phase_g_dashboard.sql), so nothing further
+    needs cleaning up here.
+    """
+    get_target(storage, user, target_id)
+    storage.delete(
+        "targets", user.access_token, lane=user.owner, params={"id": _eq(target_id)},
+    )
+
+
 def _intake_error_reason(exc: Exception) -> str:
     """Turn a storage rejection into something an operator can act on."""
     text = str(exc)
@@ -860,6 +911,62 @@ def run_contact_discovery(
     )
     return {"run_id": run_id, "credits_spent": provider.guard.credits_spent,
             "results": results}
+
+
+def add_manual_contact(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    target_id: str,
+    *,
+    name: str,
+    title: str,
+    email: str,
+    source_note: str,
+) -> dict[str, Any]:
+    """Record a contact the operator found and verified themselves.
+
+    Writes into the same contacts table a Hunter run populates, so it needs no
+    special-casing anywhere a contact is read: the draft dialog's contact
+    picker and the pre-draft "verified contact required" gate both already
+    read this table. contact_provenance.method distinguishes it from
+    provider-sourced rows for a reviewer, but nothing downstream treats it
+    differently.
+    """
+    target = get_target(storage, user, target_id)
+    row = {
+        "target_id": target["id"],
+        "owner": target["owner"],
+        "name": name,
+        "title": title,
+        "email": email,
+        "verification_status": "manual",
+        "verification_provider": "human",
+        "contact_provenance": build_contact_provenance(
+            source_note, method="manual_entry", provider="human",
+        ),
+        "dropped": False,
+    }
+    inserted = storage.insert("contacts", row, user.access_token, lane=user.owner)
+    if not inserted:
+        raise DashboardServiceError("Insert returned no row.")
+    return inserted[0]
+
+
+def remove_contact(
+    storage: SupabaseStorage, user: DashboardUser, contact_id: str
+) -> None:
+    """Remove a contact, e.g. a manual entry added by mistake or since stale."""
+    rows = storage.select(
+        "contacts", user.access_token, lane=user.owner,
+        params={"id": _eq(contact_id), "limit": "1"},
+    )
+    if len(rows) != 1 or not _owner_is(rows[0], user.owner):
+        raise DashboardServiceError(
+            "Contact was not found in your owner lane. RLS may have denied it."
+        )
+    storage.delete(
+        "contacts", user.access_token, lane=user.owner, params={"id": _eq(contact_id)},
+    )
 
 
 def _contact_record(row: dict[str, Any]) -> ContactRecord:

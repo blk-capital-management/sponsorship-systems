@@ -17,13 +17,17 @@ from dashboard.auth import DashboardUser, current_user
 from dashboard.models import IntakeFirm, ReviewRequest
 from dashboard.services import (
     DashboardServiceError,
+    add_manual_contact,
     dashboard_settings,
     dashboard_state,
+    delete_target,
     derive_status_batch,
     get_target,
     intake_targets,
     mark_draft_sent,
+    remove_contact,
     research_batch,
+    update_target_domain,
 )
 from dashboard.storage import SupabaseSettings, SupabaseStorage
 from scripts.seed_supabase import seed_drafts
@@ -1022,3 +1026,237 @@ def test_resolve_manual_request_rejects_a_blank_note() -> None:
     assert ResolveManualRequest(note="  found by hand  ").note == "found by hand"
     with pytest.raises(ValidationError):
         ResolveManualRequest(note="   ")
+
+
+class TargetMutationStorage:
+    """Fake storage for update_target_domain / delete_target.
+
+    A firm-domain conflict check reuses the "targets" table with an `id`
+    filter of `neq.<target_id>`, distinguishing it from get_target's own
+    `eq.<target_id>` lookup on the same table.
+    """
+
+    def __init__(
+        self, target: dict[str, Any], conflicts: list[dict[str, Any]] | None = None
+    ) -> None:
+        self.target = target
+        self.conflicts = conflicts or []
+        self.updates: list[tuple[str, Any, Any]] = []
+        self.deletes: list[tuple[str, Any]] = []
+
+    def select(
+        self, table: str, token: str, *, params: Any = None, lane: str | None = None
+    ) -> list[dict[str, Any]]:
+        if table == "targets":
+            if params and str(params.get("id", "")).startswith("neq."):
+                return self.conflicts
+            return [self.target]
+        return []
+
+    def update(
+        self,
+        table: str,
+        values: Any,
+        token: str,
+        *,
+        params: Any,
+        return_rows: bool = True,
+        lane: str | None = None,
+    ) -> list[dict[str, Any]]:
+        self.updates.append((table, values, params))
+        if table == "targets":
+            self.target = {**self.target, **values}
+            return [self.target] if return_rows else []
+        return [{"id": "queue-1"}] if return_rows else []
+
+    def delete(
+        self, table: str, token: str, *, params: Any, lane: str | None = None
+    ) -> None:
+        self.deletes.append((table, params))
+
+
+def test_update_target_domain_attaches_domain_and_closes_manual_queue(
+    jamari: DashboardUser,
+) -> None:
+    storage = TargetMutationStorage(
+        {"id": "t1", "owner": "jamari", "firm": "Core Industrial Partners", "domain": None}
+    )
+    result = update_target_domain(storage, jamari, "t1", "COREINDUSTRIAL.com")
+
+    assert result["domain"] == "coreindustrial.com"
+    manual_queue_updates = [row for row in storage.updates if row[0] == "manual_queue"]
+    assert len(manual_queue_updates) == 1
+    _, values, params = manual_queue_updates[0]
+    assert values["resolved_at"]
+    assert params["source_stage"] == "eq.intake"
+    assert params["resolved_at"] == "is.null"
+
+
+def test_update_target_domain_rejects_a_domain_already_on_another_target(
+    jamari: DashboardUser,
+) -> None:
+    storage = TargetMutationStorage(
+        {"id": "t1", "owner": "jamari", "firm": "Core Industrial Partners", "domain": None},
+        conflicts=[{"id": "t2"}],
+    )
+    with pytest.raises(DashboardServiceError, match="already on another target"):
+        update_target_domain(storage, jamari, "t1", "taken.com")
+
+
+def test_update_target_domain_blocks_cross_owner_target_even_if_storage_leaks(
+    jamari: DashboardUser,
+) -> None:
+    storage = TargetMutationStorage({"id": "fola-target", "owner": "fola"})
+    with pytest.raises(DashboardServiceError, match="owner lane"):
+        update_target_domain(storage, jamari, "fola-target", "example.com")
+
+
+def test_delete_target_removes_the_row_by_id(jamari: DashboardUser) -> None:
+    storage = TargetMutationStorage({"id": "t1", "owner": "jamari", "firm": "Core Industrial Partners"})
+    delete_target(storage, jamari, "t1")
+    assert storage.deletes == [("targets", {"id": "eq.t1"})]
+
+
+def test_delete_target_blocks_cross_owner_target_even_if_storage_leaks(
+    jamari: DashboardUser,
+) -> None:
+    storage = TargetMutationStorage({"id": "fola-target", "owner": "fola"})
+    with pytest.raises(DashboardServiceError, match="owner lane"):
+        delete_target(storage, jamari, "fola-target")
+    assert storage.deletes == []
+
+
+def test_target_update_request_derives_domain_from_website_when_domain_is_blank() -> None:
+    from dashboard.models import TargetUpdateRequest
+
+    request = TargetUpdateRequest(website="https://www.coreindustrial.com/about")
+    assert request.domain == "coreindustrial.com"
+
+
+def test_target_update_request_rejects_no_domain_and_no_website() -> None:
+    from dashboard.models import TargetUpdateRequest
+
+    with pytest.raises(ValidationError):
+        TargetUpdateRequest()
+
+
+class ManualContactStorage:
+    """Fake storage for add_manual_contact / remove_contact.
+
+    select("targets", ...) backs get_target's owner-lane lookup; select
+    ("contacts", ...) backs remove_contact's own owner-lane lookup on the
+    contact row itself.
+    """
+
+    def __init__(
+        self, target: dict[str, Any], contact: dict[str, Any] | None = None
+    ) -> None:
+        self.target = target
+        self.contact = contact
+        self.inserts: list[tuple[str, Any]] = []
+        self.deletes: list[tuple[str, Any]] = []
+
+    def select(
+        self, table: str, token: str, *, params: Any = None, lane: str | None = None
+    ) -> list[dict[str, Any]]:
+        if table == "targets":
+            return [self.target]
+        if table == "contacts":
+            return [self.contact] if self.contact else []
+        return []
+
+    def insert(
+        self,
+        table: str,
+        row: Any,
+        token: str,
+        *,
+        lane: str | None = None,
+        return_rows: bool = True,
+    ) -> list[dict[str, Any]]:
+        self.inserts.append((table, row))
+        if not return_rows:
+            return []
+        return [{**row, "id": "contact-1"}]
+
+    def delete(
+        self, table: str, token: str, *, params: Any, lane: str | None = None
+    ) -> None:
+        self.deletes.append((table, params))
+
+
+def test_add_manual_contact_writes_manual_provenance(jamari: DashboardUser) -> None:
+    storage = ManualContactStorage(
+        {"id": "t1", "owner": "jamari", "firm": "Core Industrial Partners"}
+    )
+    result = add_manual_contact(
+        storage, jamari, "t1",
+        name="Jane Doe", title="Campus Recruiting Lead",
+        email="jane.doe@core.com",
+        source_note="Found on LinkedIn, referred by an alum",
+    )
+
+    assert result["name"] == "Jane Doe"
+    assert result["verification_provider"] == "human"
+    assert result["verification_status"] == "manual"
+    assert result["contact_provenance"]["method"] == "manual_entry"
+    assert result["contact_provenance"]["discovery_url"] == (
+        "Found on LinkedIn, referred by an alum"
+    )
+    table, row = storage.inserts[0]
+    assert table == "contacts"
+    assert row["target_id"] == "t1"
+    assert row["owner"] == "jamari"
+    assert row["dropped"] is False
+
+
+def test_add_manual_contact_blocks_cross_owner_target(jamari: DashboardUser) -> None:
+    storage = ManualContactStorage({"id": "fola-target", "owner": "fola"})
+    with pytest.raises(DashboardServiceError, match="owner lane"):
+        add_manual_contact(
+            storage, jamari, "fola-target",
+            name="Jane Doe", title="", email="", source_note="",
+        )
+    assert storage.inserts == []
+
+
+def test_remove_contact_deletes_owned_row(jamari: DashboardUser) -> None:
+    storage = ManualContactStorage(
+        {"id": "t1", "owner": "jamari"},
+        contact={"id": "c1", "owner": "jamari", "target_id": "t1"},
+    )
+    remove_contact(storage, jamari, "c1")
+    assert storage.deletes == [("contacts", {"id": "eq.c1"})]
+
+
+def test_remove_contact_blocks_cross_owner_contact(jamari: DashboardUser) -> None:
+    storage = ManualContactStorage(
+        {"id": "t1", "owner": "jamari"},
+        contact={"id": "c1", "owner": "fola", "target_id": "t1"},
+    )
+    with pytest.raises(DashboardServiceError, match="owner lane"):
+        remove_contact(storage, jamari, "c1")
+    assert storage.deletes == []
+
+
+def test_remove_contact_missing_contact_raises(jamari: DashboardUser) -> None:
+    storage = ManualContactStorage({"id": "t1", "owner": "jamari"}, contact=None)
+    with pytest.raises(DashboardServiceError, match="owner lane"):
+        remove_contact(storage, jamari, "missing")
+
+
+def test_manual_contact_request_requires_a_name() -> None:
+    from dashboard.models import ManualContactRequest
+
+    with pytest.raises(ValidationError):
+        ManualContactRequest(name="   ")
+
+
+def test_manual_contact_request_validates_and_normalizes_email() -> None:
+    from dashboard.models import ManualContactRequest
+
+    with pytest.raises(ValidationError):
+        ManualContactRequest(name="Jane Doe", email="not-an-email")
+
+    request = ManualContactRequest(name="Jane Doe", email="Jane.Doe@Firm.com")
+    assert request.email == "jane.doe@firm.com"
