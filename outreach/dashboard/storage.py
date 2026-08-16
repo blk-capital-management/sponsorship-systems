@@ -134,6 +134,56 @@ class SupabaseStorage:
             token=token,
         )
 
+    # The caller-token and service-token lanes stay separate public methods on
+    # purpose: service_* bypasses RLS, and that has to be visible at every call
+    # site rather than hidden behind a keyword argument. Only the request
+    # plumbing below is shared.
+
+    def _do_select(
+        self,
+        table: str,
+        *,
+        token: str | None,
+        service: bool,
+        select: str,
+        params: Mapping[str, Any] | None,
+    ) -> list[dict[str, Any]]:
+        result = self._request(
+            "GET",
+            f"{self.settings.url}/rest/v1/{table}",
+            operation=f"{'service ' if service else ''}select {table}",
+            token=token,
+            service=service,
+            params={"select": select, **dict(params or {})},
+        )
+        return list(result or [])
+
+    def _do_write(
+        self,
+        method: str,
+        table: str,
+        *,
+        token: str | None,
+        service: bool,
+        operation: str,
+        payload: Any = None,
+        params: Mapping[str, Any] | None = None,
+        return_rows: bool = True,
+        resolution: str = "",
+    ) -> list[dict[str, Any]]:
+        prefer = f"{resolution}return=" + ("representation" if return_rows else "minimal")
+        result = self._request(
+            method,
+            f"{self.settings.url}/rest/v1/{table}",
+            operation=f"{'service ' if service else ''}{operation} {table}",
+            token=token,
+            service=service,
+            params=params,
+            payload=payload,
+            prefer=prefer,
+        )
+        return list(result or []) if return_rows else []
+
     def select(
         self,
         table: str,
@@ -142,15 +192,8 @@ class SupabaseStorage:
         select: str = "*",
         params: Mapping[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
-        query = {"select": select, **dict(params or {})}
-        result = self._request(
-            "GET",
-            f"{self.settings.url}/rest/v1/{table}",
-            operation=f"select {table}",
-            token=token,
-            params=query,
-        )
-        return list(result or [])
+        return self._do_select(table, token=token, service=False,
+                               select=select, params=params)
 
     def service_select(
         self,
@@ -159,15 +202,8 @@ class SupabaseStorage:
         select: str = "*",
         params: Mapping[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
-        query = {"select": select, **dict(params or {})}
-        result = self._request(
-            "GET",
-            f"{self.settings.url}/rest/v1/{table}",
-            operation=f"service select {table}",
-            service=True,
-            params=query,
-        )
-        return list(result or [])
+        return self._do_select(table, token=None, service=True,
+                               select=select, params=params)
 
     def insert(
         self,
@@ -177,16 +213,9 @@ class SupabaseStorage:
         *,
         return_rows: bool = True,
     ) -> list[dict[str, Any]]:
-        prefer = "return=representation" if return_rows else "return=minimal"
-        result = self._request(
-            "POST",
-            f"{self.settings.url}/rest/v1/{table}",
-            operation=f"insert {table}",
-            token=token,
-            payload=rows,
-            prefer=prefer,
-        )
-        return list(result or []) if return_rows else []
+        return self._do_write("POST", table, token=token, service=False,
+                              operation="insert", payload=rows,
+                              return_rows=return_rows)
 
     def upsert(
         self,
@@ -197,19 +226,11 @@ class SupabaseStorage:
         on_conflict: str,
         return_rows: bool = True,
     ) -> list[dict[str, Any]]:
-        prefer = "resolution=merge-duplicates,return=" + (
-            "representation" if return_rows else "minimal"
-        )
-        result = self._request(
-            "POST",
-            f"{self.settings.url}/rest/v1/{table}",
-            operation=f"upsert {table}",
-            token=token,
-            params={"on_conflict": on_conflict},
-            payload=rows,
-            prefer=prefer,
-        )
-        return list(result or []) if return_rows else []
+        return self._do_write("POST", table, token=token, service=False,
+                              operation="upsert", payload=rows,
+                              params={"on_conflict": on_conflict},
+                              return_rows=return_rows,
+                              resolution="resolution=merge-duplicates,")
 
     def service_upsert(
         self,
@@ -219,19 +240,11 @@ class SupabaseStorage:
         on_conflict: str,
         return_rows: bool = True,
     ) -> list[dict[str, Any]]:
-        prefer = "resolution=merge-duplicates,return=" + (
-            "representation" if return_rows else "minimal"
-        )
-        result = self._request(
-            "POST",
-            f"{self.settings.url}/rest/v1/{table}",
-            operation=f"service upsert {table}",
-            service=True,
-            params={"on_conflict": on_conflict},
-            payload=rows,
-            prefer=prefer,
-        )
-        return list(result or []) if return_rows else []
+        return self._do_write("POST", table, token=None, service=True,
+                              operation="upsert", payload=rows,
+                              params={"on_conflict": on_conflict},
+                              return_rows=return_rows,
+                              resolution="resolution=merge-duplicates,")
 
     def service_insert(
         self,
@@ -240,16 +253,9 @@ class SupabaseStorage:
         *,
         return_rows: bool = True,
     ) -> list[dict[str, Any]]:
-        prefer = "return=representation" if return_rows else "return=minimal"
-        result = self._request(
-            "POST",
-            f"{self.settings.url}/rest/v1/{table}",
-            operation=f"service insert {table}",
-            service=True,
-            payload=rows,
-            prefer=prefer,
-        )
-        return list(result or []) if return_rows else []
+        return self._do_write("POST", table, token=None, service=True,
+                              operation="insert", payload=rows,
+                              return_rows=return_rows)
 
     def update(
         self,
@@ -260,17 +266,9 @@ class SupabaseStorage:
         params: Mapping[str, Any],
         return_rows: bool = True,
     ) -> list[dict[str, Any]]:
-        prefer = "return=representation" if return_rows else "return=minimal"
-        result = self._request(
-            "PATCH",
-            f"{self.settings.url}/rest/v1/{table}",
-            operation=f"update {table}",
-            token=token,
-            params=params,
-            payload=values,
-            prefer=prefer,
-        )
-        return list(result or []) if return_rows else []
+        return self._do_write("PATCH", table, token=token, service=False,
+                              operation="update", payload=values,
+                              params=params, return_rows=return_rows)
 
     def service_update(
         self,
@@ -280,17 +278,9 @@ class SupabaseStorage:
         params: Mapping[str, Any],
         return_rows: bool = True,
     ) -> list[dict[str, Any]]:
-        prefer = "return=representation" if return_rows else "return=minimal"
-        result = self._request(
-            "PATCH",
-            f"{self.settings.url}/rest/v1/{table}",
-            operation=f"service update {table}",
-            service=True,
-            params=params,
-            payload=values,
-            prefer=prefer,
-        )
-        return list(result or []) if return_rows else []
+        return self._do_write("PATCH", table, token=None, service=True,
+                              operation="update", payload=values,
+                              params=params, return_rows=return_rows)
 
     def delete(
         self,
@@ -299,24 +289,12 @@ class SupabaseStorage:
         *,
         params: Mapping[str, Any],
     ) -> None:
-        self._request(
-            "DELETE",
-            f"{self.settings.url}/rest/v1/{table}",
-            operation=f"delete {table}",
-            token=token,
-            params=params,
-            prefer="return=minimal",
-        )
+        self._do_write("DELETE", table, token=token, service=False,
+                       operation="delete", params=params, return_rows=False)
 
     def service_delete(self, table: str, *, params: Mapping[str, Any]) -> None:
-        self._request(
-            "DELETE",
-            f"{self.settings.url}/rest/v1/{table}",
-            operation=f"service delete {table}",
-            service=True,
-            params=params,
-            prefer="return=minimal",
-        )
+        self._do_write("DELETE", table, token=None, service=True,
+                       operation="delete", params=params, return_rows=False)
 
     def rpc(self, function: str, payload: dict[str, Any], token: str) -> Any:
         return self._request(

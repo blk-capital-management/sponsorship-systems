@@ -357,3 +357,87 @@ def test_compound_role_inboxes_are_not_people(local):
 @pytest.mark.parametrize("local", ["jdoe", "jane.doe", "astuart"])
 def test_personal_addresses_are_not_role_inboxes(local):
     assert not pattern_lib.is_role_address(local)
+
+
+# ── Confirmed formats supplied by a human at intake ───────────────────────────
+
+def test_confirmed_format_needs_a_source_url():
+    """Rule 1 for patterns: unsourced is not weaker, it is not a pattern."""
+    assert pattern_lib.confirmed_pattern_entry("{f}{last}@acme.com", "", "acme.com") is None
+    assert pattern_lib.confirmed_pattern_entry("", "https://acme.com/team", "acme.com") is None
+
+
+def test_confirmed_format_outranks_an_inferred_one():
+    entry = pattern_lib.confirmed_pattern_entry(
+        "{f}{last}@acme.com", "https://acme.com/team", "acme.com"
+    )
+    assert entry["pattern"] == "{f}{last}@acme.com"
+    assert entry["provider"] == "human"
+    # Above the 0.75 that infer_pattern assigns a single published address.
+    assert entry["confidence"] > 0.75
+    assert pattern_lib.render_address(entry["pattern"], "Jane", "Doe") == "jdoe@acme.com"
+
+
+def test_confirmed_format_accepts_a_bare_template_and_attaches_the_domain():
+    entry = pattern_lib.confirmed_pattern_entry(
+        "{first}.{last}", "https://acme.com/team", "acme.com"
+    )
+    assert entry["pattern"] == "{first}.{last}@acme.com"
+
+
+def test_unusable_confirmed_format_is_ignored_not_guessed_at():
+    assert pattern_lib.confirmed_pattern_entry(
+        "{bogus}@acme.com", "https://acme.com/team", "acme.com"
+    ) is None
+
+
+def test_confirmed_format_skips_the_paid_provider_lookup(monkeypatch):
+    """The credit saving: a format on file removes any reason to ask Hunter."""
+    calls: list[str] = []
+
+    def fail_provider(*args, **kwargs):
+        calls.append("provider")
+        raise AssertionError("a confirmed format must not reach a paid provider")
+
+    monkeypatch.setattr(discover, "learn_pattern_from_provider", fail_provider)
+    monkeypatch.setattr(discover, "learn_pattern_from_provider_instance", fail_provider)
+    # The firm's own site yields nothing, which is exactly when the old path
+    # would have spent a credit on the provider.
+    monkeypatch.setattr(discover, "learn_pattern", lambda *a, **k: None)
+    monkeypatch.setattr(discover, "find_named_contacts", lambda *a, **k: [])
+
+    rows = discover.discover_target_contacts(
+        {
+            "firm": "Acme Capital",
+            "domain": "acme.com",
+            "firm_type": "PE",
+            "owner": "jamari",
+            "email_format": "{f}{last}@acme.com",
+            "email_format_source_url": "https://acme.com/team",
+        },
+        {"alignment_hooks": [{"claim": "x", "source_url": "https://acme.com"}],
+         "confidence": "high"},
+    )
+
+    assert calls == []
+    assert rows == []
+
+
+def test_without_a_confirmed_format_the_provider_is_still_consulted(monkeypatch):
+    """Guards the test above: the skip must come from the format, not the stubs."""
+    calls: list[str] = []
+    monkeypatch.setattr(discover, "learn_pattern", lambda *a, **k: None)
+    monkeypatch.setattr(discover, "find_named_contacts", lambda *a, **k: [])
+    monkeypatch.setattr(
+        discover, "learn_pattern_from_provider",
+        lambda *a, **k: calls.append("provider"),
+    )
+
+    discover.discover_target_contacts(
+        {"firm": "Acme Capital", "domain": "acme.com", "firm_type": "PE",
+         "owner": "jamari"},
+        {"alignment_hooks": [{"claim": "x", "source_url": "https://acme.com"}],
+         "confidence": "high"},
+    )
+
+    assert calls == ["provider"]

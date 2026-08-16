@@ -9,6 +9,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 
 from contacts.hunter_guard import HunterBudgetError, HunterScopeError
+from common.config import load_firm_categories
 from dashboard.auth import DashboardUser, current_user
 from dashboard.models import (
     ContactPreviewRequest,
@@ -108,10 +109,13 @@ def health() -> dict[str, str]:
 
 
 @app.get("/api/config")
-def public_config(storage: SupabaseStorage = Depends(get_storage)) -> dict[str, str]:
+def public_config(storage: SupabaseStorage = Depends(get_storage)) -> dict[str, Any]:
     return {
         "supabase_url": storage.settings.url,
         "supabase_publishable_key": storage.settings.publishable_key,
+        # The intake category list is served from config so the dropdown and the
+        # validator can never disagree about what a valid category is.
+        "firm_categories": [entry["label"] for entry in load_firm_categories()],
     }
 
 
@@ -129,9 +133,12 @@ def intake(
     user: DashboardUser = Depends(current_user),
     storage: SupabaseStorage = Depends(get_storage),
 ) -> dict[str, Any]:
-    rows = intake_targets(storage, user, payload.firms)
+    result = intake_targets(storage, user, payload.firms)
+    rows = result["accepted"]
     return {
         "targets": rows,
+        "skipped": result["skipped"],
+        "warnings": result["warnings"],
         "research_target_ids": [row["id"] for row in rows if row.get("domain")]
         if payload.run_research else [],
     }

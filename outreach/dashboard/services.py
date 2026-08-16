@@ -103,23 +103,105 @@ def get_artifact(
     return rows[0].get("artifact")
 
 
+def _intake_error_reason(exc: Exception) -> str:
+    """Turn a storage rejection into something an operator can act on."""
+    text = str(exc)
+    lowered = text.lower()
+    if "targets_firm_slug_key" in lowered or "firm_slug" in lowered:
+        return "A firm with this slug already exists."
+    if "targets_domain_unique_idx" in lowered or "domain" in lowered:
+        return "This domain is already on another target."
+    if "targets_email_format_sourced" in lowered:
+        return "An email format needs the source URL it was read off."
+    return f"Storage rejected this row: {text[:200]}"
+
+
+def _existing_target_index(
+    storage: SupabaseStorage, user: DashboardUser
+) -> tuple[set[str], set[str], dict[str, str]]:
+    """Slugs, domains, and normalized firm names already in the owner's lane."""
+    try:
+        existing = storage.select(
+            "targets", user.access_token,
+            params={"select": "firm,firm_slug,domain", "limit": "1000"},
+        )
+    except Exception as exc:  # pragma: no cover - surfaced as a warning, not a failure
+        log.warning("Could not read existing targets for dedupe: %s", exc)
+        return set(), set(), {}
+
+    slugs = {str(row.get("firm_slug") or "") for row in existing}
+    domains = {str(row.get("domain") or "").lower() for row in existing if row.get("domain")}
+    by_name = {
+        normalize_firm(str(row.get("firm") or "")): str(row.get("firm") or "")
+        for row in existing if row.get("firm")
+    }
+    return slugs, domains, by_name
+
+
 def intake_targets(
     storage: SupabaseStorage, user: DashboardUser, firms: Iterable[IntakeFirm]
-) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
-    seen: set[str] = set()
+) -> dict[str, Any]:
+    """Add sourced leads, one row at a time.
+
+    Per-row inserts on purpose. firm_slug is unique and there is a unique index on
+    lower(domain), so a single bulk insert loses the whole batch when one firm is
+    already known. Sourcing arrives in messy batches; losing 29 good leads to 1
+    duplicate is the wrong trade.
+
+    Returns {"accepted": [...], "skipped": [...], "warnings": [...]}.
+    """
+    known_slugs, known_domains, known_names = _existing_target_index(storage, user)
+
+    accepted: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    warnings: list[dict[str, str]] = []
+    seen_slugs: set[str] = set()
+    seen_domains: set[str] = set()
+
     for item in firms:
         slug = firm_slug(item.firm)
-        if not slug or slug in seen:
-            raise DashboardServiceError(
-                f"Duplicate or unusable firm name in batch: {item.firm!r}."
-            )
-        seen.add(slug)
-        rows.append({
+        if not slug:
+            skipped.append({"firm": item.firm, "reason": "Firm name has no usable slug."})
+            continue
+        if slug in seen_slugs:
+            skipped.append({"firm": item.firm, "reason": "Duplicate firm in this batch."})
+            continue
+        if slug in known_slugs:
+            skipped.append({"firm": item.firm, "reason": "Already in your pipeline."})
+            continue
+
+        domain = (item.domain or "").lower()
+        if domain and (domain in seen_domains or domain in known_domains):
+            skipped.append({
+                "firm": item.firm,
+                "reason": f"Domain {domain} is already on another firm.",
+            })
+            continue
+
+        # Near-duplicate is a warning, not a block. normalize_firm is deliberately
+        # conservative, and the operator is better placed to judge than we are.
+        near = known_names.get(normalize_firm(item.firm))
+        if near and near != item.firm:
+            warnings.append({
+                "firm": item.firm,
+                "warning": f"Looks similar to existing target {near!r}. Added anyway.",
+            })
+        if not item.firm_type_recognized:
+            warnings.append({
+                "firm": item.firm,
+                "warning": (
+                    f"Category {item.firm_type!r} is outside the known list. "
+                    "Stored as given; contact title routing may not apply."
+                ),
+            })
+
+        row = {
             "owner": user.owner,
             "firm": item.firm,
             "firm_slug": slug,
             "domain": item.domain,
+            "website": item.website,
+            "linkedin_url": item.linkedin_url,
             "region": item.region or "US",
             "firm_type": item.firm_type,
             "tier_target": item.tier_target,
@@ -130,16 +212,30 @@ def intake_targets(
             "contact_status": "cold_prospect",
             "has_known_contact": False,
             "contact_needs_refresh": False,
+            "email_format": item.email_format,
+            "email_format_source_url": item.email_format_source_url,
             "created_by": user.user_id,
-        })
+        }
+        try:
+            inserted_rows = storage.insert("targets", row, user.access_token)
+        except Exception as exc:
+            log.warning("Intake failed for %s: %s", item.firm, exc)
+            skipped.append({"firm": item.firm, "reason": _intake_error_reason(exc)})
+            continue
 
-    try:
-        inserted = storage.insert("targets", rows, user.access_token)
-    except Exception as exc:
-        raise DashboardServiceError(
-            "Batch intake failed. Check for an existing firm slug or domain. " + str(exc)
-        ) from exc
+        if not inserted_rows:
+            skipped.append({"firm": item.firm, "reason": "Insert returned no row."})
+            continue
 
+        seen_slugs.add(slug)
+        if domain:
+            seen_domains.add(domain)
+        accepted.append(inserted_rows[0])
+
+    if not accepted and skipped:
+        log.info("Intake added nothing: %d row(s) skipped.", len(skipped))
+
+    inserted = accepted
     missing_domain = [row for row in inserted if not str(row.get("domain") or "").strip()]
     for row in missing_domain:
         storage.insert(
@@ -165,69 +261,36 @@ def intake_targets(
             "action_type": "batch_intake",
             "status": "completed",
             "target_ids": [row["id"] for row in inserted],
-            "details": {"count": len(inserted), "missing_domain": len(missing_domain)},
+            "details": {
+                "count": len(inserted),
+                "missing_domain": len(missing_domain),
+                "skipped": len(skipped),
+            },
             "completed_at": utc_now().isoformat(),
         },
         user.access_token,
         return_rows=False,
     )
-    return inserted
+    return {"accepted": accepted, "skipped": skipped, "warnings": warnings}
 
 
-def _write_manual_queue(
-    storage: SupabaseStorage,
-    user: DashboardUser,
-    target: dict[str, Any],
-    artifact: dict[str, Any],
-) -> None:
-    existing = storage.select(
-        "manual_queue",
-        user.access_token,
-        params={
-            "target_id": _eq(str(target["id"])),
-            "source_stage": "eq.research",
-            "resolved_at": "is.null",
-            "limit": "1",
-        },
-    )
-    reason = (
-        "no alignment hooks with a firm_claim_source"
-        if not artifact.get("alignment_hooks")
-        else "research confidence is low"
-    )
-    values = {
-        "owner": target["owner"],
-        "firm": target["firm"],
-        "firm_slug": target["firm_slug"],
-        "domain": target["domain"],
-        "confidence": artifact["confidence"],
-        "reason": reason,
-        "gaps": artifact.get("gaps", []),
-        "source_stage": "research",
-        "queued_at": artifact.get("fetched_at") or utc_now().isoformat(),
-    }
-    if existing:
-        storage.update(
-            "manual_queue", values, user.access_token,
-            params={"id": _eq(str(existing[0]["id"]))}, return_rows=False,
-        )
-    else:
-        storage.insert(
-            "manual_queue", {"target_id": target["id"], **values},
-            user.access_token, return_rows=False,
-        )
-
-
-def _write_pipeline_failure(
+def _upsert_manual_queue(
     storage: SupabaseStorage,
     user: DashboardUser,
     target: dict[str, Any],
     *,
     source_stage: str,
     reason: str,
-    detail: str,
+    confidence: str,
+    gaps: list[str],
+    queued_at: str | None = None,
 ) -> None:
-    """Keep per-target batch failures visible without inventing pipeline data."""
+    """Record one open manual-queue item per (target, stage).
+
+    The table keeps a unique index on that pair while an item is open, so a
+    repeat failure has to update the existing row rather than pile up a second
+    one. A queue that only grows stops being read.
+    """
     existing = storage.select(
         "manual_queue",
         user.access_token,
@@ -243,27 +306,62 @@ def _write_pipeline_failure(
         "firm": target["firm"],
         "firm_slug": target["firm_slug"],
         "domain": str(target.get("domain") or ""),
-        "confidence": "low",
+        "confidence": confidence,
         "reason": reason,
-        "gaps": [detail[:1000]],
+        "gaps": gaps,
         "source_stage": source_stage,
-        "queued_at": utc_now().isoformat(),
+        "queued_at": queued_at or utc_now().isoformat(),
     }
     if existing:
         storage.update(
-            "manual_queue",
-            values,
-            user.access_token,
-            params={"id": _eq(str(existing[0]["id"]))},
-            return_rows=False,
+            "manual_queue", values, user.access_token,
+            params={"id": _eq(str(existing[0]["id"]))}, return_rows=False,
         )
     else:
         storage.insert(
-            "manual_queue",
-            {"target_id": target["id"], **values},
-            user.access_token,
-            return_rows=False,
+            "manual_queue", {"target_id": target["id"], **values},
+            user.access_token, return_rows=False,
         )
+
+
+def _write_manual_queue(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    target: dict[str, Any],
+    artifact: dict[str, Any],
+) -> None:
+    """Route a firm whose research produced nothing citable."""
+    _upsert_manual_queue(
+        storage, user, target,
+        source_stage="research",
+        reason=(
+            "no alignment hooks with a firm_claim_source"
+            if not artifact.get("alignment_hooks")
+            else "research confidence is low"
+        ),
+        confidence=artifact["confidence"],
+        gaps=artifact.get("gaps", []),
+        queued_at=artifact.get("fetched_at"),
+    )
+
+
+def _write_pipeline_failure(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    target: dict[str, Any],
+    *,
+    source_stage: str,
+    reason: str,
+    detail: str,
+) -> None:
+    """Keep per-target batch failures visible without inventing pipeline data."""
+    _upsert_manual_queue(
+        storage, user, target,
+        source_stage=source_stage,
+        reason=reason,
+        confidence="low",
+        gaps=[detail[:1000]],
+    )
 
 
 def _queue_owned_batch_failure(
@@ -339,42 +437,49 @@ def research_target(
     return artifact
 
 
-def research_batch(
-    storage: SupabaseStorage, user: DashboardUser, target_ids: list[str]
+def _run_owned_batch(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    target_ids: list[str],
+    *,
+    action_type: str,
+    failure_reason: str,
+    run_one,
 ) -> list[dict[str, Any]]:
+    """Run one action across a selection, opening and closing an action_run.
+
+    A per-target failure is recorded and routed to the manual queue rather than
+    aborting the rest, so a batch of twenty does not lose nineteen good results
+    to one bad target. The run closes as failed when anything failed, but the
+    successful work is still returned.
+    """
     run = storage.insert(
         "action_runs",
         {
             "owner": user.owner,
             "actor_id": user.user_id,
-            "action_type": "research",
+            "action_type": action_type,
             "status": "running",
             "target_ids": target_ids,
         },
         user.access_token,
     )[0]
+
     results: list[dict[str, Any]] = []
     errors: list[dict[str, str]] = []
     for target_id in target_ids:
         try:
-            artifact = research_target(storage, user, target_id)
-            results.append({
-                "target_id": target_id,
-                "firm": artifact["firm"],
-                "confidence": artifact["confidence"],
-                "hooks": len(artifact["alignment_hooks"]),
-            })
+            results.append(run_one(target_id))
         except Exception as exc:
             detail = str(exc)
             errors.append({"target_id": target_id, "error": detail})
             _queue_owned_batch_failure(
-                storage,
-                user,
-                target_id,
-                source_stage="research",
-                reason="Research failed and requires manual review.",
+                storage, user, target_id,
+                source_stage=action_type,
+                reason=failure_reason,
                 detail=detail,
             )
+
     storage.update(
         "action_runs",
         {
@@ -387,26 +492,29 @@ def research_batch(
         params={"id": _eq(str(run["id"]))},
         return_rows=False,
     )
-    return results + [{"target_id": e["target_id"], "error": e["error"]} for e in errors]
-
-
-def _crm_rows_from_database(rows: list[dict[str, Any]]) -> list[CrmRow]:
-    return [
-        CrmRow(
-            tab=str(row["tab"]),
-            row_number=int(row["row_number"]),
-            firm=str(row["firm"]),
-            status=str(row.get("status") or ""),
-            expiration_raw=row.get("expiration") or row.get("expiration_raw"),
-            contacts=[str(v) for v in (row.get("contacts") or [])],
-            is_ledger=bool(row.get("is_ledger")),
-            record_id=str(row.get("record_id") or ""),
-            tier=str(row.get("tier") or ""),
-            emails=[str(v) for v in (row.get("emails") or [])],
-            decline_reason=str(row.get("decline_reason") or ""),
-        )
-        for row in rows
+    return results + [
+        {"target_id": error["target_id"], "error": error["error"]} for error in errors
     ]
+
+
+def research_batch(
+    storage: SupabaseStorage, user: DashboardUser, target_ids: list[str]
+) -> list[dict[str, Any]]:
+    def run_one(target_id: str) -> dict[str, Any]:
+        artifact = research_target(storage, user, target_id)
+        return {
+            "target_id": target_id,
+            "firm": artifact["firm"],
+            "confidence": artifact["confidence"],
+            "hooks": len(artifact["alignment_hooks"]),
+        }
+
+    return _run_owned_batch(
+        storage, user, target_ids,
+        action_type="research",
+        failure_reason="Research failed and requires manual review.",
+        run_one=run_one,
+    )
 
 
 def derive_status(
@@ -449,46 +557,12 @@ def derive_status(
 def derive_status_batch(
     storage: SupabaseStorage, user: DashboardUser, target_ids: list[str]
 ) -> list[dict[str, Any]]:
-    run = storage.insert(
-        "action_runs",
-        {
-            "owner": user.owner,
-            "actor_id": user.user_id,
-            "action_type": "derive_status",
-            "status": "running",
-            "target_ids": target_ids,
-        }, user.access_token,
-    )[0]
-    results: list[dict[str, Any]] = []
-    errors: list[dict[str, str]] = []
-    for target_id in target_ids:
-        try:
-            results.append(derive_status(storage, user, target_id))
-        except Exception as exc:
-            detail = str(exc)
-            errors.append({"target_id": target_id, "error": detail})
-            _queue_owned_batch_failure(
-                storage,
-                user,
-                target_id,
-                source_stage="derive_status",
-                reason="Contact status derivation failed and requires manual review.",
-                detail=detail,
-            )
-    storage.update(
-        "action_runs",
-        {
-            "status": "failed" if errors else "completed",
-            "details": {"results": results, "errors": errors},
-            "error": f"{len(errors)} target(s) failed" if errors else "",
-            "completed_at": utc_now().isoformat(),
-        },
-        user.access_token, params={"id": _eq(str(run["id"]))}, return_rows=False,
+    return _run_owned_batch(
+        storage, user, target_ids,
+        action_type="derive_status",
+        failure_reason="Contact status derivation failed and requires manual review.",
+        run_one=lambda target_id: derive_status(storage, user, target_id),
     )
-    return results + [
-        {"target_id": error["target_id"], "error": error["error"]}
-        for error in errors
-    ]
 
 
 class SupabaseHunterGuard(HunterGuard):

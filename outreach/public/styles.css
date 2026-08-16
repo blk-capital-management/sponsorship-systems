@@ -214,6 +214,7 @@ nav { display: grid; gap: 5px; }
 .button.light { min-width: 150px; color: var(--violet-dark); background: white; box-shadow: 0 10px 30px rgba(25,10,34,.18); }
 .button.danger { color: var(--red); border-color: #efcdd3; background: #fff8f9; }
 .button.wide { width: 100%; padding: 12px; }
+.button.wide .google-icon { display: inline-block; vertical-align: middle; margin-right: 8px; margin-top: -2px; }
 .button:disabled { cursor: not-allowed; opacity: .48; box-shadow: none; transform: none; }
 .text-button { padding: 5px 0; border: 0; color: var(--violet); background: transparent; font-size: 9px; font-weight: 800; white-space: nowrap; }
 .text-button:hover { color: var(--violet-dark); text-decoration: underline; text-underline-offset: 3px; }
@@ -249,6 +250,80 @@ textarea { resize: vertical; line-height: 1.5; }
 .status-legend { display: flex; gap: 5px; align-self: flex-end; }
 .status-legend span { padding: 6px 8px; border-radius: 8px; color: var(--muted); background: rgba(255,255,255,.74); font-size: 8px; font-weight: 750; }
 .intake-panel { margin-bottom: 18px; }
+
+/* Intake: one firm, or a pasted batch */
+.intake-tabs { display: inline-flex; gap: 3px; margin-bottom: 16px; padding: 3px; border: 1px solid var(--line); border-radius: 11px; background: var(--wash); }
+.intake-tab { min-height: 30px; padding: 6px 14px; border: 1px solid transparent; border-radius: 8px; color: var(--muted); background: transparent; font-size: 10px; font-weight: 780; transition: color .14s ease, background .14s ease, box-shadow .14s ease; }
+.intake-tab:hover:not(.is-active) { color: var(--ink-soft); background: rgba(255,255,255,.7); }
+.intake-tab:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+.intake-tab.is-active { color: var(--violet-dark); border-color: var(--line); background: var(--paper); box-shadow: 0 3px 9px rgba(40,22,50,.07); }
+
+.field-group { margin: 0 0 14px; padding: 14px 15px 15px; border: 1px solid var(--line); border-radius: 13px; background: #fdfcfe; }
+.field-group:last-of-type { margin-bottom: 0; }
+.field-group > legend { padding: 0 7px; margin-left: -4px; color: var(--violet); font-size: 9px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; }
+.field { display: grid; gap: 5px; align-content: start; min-width: 0; }
+.field.span-2 { grid-column: 1 / -1; }
+.field > span { color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.field .field-help { margin: 0; }
+.field .field-help code { padding: 2px 4px; border-radius: 5px; color: var(--violet-dark); background: var(--lilac); font-size: 9px; }
+.field input:focus-visible, .field select:focus-visible, .field textarea:focus-visible { outline: none; }
+.field.is-invalid input, .field.is-invalid textarea { border-color: var(--red); box-shadow: 0 0 0 3px rgba(165,63,77,.10); }
+
+/* Reads back what a confirmed format buys: a real address, and a lookup not spent. */
+.format-note { display: grid; gap: 3px; margin-top: 11px; padding: 10px 12px; border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: 10px; background: var(--wash); font-size: 10px; }
+.format-note strong { color: var(--ink); font-size: 10px; font-weight: 800; }
+.format-note span { color: var(--muted); font-size: 9px; line-height: 1.5; }
+.format-note.is-good { border-color: #cbe7d9; border-left-color: var(--green); background: var(--green-bg); }
+.format-note.is-good strong { color: var(--green); }
+.format-note.is-bad { border-color: #efcdd3; border-left-color: var(--red); background: var(--red-bg); }
+.format-note.is-bad strong { color: var(--red); }
+
+/* Per-row outcomes. One line per firm, because one duplicate no longer sinks a batch. */
+.intake-results { display: grid; gap: 6px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line); }
+.intake-summary { display: flex; align-items: baseline; gap: 12px; margin-bottom: 3px; padding: 9px 11px; border-radius: 9px; background: var(--lilac-light); }
+.intake-summary strong { color: var(--violet-dark); font-size: 11px; font-weight: 850; }
+.intake-summary span { color: var(--muted); font-size: 9px; font-weight: 700; }
+.intake-result { display: grid; grid-template-columns: 15px auto minmax(0, 1fr); align-items: baseline; gap: 9px; padding: 8px 11px; border-radius: 9px; background: var(--wash); }
+.intake-result b { justify-self: start; font-size: 10px; font-weight: 800; }
+.intake-result span { color: var(--muted); font-size: 9px; line-height: 1.5; }
+.intake-result::before { width: 15px; height: 15px; display: grid; place-items: center; align-self: center; border-radius: 5px; font-size: 9px; font-weight: 850; content: "+"; color: var(--green); background: #d5ece1; }
+.intake-result.is-warned { background: var(--amber-bg); }
+.intake-result.is-warned::before { content: "!"; color: var(--amber); background: #f6e2c4; }
+.intake-result.is-skipped { background: var(--red-bg); }
+.intake-result.is-skipped::before { content: "\2013"; color: var(--red); background: #f2d3d8; }
+
+/* Sequenced batch actions. The number is information: these run left to right. */
+.step-button { display: inline-grid; grid-template-columns: auto auto; align-items: center; gap: 9px; min-height: 46px; padding: 7px 14px 7px 9px; text-align: left; }
+.step-index { width: 19px; height: 19px; display: grid; place-items: center; border-radius: 6px; color: var(--violet); background: var(--lilac); font-size: 9px; font-weight: 850; }
+.step-button.primary .step-index { color: white; background: rgba(255,255,255,.22); }
+.step-text { display: grid; gap: 1px; }
+.step-text strong { font-size: 10px; font-weight: 800; }
+.step-text small { color: var(--muted); font-size: 8px; font-weight: 650; }
+.step-button.primary .step-text small { color: rgba(255,255,255,.78); }
+.step-button:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+
+.batch-hint { margin: 0; padding: 9px 21px 0; color: var(--muted); font-size: 9px; }
+.batch-hint.is-ready { color: var(--violet-dark); }
+
+/* Progress for work that takes minutes. Silence reads as a broken button. */
+.batch-progress { margin: 12px 21px 0; padding: 13px 15px; border: 1px solid var(--line); border-radius: 12px; background: var(--wash); }
+.batch-progress-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.batch-progress-head strong { display: block; font-size: 11px; }
+.batch-progress-detail { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.batch-progress-count { flex: 0 0 auto; padding: 4px 8px; border-radius: 7px; color: var(--violet-dark); background: var(--lilac); font-size: 9px; font-weight: 800; }
+.batch-bar { height: 5px; margin-top: 11px; border-radius: 999px; background: var(--wash-deep); overflow: hidden; }
+.batch-bar > span { display: block; height: 100%; width: 0%; border-radius: 999px; background: var(--violet); transition: width .3s ease; }
+.batch-progress.is-done .batch-bar > span { background: var(--green); }
+.batch-progress.is-failed .batch-bar > span { background: var(--red); }
+.batch-log { display: grid; gap: 4px; max-height: 168px; margin-top: 11px; overflow-y: auto; }
+.batch-log:empty { display: none; }
+.batch-log-row { display: grid; grid-template-columns: 13px auto minmax(0, 1fr); align-items: baseline; gap: 8px; font-size: 9px; }
+.batch-log-row b { justify-self: start; color: var(--ink); font-size: 9px; font-weight: 800; }
+.batch-log-row span { color: var(--muted); line-height: 1.5; }
+.batch-log-row::before { width: 13px; height: 13px; display: grid; place-items: center; align-self: center; border-radius: 4px; font-size: 8px; font-weight: 850; content: "\2713"; color: var(--green); background: #d5ece1; }
+.batch-log-row.is-failed::before { content: "!"; color: var(--red); background: #f2d3d8; }
+
 .format-guide { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 10px; margin-top: 10px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--wash); }
 .format-guide strong { font-size: 9px; }
 .format-guide code { padding: 4px 6px; border-radius: 6px; color: var(--violet-dark); background: var(--lilac); font-size: 9px; }
@@ -398,6 +473,8 @@ td input[type=checkbox], th input[type=checkbox] { width: 14px; min-height: auto
   .panel-heading, .panel-heading.table-heading, .form-row { align-items: flex-start; flex-direction: column; }
   .selection-summary { width: 100%; text-align: left; }
   .format-guide { grid-template-columns: 1fr; }
+  .field-grid { grid-template-columns: 1fr; }
+  .intake-tabs { display: grid; grid-template-columns: 1fr 1fr; }
   .filter-group { width: 100%; display: grid; grid-template-columns: 1fr; }
   .search-field input, .filter-field select { width: 100%; }
   .pipeline-toolbar .button-row { display: grid; grid-template-columns: 1fr; }

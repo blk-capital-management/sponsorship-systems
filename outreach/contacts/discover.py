@@ -33,7 +33,9 @@ if str(PROJECT_ROOT) not in sys.path:
 from common.config import (  # noqa: E402
     CONFIG_DIR,
     PROJECT_ROOT as CFG_ROOT,
+    human_capital_first_types,
     load_settings,
+    normalize_firm_category,
     resolve_path,
 )
 from common.http import Fetcher  # noqa: E402
@@ -71,7 +73,18 @@ def title_priority(settings: dict[str, Any], firm_type: str) -> list[str]:
     """Return target titles in priority order for this firm's type."""
     cfg = settings["contacts"]
     titles = list(cfg["title_priority"])
-    promote = {t.lower() for t in cfg.get("human_capital_first_for_types", [])}
+    # The vocabulary in firm_categories.json owns this flag. settings.yaml may
+    # still override it, which keeps a caller-supplied settings dict authoritative
+    # in tests.
+    configured = cfg.get("human_capital_first_for_types")
+    promote = {
+        t.lower()
+        for t in (configured if configured is not None else human_capital_first_types())
+    }
+
+    # Fold aliases and casing so a firm_type typo cannot silently drop the promotion.
+    canonical, _ = normalize_firm_category(firm_type)
+    firm_type = canonical or firm_type
 
     if firm_type and firm_type.lower() in promote and HUMAN_CAPITAL_TITLE in titles:
         titles.remove(HUMAN_CAPITAL_TITLE)
@@ -204,20 +217,7 @@ def learn_pattern_from_provider(
         log.info("  No verification provider available for pattern lookup: %s", exc)
         return None
 
-    # Show what this run has spent, and what the account has left, before
-    # spending more.
-    if hasattr(provider, "guard"):
-        provider.guard.print_budget(
-            provider.account() if hasattr(provider, "account") else None
-        )
-
-    entry = provider.discover_pattern(domain)
-    if entry:
-        log.info("  Pattern from %s: %s (%s sourced address(es))",
-                 provider.name, entry["pattern"], entry["observed_examples"])
-    else:
-        log.info("  %s returned no sourced pattern for %s.", provider.name, domain)
-    return entry
+    return learn_pattern_from_provider_instance(provider, domain)
 
 
 def learn_pattern_from_provider_instance(
@@ -378,14 +378,26 @@ def discover_target_contacts(
     fetcher = Fetcher(settings["research"])
     priority = title_priority(settings, str(target.get("firm_type") or ""))
 
-    entry = learn_pattern(fetcher, str(target.get("firm") or ""), domain, refresh)
+    # A format a human confirmed at intake outranks anything we could infer, and
+    # it is the cheapest path available: it removes the only reason to ask a paid
+    # provider for this domain's pattern.
+    entry = pattern_lib.confirmed_pattern_entry(
+        str(target.get("email_format") or ""),
+        str(target.get("email_format_source_url") or ""),
+        domain,
+    )
+    if entry:
+        log.info("  Using the confirmed email format on file for %s: %s. "
+                 "No provider pattern lookup, no credit spent.", domain, entry["pattern"])
+    else:
+        entry = learn_pattern(fetcher, str(target.get("firm") or ""), domain, refresh)
     if not entry:
         entry = (
             learn_pattern_from_provider_instance(provider, domain)
             if provider is not None
             else learn_pattern_from_provider(settings, domain)
         )
-    if entry and persist_pattern:
+    if entry and persist_pattern and entry.get("provider") != "human":
         save_pattern(domain, entry)
 
     people = find_named_contacts(

@@ -80,6 +80,51 @@ def load_email_patterns(path: str | None = None) -> dict[str, Any]:
     }
 
 
+@lru_cache(maxsize=None)
+def load_firm_categories(path: str | None = None) -> list[dict[str, Any]]:
+    """Load firm_categories.json: the controlled vocabulary for firm_type."""
+    raw = _read_json(Path(path) if path else CONFIG_DIR / "firm_categories.json")
+    return [
+        entry for entry in raw.get("categories", [])
+        if isinstance(entry, dict) and entry.get("label")
+    ]
+
+
+@lru_cache(maxsize=None)
+def _category_lookup(path: str | None = None) -> dict[str, str]:
+    """Map every lowercased label and alias to its canonical label."""
+    lookup: dict[str, str] = {}
+    for entry in load_firm_categories(path):
+        label = str(entry["label"])
+        lookup[label.casefold()] = label
+        for alias in entry.get("aliases") or []:
+            lookup[str(alias).casefold()] = label
+    return lookup
+
+
+def normalize_firm_category(value: str, path: str | None = None) -> tuple[str, bool]:
+    """Fold a firm_type onto the controlled vocabulary.
+
+    Returns (value, recognized). An unrecognized value is returned stripped but
+    otherwise verbatim with recognized=False, so intake can flag it without
+    blocking. firm_type drives contact title routing, so a silent typo would
+    quietly degrade targeting.
+    """
+    cleaned = " ".join(str(value or "").split())
+    if not cleaned:
+        return "", False
+    canonical = _category_lookup(path).get(cleaned.casefold())
+    return (canonical, True) if canonical else (cleaned, False)
+
+
+def human_capital_first_types(path: str | None = None) -> list[str]:
+    """Labels where Human Capital outranks campus-specific titles."""
+    return [
+        str(entry["label"]) for entry in load_firm_categories(path)
+        if entry.get("human_capital_first")
+    ]
+
+
 def load_template(path: str | None = None) -> str:
     """Load template.md verbatim. Callers must not paraphrase it."""
     template_path = Path(path) if path else CONFIG_DIR / "template.md"

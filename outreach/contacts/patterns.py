@@ -180,6 +180,43 @@ def infer_pattern(
     }
 
 
+def confirmed_pattern_entry(
+    email_format: str, source_url: str, domain: str
+) -> dict[str, Any] | None:
+    """Build a pattern entry from a format a human confirmed at intake.
+
+    Ranked above an inferred pattern because a person read it off a published
+    page and vouched for it. Its practical value is that it removes any reason to
+    ask a paid provider for this domain's pattern, so the discovery path spends
+    nothing on it.
+
+    Returns None unless both the format and its source URL are present. Rule 1
+    holds here exactly as it does for firm claims: an unsourced pattern is not a
+    weaker pattern, it is not a pattern.
+    """
+    email_format = str(email_format or "").strip()
+    source_url = str(source_url or "").strip()
+    if not email_format or not source_url:
+        return None
+
+    try:
+        render_address(email_format, "Jane", "Doe", domain or None)
+    except ValueError as exc:
+        log.warning("Ignoring unusable confirmed format %r: %s", email_format, exc)
+        return None
+
+    pattern = email_format if "@" in email_format else f"{email_format}@{domain}"
+    return {
+        "pattern": pattern,
+        "confidence": 0.95,
+        "source_url": source_url,
+        "derived_from": "format confirmed by a human at intake",
+        "observed_examples": 1,
+        "provider": "human",
+        "evidence": [],
+    }
+
+
 def merge_observations(entries: list[dict[str, Any]]) -> dict[str, Any] | None:
     """Combine pattern observations for one domain into a single entry.
 

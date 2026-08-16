@@ -1,0 +1,80 @@
+{
+  "_comment": "Controlled vocabulary for the firm_type column on targets. This is not cosmetic: firm_type decides contact targeting, because human_capital_first promotes Human Capital titles above campus-specific ones at firms where Human Capital sits closer to the budget. A typo used to degrade that routing silently. Intake now normalizes against this list. Labels are seeded from the values already live in data/targets.csv, so no existing row needs remapping. An unrecognized value is still accepted and stored verbatim, flagged as uncategorized, so sourcing is never blocked by a missing category.",
+  "_entry_shape": {
+    "label": "canonical stored value; must match data/targets.csv firm_type exactly",
+    "aliases": "lowercased spellings normalized to label on intake",
+    "human_capital_first": "promote Human Capital above campus titles in contacts/discover.py"
+  },
+  "categories": [
+    {
+      "label": "Growth Equity",
+      "aliases": ["growth", "growth pe"],
+      "human_capital_first": false
+    },
+    {
+      "label": "PE",
+      "aliases": ["private equity", "buyout"],
+      "human_capital_first": true
+    },
+    {
+      "label": "PE (Middle Market)",
+      "aliases": ["mm pe", "middle market pe", "middle market"],
+      "human_capital_first": true
+    },
+    {
+      "label": "Private Credit",
+      "aliases": ["credit", "direct lending"],
+      "human_capital_first": true
+    },
+    {
+      "label": "Private Markets",
+      "aliases": ["private market"],
+      "human_capital_first": true
+    },
+    {
+      "label": "Multi-Strat HF",
+      "aliases": ["multistrat", "multi strat", "multi-strategy", "hedge fund"],
+      "human_capital_first": false
+    },
+    {
+      "label": "Options HF",
+      "aliases": ["options", "derivatives hf"],
+      "human_capital_first": false
+    },
+    {
+      "label": "Quant HF",
+      "aliases": ["quant", "quantitative", "systematic"],
+      "human_capital_first": false
+    },
+    {
+      "label": "Asset Management",
+      "aliases": ["asset mgmt", "am", "traditional am"],
+      "human_capital_first": false
+    },
+    {
+      "label": "IB",
+      "aliases": ["investment bank", "banking", "investment banking", "advisory"],
+      "human_capital_first": false
+    },
+    {
+      "label": "Real Estate",
+      "aliases": ["real assets", "re", "infrastructure"],
+      "human_capital_first": false
+    },
+    {
+      "label": "Venture Capital",
+      "aliases": ["vc", "venture"],
+      "human_capital_first": false
+    },
+    {
+      "label": "Endowment",
+      "aliases": ["endowment and foundation", "e&f", "ocio"],
+      "human_capital_first": false
+    },
+    {
+      "label": "Fund of Funds",
+      "aliases": ["fof", "fund-of-funds", "secondaries"],
+      "human_capital_first": true
+    }
+  ]
+}

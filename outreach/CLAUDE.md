@@ -60,18 +60,31 @@ queue that Jamari reads at speed.
 ## Pipeline
 
 ```
-targets.csv
+targets.csv / dashboard intake
    -> research/fetch.py     crawls firm domain, writes research/out/<slug>.json
-                            low confidence or no hooks -> review/manual_queue.csv, stop
+                            low confidence or no hooks -> manual queue, stop
    -> contacts/discover.py  title targeting + pattern inference
+                            a confirmed email format on the target skips the
+                            provider pattern lookup entirely
    -> contacts/verify.py    provider verification, drops below threshold
-   -> drafts/generate.py    artifact + template -> drafts/out/<slug>.md + evidence block
-   -> review/queue.csv      human approves or rejects
-   -> send/to_gmail_drafts.py   creates Gmail drafts, stops
-   -> send/log_to_crm.py    writes back to the sponsor workbook
+   -> drafts/generate.py    artifact + template -> review/drafts/<slug>.{json,txt}
+   -> review                human approves or rejects (dashboard, or review/drafts)
+   -> a human sends         the approved draft opens as a prefilled Gmail compose
+                            URL; the person clicks send, then marks it sent
 ```
 
-Each stage reads the previous stage's file output. No stage calls the next one.
+Each stage reads the previous stage's output. No stage calls the next one.
+
+There is no `send/` module and there never will be. Rule 2 forbids it and
+`tests/test_no_send_path.py` AST-scans the package to keep it that way. The last
+step is a compose URL built in `public/app.js`, unlocked only once a draft is
+approved. Nothing transmits mail without a person clicking send.
+
+**Drafting spends no model tokens.** `compose_firm_paragraph` in
+`drafts/generate.py` is the only LLM call site and it is deliberately unwired
+(see the `del anthropic_client` line); firm paragraphs are composed
+deterministically from sourced hooks. Cost control in this system means Hunter
+credits and crawl budget, not model spend.
 
 ---
 

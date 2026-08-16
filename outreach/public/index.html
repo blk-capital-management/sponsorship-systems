@@ -7,7 +7,7 @@
     <meta name="description" content="BLK Bridge sponsor outreach workspace">
     <title>BLK Bridge</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2362318b'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Arial' font-size='34' font-weight='700' fill='white'%3EB%3C/text%3E%3C/svg%3E">
-    <link rel="stylesheet" href="/styles.css?v=20260815.3">
+    <link rel="stylesheet" href="/styles.css?v=20260816.3">
   </head>
   <body>
     <main id="login-view" class="login-shell">
@@ -39,18 +39,22 @@
           </div>
           <p class="eyebrow">Authorized access</p>
           <h2 id="login-title">Welcome back</h2>
-          <p class="login-copy">Sign in to your owner lane. Access is limited to Jamari and Fola.</p>
-          <form id="login-form" class="stack">
-            <label for="login-email">Work email</label>
-            <input id="login-email" type="email" autocomplete="username" placeholder="name@blkcapitalmanagement.org" required>
-            <label for="login-password">Password</label>
-            <input id="login-password" type="password" autocomplete="current-password" required>
-            <button id="login-submit" class="button primary wide" type="submit" disabled>Preparing secure sign in</button>
+          <p class="login-copy">Sign in with your BLK Capital Management Google Workspace account. Access is limited to Jamari and Fola.</p>
+          <div class="stack">
+            <button id="google-signin" class="button secondary wide" type="button" disabled>
+              <svg class="google-icon" viewBox="0 0 18 18" width="16" height="16" aria-hidden="true" focusable="false">
+                <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.84 2.09-1.8 2.73v2.27h2.92c1.7-1.57 2.68-3.88 2.68-6.64z"/>
+                <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.17l-2.92-2.27c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.34C2.44 15.98 5.48 18 9 18z"/>
+                <path fill="#FBBC05" d="M3.97 10.71A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.29-1.71V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.34z"/>
+                <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.59-2.59C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.95l3.01 2.34C4.68 5.16 6.66 3.58 9 3.58z"/>
+              </svg>
+              <span id="google-signin-label">Preparing secure sign in</span>
+            </button>
             <p id="login-error" class="form-error" role="alert"></p>
-          </form>
+          </div>
           <div class="access-note">
             <strong>Private by design</strong>
-            <span>There is no public signup and no automatic email sending.</span>
+            <span>There is no public signup, no password on this site, and no automatic email sending. Google Workspace handles sign-in.</span>
           </div>
         </section>
       </div>
@@ -166,22 +170,131 @@
 
           <article class="panel intake-panel">
             <div class="panel-heading">
-              <div><p class="eyebrow">Add targets</p><h3>Batch intake</h3><p class="section-copy">Paste one or many firms. A domain lets Bridge begin research immediately.</p></div>
+              <div><p class="eyebrow">Add targets</p><h3>Add firms</h3><p class="section-copy">Record what you have. Only the firm name is required, and a domain lets Bridge begin research immediately.</p></div>
               <span class="step-chip">1 of 4</span>
             </div>
+            <div class="intake-tabs" role="tablist" aria-label="How to add firms">
+              <button id="intake-tab-single" class="intake-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="intake-pane-single" data-intake-tab="single">One firm</button>
+              <button id="intake-tab-bulk" class="intake-tab" type="button" role="tab" aria-selected="false" aria-controls="intake-pane-bulk" data-intake-tab="bulk">Paste a batch</button>
+            </div>
+
             <form id="intake-form">
-              <label for="intake-lines">Firms to add</label>
-              <textarea id="intake-lines" rows="5" placeholder="General Atlantic | generalatlantic.com | US | Growth Equity | 1"></textarea>
-              <div class="format-guide">
-                <strong>Required format</strong>
-                <code>firm | domain | region | firm type | priority</code>
-                <span>Priority runs from 1, highest, to 5, lowest. Missing domains route to manual review.</span>
+              <div id="intake-pane-single" class="intake-pane" role="tabpanel" aria-labelledby="intake-tab-single">
+                <fieldset class="field-group">
+                  <legend>Identity</legend>
+                  <div class="field-grid">
+                    <label class="field span-2" for="intake-firm">
+                      <span>Firm name</span>
+                      <input id="intake-firm" type="text" autocomplete="organization" placeholder="General Atlantic">
+                      <small class="field-help">The only required field. Everything else can follow later.</small>
+                    </label>
+                    <label class="field" for="intake-website">
+                      <span>Website</span>
+                      <input id="intake-website" type="url" inputmode="url" placeholder="https://www.generalatlantic.com">
+                      <small class="field-help">The domain is read from this when you leave it blank.</small>
+                    </label>
+                    <label class="field" for="intake-domain">
+                      <span>Domain</span>
+                      <input id="intake-domain" type="text" placeholder="generalatlantic.com">
+                      <small class="field-help">Research cannot start without it.</small>
+                    </label>
+                    <label class="field span-2" for="intake-linkedin">
+                      <span>LinkedIn</span>
+                      <input id="intake-linkedin" type="url" inputmode="url" placeholder="https://www.linkedin.com/company/general-atlantic">
+                      <small class="field-help">Kept for reference only. Bridge never fetches LinkedIn.</small>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="field-group">
+                  <legend>Classification</legend>
+                  <div class="field-grid">
+                    <label class="field" for="intake-category">
+                      <span>Category</span>
+                      <select id="intake-category"></select>
+                      <small class="field-help">Decides which contact titles are targeted first.</small>
+                    </label>
+                    <label class="field" for="intake-region">
+                      <span>Region</span>
+                      <select id="intake-region">
+                        <option value="US" selected>US</option>
+                        <option value="EMEA">EMEA</option>
+                      </select>
+                    </label>
+                    <label class="field" for="intake-tier">
+                      <span>Tier target</span>
+                      <select id="intake-tier">
+                        <option value="">Not set</option>
+                        <option value="Diamond">Diamond</option>
+                        <option value="Platinum">Platinum</option>
+                        <option value="Gold">Gold</option>
+                        <option value="Silver">Silver</option>
+                      </select>
+                    </label>
+                    <label class="field" for="intake-priority">
+                      <span>Priority</span>
+                      <select id="intake-priority">
+                        <option value="1">1, highest</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3, lowest</option>
+                      </select>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="field-group">
+                  <legend>Known email format</legend>
+                  <div class="field-grid">
+                    <label class="field" for="intake-email-format">
+                      <span>Address pattern</span>
+                      <input id="intake-email-format" type="text" spellcheck="false" placeholder="{f}{last}@generalatlantic.com">
+                      <small class="field-help">Tokens: <code>{first}</code> <code>{last}</code> <code>{f}</code> <code>{l}</code></small>
+                    </label>
+                    <label class="field" for="intake-email-source">
+                      <span>Where you saw it</span>
+                      <input id="intake-email-source" type="url" inputmode="url" placeholder="https://www.generalatlantic.com/news/...">
+                      <small class="field-help">Required with a pattern. A format with no source is not a format.</small>
+                    </label>
+                  </div>
+                  <output id="intake-format-note" class="format-note" for="intake-email-format intake-email-source" hidden></output>
+                </fieldset>
+
+                <fieldset class="field-group">
+                  <legend>Notes</legend>
+                  <label class="field" for="intake-notes">
+                    <span class="sr-only">Notes</span>
+                    <textarea id="intake-notes" rows="2" placeholder="Warm intro through the Brown alumni network."></textarea>
+                  </label>
+                </fieldset>
               </div>
+
+              <div id="intake-pane-bulk" class="intake-pane" role="tabpanel" aria-labelledby="intake-tab-bulk" hidden>
+                <label class="field" for="intake-lines">
+                  <span>Firms to add</span>
+                  <textarea id="intake-lines" rows="6" spellcheck="false" placeholder="General Atlantic | generalatlantic.com | US | Growth Equity | 1"></textarea>
+                </label>
+                <div class="format-guide">
+                  <strong>Column order</strong>
+                  <code>firm | domain | region | category | priority</code>
+                  <span>Priority runs from 1, highest, to 3, lowest. A firm with no domain routes to manual review.</span>
+                </div>
+                <div class="format-guide">
+                  <strong>Or name them</strong>
+                  <code>firm | website | linkedin | category | email_format</code>
+                  <span>Start with a header line to choose your own columns and order.</span>
+                </div>
+                <div class="form-row">
+                  <button id="intake-check" class="button secondary" type="button">Check these entries</button>
+                  <span class="quiet">See which lines will be added, skipped, or flagged before you commit them.</span>
+                </div>
+              </div>
+
               <div class="form-row">
                 <label class="check"><input id="intake-research" type="checkbox" checked> Run research after adding firms</label>
                 <button class="button primary" type="submit">Add firms to my lane</button>
               </div>
             </form>
+            <div id="intake-results" class="intake-results" hidden></div>
           </article>
 
           <article class="panel pipeline-panel">
@@ -195,11 +308,34 @@
                 <label class="filter-field" for="pipeline-filter"><span>Status</span><select id="pipeline-filter"><option value="all">All statuses</option><option value="cold_prospect">Cold prospects</option><option value="existing_partner">Existing partners</option><option value="lapsed_partner">Lapsed partners</option><option value="unknown">Unknown</option></select></label>
               </div>
               <div class="button-row">
-                <button id="derive-selected" class="button secondary" type="button" disabled>1. Derive status</button>
-                <button id="research-selected" class="button secondary" type="button" disabled>2. Run research</button>
-                <button id="contacts-selected" class="button primary" type="button" disabled>3. Find contacts</button>
+                <button id="derive-selected" class="button secondary step-button" type="button" disabled>
+                  <span class="step-index">1</span>
+                  <span class="step-text"><strong>Derive status</strong><small>Match the CRM. Free.</small></span>
+                </button>
+                <button id="research-selected" class="button secondary step-button" type="button" disabled>
+                  <span class="step-index">2</span>
+                  <span class="step-text"><strong>Run research</strong><small>Crawl public pages. Free, slow.</small></span>
+                </button>
+                <button id="contacts-selected" class="button primary step-button" type="button" disabled>
+                  <span class="step-index">3</span>
+                  <span class="step-text"><strong>Find contacts</strong><small>May spend Hunter credits.</small></span>
+                </button>
               </div>
             </div>
+            <p id="batch-hint" class="batch-hint">Select firms to enable these actions.</p>
+
+            <section id="batch-progress" class="batch-progress" role="status" aria-live="polite" hidden>
+              <div class="batch-progress-head">
+                <div>
+                  <strong id="batch-progress-title">Working</strong>
+                  <span id="batch-progress-detail" class="batch-progress-detail"></span>
+                </div>
+                <span id="batch-progress-count" class="batch-progress-count"></span>
+              </div>
+              <div class="batch-bar" role="progressbar" aria-labelledby="batch-progress-title"><span id="batch-bar-fill"></span></div>
+              <div id="batch-progress-log" class="batch-log"></div>
+            </section>
+
             <div class="table-wrap">
               <table>
                 <thead><tr><th><input id="select-all" type="checkbox" aria-label="Select all visible firms"></th><th>Firm</th><th>Relationship</th><th>Research</th><th>Hunter gate</th><th>Contacts</th><th>Draft</th><th><span class="sr-only">Action</span></th></tr></thead>
@@ -294,6 +430,6 @@
     </dialog>
 
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-    <script src="/app.js?v=20260815.3" defer></script>
+    <script src="/app.js?v=20260816.3" defer></script>
   </body>
 </html>

@@ -27,6 +27,202 @@ const SUBJECT_FALLBACK = {
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+// ── Lead intake ───────────────────────────────────────────────────────────────
+// Sourcing rarely produces a full record in one sitting. You find a website, then
+// a LinkedIn page, and sometimes an email format. Only the firm name is required;
+// everything else can arrive later.
+
+let intakeMode = "single";
+
+// Columns the bulk paste understands when a header line names them. The
+// positional order below is also the legacy pipe format, kept working.
+const INTAKE_COLUMNS = [
+  "firm", "domain", "region", "firm_type", "priority",
+  "website", "linkedin_url", "email_format", "email_format_source_url",
+  "tier_target", "notes",
+];
+const INTAKE_ALIASES = {
+  category: "firm_type", type: "firm_type", "firm type": "firm_type",
+  linkedin: "linkedin_url", site: "website", url: "website",
+  "email format": "email_format", pattern: "email_format",
+  source: "email_format_source_url", "source url": "email_format_source_url",
+  tier: "tier_target",
+};
+
+const EMAIL_FORMAT_TOKENS = /\{(first|last|f|l|First|Last)\}/g;
+
+function selectIntakeTab(mode) {
+  intakeMode = mode;
+  $$(".intake-tab").forEach((tab) => {
+    const active = tab.dataset.intakeTab === mode;
+    tab.classList.toggle("is-active", active);
+    tab.setAttribute("aria-selected", String(active));
+  });
+  $("#intake-pane-single").hidden = mode !== "single";
+  $("#intake-pane-bulk").hidden = mode !== "bulk";
+}
+
+/** Preview the address a format produces, and say what it saves. */
+function renderFormatNote() {
+  const note = $("#intake-format-note");
+  const format = $("#intake-email-format").value.trim();
+  const source = $("#intake-email-source").value.trim();
+  if (!format) { note.hidden = true; return; }
+
+  note.hidden = false;
+  note.className = "format-note";
+  const domain = ($("#intake-domain").value.trim()
+    || $("#intake-website").value.trim().replace(/^https?:\/\//, "").split("/")[0]
+    || "example.com").replace(/^www\./, "");
+
+  const tokens = format.match(EMAIL_FORMAT_TOKENS);
+  if (!tokens) {
+    note.classList.add("is-bad");
+    note.innerHTML = `<strong>Not a usable pattern</strong><span>Use tokens such as {first}, {last}, {f} or {l}. For example {f}{last}@${escapeHtml(domain)}</span>`;
+    return;
+  }
+  if (!source) {
+    note.innerHTML = `<strong>Add where you saw it</strong><span>A format without a source is not a format. Paste the public page you read it off.</span>`;
+    return;
+  }
+  const preview = format
+    .replace(/\{first\}/g, "jane").replace(/\{last\}/g, "doe")
+    .replace(/\{First\}/g, "Jane").replace(/\{Last\}/g, "Doe")
+    .replace(/\{f\}/g, "j").replace(/\{l\}/g, "d");
+  const address = preview.includes("@") ? preview : `${preview}@${domain}`;
+  note.classList.add("is-good");
+  note.innerHTML = `<strong>Jane Doe becomes ${escapeHtml(address)}</strong><span>Bridge will use this instead of asking Hunter for the pattern, so this firm costs no lookup.</span>`;
+}
+
+function readSingleIntake() {
+  const firm = $("#intake-firm").value.trim();
+  if (!firm) return [];
+  return [{
+    firm,
+    domain: $("#intake-domain").value.trim(),
+    website: $("#intake-website").value.trim(),
+    linkedin_url: $("#intake-linkedin").value.trim(),
+    region: $("#intake-region").value,
+    firm_type: $("#intake-category").value,
+    tier_target: $("#intake-tier").value,
+    priority: Number($("#intake-priority").value) || 3,
+    notes: $("#intake-notes").value.trim(),
+    email_format: $("#intake-email-format").value.trim(),
+    email_format_source_url: $("#intake-email-source").value.trim(),
+  }];
+}
+
+/** Parse pasted lines. A header line names the columns; otherwise order applies. */
+function readBulkIntake() {
+  const lines = $("#intake-lines").value.split(/\n+/)
+    .map((line) => line.trim()).filter(Boolean);
+  if (!lines.length) return [];
+
+  let columns = INTAKE_COLUMNS;
+  const head = lines[0].split("|").map((part) => part.trim().toLowerCase());
+  const named = head.map((part) => INTAKE_ALIASES[part] || part);
+  if (named.every((part) => INTAKE_COLUMNS.includes(part))) {
+    columns = named;
+    lines.shift();
+  }
+
+  return lines.map((line) => {
+    const parts = line.split("|").map((part) => part.trim());
+    const firm = {};
+    columns.forEach((column, index) => {
+      if (parts[index]) firm[column] = parts[index];
+    });
+    firm.region = firm.region || "US";
+    firm.priority = Number(firm.priority) || 3;
+    return firm;
+  }).filter((firm) => firm.firm);
+}
+
+/** Check pasted lines against what is already loaded, before anything is sent.
+ *
+ * The server still has the final say, because only it can see the whole lane.
+ * This exists so an obvious duplicate or a malformed line is caught while you
+ * are still looking at the text you pasted.
+ */
+function checkBulkIntake() {
+  const box = $("#intake-results");
+  let firms;
+  try {
+    firms = readBulkIntake();
+  } catch (error) {
+    box.hidden = false;
+    box.innerHTML = `<div class="intake-result is-skipped"><b>Cannot read that</b><span>${escapeHtml(error.message)}</span></div>`;
+    return;
+  }
+  if (!firms.length) { box.hidden = true; return; }
+
+  const known = state.targets || [];
+  const knownDomains = new Set(known.map((t) => String(t.domain || "").toLowerCase()).filter(Boolean));
+  const knownFirms = new Set(known.map((t) => String(t.firm || "").toLowerCase()));
+  const categories = new Set((config?.firm_categories || []).map((c) => c.toLowerCase()));
+  const seen = new Set();
+
+  const rows = firms.map((firm) => {
+    const name = firm.firm;
+    const domain = String(firm.domain || "").toLowerCase();
+    const key = name.toLowerCase();
+
+    if (seen.has(key)) return row("is-skipped", name, "Listed twice in this paste.");
+    seen.add(key);
+    if (knownFirms.has(key)) return row("is-skipped", name, "Already in your pipeline.");
+    if (domain && knownDomains.has(domain)) {
+      return row("is-skipped", name, `Domain ${domain} is already on another firm.`);
+    }
+    if (firm.email_format && !firm.email_format_source_url) {
+      return row("is-skipped", name, "Email format needs the source URL it was read off.");
+    }
+    if (!domain && !firm.website) {
+      return row("is-warned", name, "No domain. It will be added, then routed to manual review.");
+    }
+    if (firm.firm_type && !categories.has(String(firm.firm_type).toLowerCase())) {
+      return row("is-warned", name, `Category "${firm.firm_type}" is not on the known list. It will be stored as typed.`);
+    }
+    return row("", name, "Looks good.");
+  });
+
+  box.hidden = false;
+  box.innerHTML = rows.join("");
+
+  function row(css, name, message) {
+    return `<div class="intake-result${css ? ` ${css}` : ""}"><b>${escapeHtml(name)}</b><span>${escapeHtml(message)}</span></div>`;
+  }
+}
+
+function clearIntakeForm() {
+  ["#intake-firm", "#intake-domain", "#intake-website", "#intake-linkedin",
+   "#intake-notes", "#intake-email-format", "#intake-email-source", "#intake-lines"]
+    .forEach((selector) => { $(selector).value = ""; });
+  $("#intake-format-note").hidden = true;
+}
+
+/** One line per firm, so a skipped row names itself instead of sinking the batch. */
+function renderIntakeResults(result) {
+  const box = $("#intake-results");
+  const warnings = result.warnings || [];
+  const skipped = result.skipped || [];
+  const warnedFirms = new Set(warnings.map((item) => item.firm));
+
+  const rows = [
+    ...result.targets.map((row) => {
+      const warning = warnings.find((item) => item.firm === row.firm);
+      return `<div class="intake-result${warning ? " is-warned" : ""}"><b>${escapeHtml(row.firm)}</b><span>${escapeHtml(warning ? warning.warning : "Added to your lane.")}</span></div>`;
+    }),
+    ...skipped.map((item) => `<div class="intake-result is-skipped"><b>${escapeHtml(item.firm)}</b><span>${escapeHtml(item.reason)}</span></div>`),
+    ...warnings.filter((item) => !warnedFirms.has(item.firm)).map((item) =>
+      `<div class="intake-result is-warned"><b>${escapeHtml(item.firm)}</b><span>${escapeHtml(item.warning)}</span></div>`),
+  ];
+
+  const summary = `<div class="intake-summary"><strong>${result.targets.length} added</strong>`
+    + `<span>${skipped.length} skipped</span><span>${warnings.length} flagged</span></div>`;
+  box.innerHTML = (rows.length ? summary : "") + rows.join("");
+  box.hidden = !rows.length;
+}
 const escapeHtml = (value) => String(value ?? "")
   .replaceAll("&", "&amp;")
   .replaceAll("<", "&lt;")
@@ -74,8 +270,19 @@ async function loadConfig() {
     throw new Error("Dashboard configuration is unavailable. Refresh this page or contact the administrator.");
   }
   config = data;
-  $("#login-submit").disabled = false;
-  $("#login-submit").textContent = "Sign in to Bridge";
+  renderCategoryOptions(data.firm_categories || []);
+  $("#google-signin").disabled = false;
+  $("#google-signin-label").textContent = "Continue with Google";
+}
+
+/** Fill the category dropdown from config so it cannot drift from the validator. */
+function renderCategoryOptions(labels) {
+  const select = $("#intake-category");
+  if (!select) return;
+  select.innerHTML = [
+    '<option value="">Not set</option>',
+    ...labels.map((label) => `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`),
+  ].join("");
 }
 
 function saveSession(value) {
@@ -84,19 +291,44 @@ function saveSession(value) {
   else localStorage.removeItem(SESSION_KEY);
 }
 
-async function signIn(email, password) {
+function startGoogleSignIn() {
   if (!config) throw new Error("Dashboard configuration has not loaded. Refresh this page and try again.");
-  const response = await fetch(`${config.supabase_url}/auth/v1/token?grant_type=password`, {
-    method: "POST",
-    headers: {
-      apikey: config.supabase_publishable_key,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
+  const redirectTo = window.location.origin + window.location.pathname;
+  const url = `${config.supabase_url}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
+  window.location.href = url;
+}
+
+// Supabase's /authorize redirect lands back here with tokens in the URL hash
+// (implicit flow), e.g. #access_token=...&refresh_token=...&expires_in=3600.
+// Parsed by hand, not URLSearchParams: that class turns "+" into a literal
+// space, which silently corrupts a base64url refresh_token containing "+".
+// Returns true if a session was captured, so boot() can skip stale localStorage.
+function consumeGoogleRedirect() {
+  const hash = window.location.hash;
+  if (!hash.includes("access_token=") && !hash.includes("error=")) return false;
+  const fields = Object.fromEntries(
+    hash
+      .slice(1)
+      .split("&")
+      .filter(Boolean)
+      .map((pair) => {
+        const [key, value = ""] = pair.split("=");
+        return [decodeURIComponent(key), decodeURIComponent(value)];
+      })
+  );
+  history.replaceState(null, "", window.location.pathname);
+  if (fields.error_description) {
+    $("#login-error").textContent = fields.error_description;
+    return false;
+  }
+  if (!fields.access_token || !fields.refresh_token) return false;
+  saveSession({
+    access_token: fields.access_token,
+    refresh_token: fields.refresh_token,
+    expires_in: Number(fields.expires_in || 3600),
+    token_type: fields.token_type || "bearer",
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error_description || data.msg || "Sign in failed.");
-  saveSession(data);
+  return true;
 }
 
 async function refreshSession() {
@@ -336,6 +568,18 @@ function updateSelectionControls(visibleTargets = state?.targets || []) {
   const count = selectedTargets.size;
   $("#selection-count").textContent = `${count} selected`;
   ["#derive-selected", "#research-selected", "#contacts-selected"].forEach((selector) => { $(selector).disabled = count === 0; });
+
+  // Say what will happen and roughly how long, before it is clicked.
+  const hint = $("#batch-hint");
+  if (!count) {
+    hint.textContent = "Select firms to enable these actions.";
+    hint.classList.remove("is-ready");
+  } else {
+    const minutes = Math.max(1, Math.round((count * 12) / 60));
+    hint.textContent = `${count} firm(s) selected. Research runs in batches of 5 and takes roughly ${minutes} minute(s) for this many. You can watch it below.`;
+    hint.classList.add("is-ready");
+  }
+
   const selectedVisible = visibleTargets.filter((target) => selectedTargets.has(target.id)).length;
   $("#select-all").checked = visibleTargets.length > 0 && selectedVisible === visibleTargets.length;
   $("#select-all").indeterminate = selectedVisible > 0 && selectedVisible < visibleTargets.length;
@@ -571,23 +815,139 @@ function selectedIds() {
   return ids;
 }
 
-async function runBatch(path, ids, successMessage) {
+// ── Batch actions ─────────────────────────────────────────────────────────────
+// The API caps a request at 25 target ids, and research crawls each firm's site
+// at one request per second, so a large selection has to be sent in chunks. That
+// is also what makes real progress possible: without it a thirty firm research
+// run is several minutes of a page that looks frozen.
+
+const BATCH_ACTIONS = {
+  "/api/derive-status": {
+    title: "Deriving contact status",
+    detail: "Matching each firm against the CRM snapshot. No credits, no web requests.",
+    done: "Contact statuses derived from the CRM snapshot.",
+    chunk: 25,
+  },
+  "/api/research": {
+    title: "Researching firms",
+    detail: "Crawling each firm's own site at one request per second. This takes a while.",
+    done: "Research completed. Review confidence and manual routing.",
+    chunk: 5,
+  },
+};
+
+function showBatchProgress(config, total) {
+  const panel = $("#batch-progress");
+  panel.hidden = false;
+  panel.classList.remove("is-done", "is-failed");
+  $("#batch-progress-title").textContent = config.title;
+  $("#batch-progress-detail").textContent = config.detail;
+  $("#batch-progress-count").textContent = `0 of ${total}`;
+  $("#batch-bar-fill").style.width = "0%";
+  $("#batch-progress-log").innerHTML = "";
+}
+
+function updateBatchProgress(done, total) {
+  $("#batch-progress-count").textContent = `${done} of ${total}`;
+  $("#batch-bar-fill").style.width = `${Math.round((done / total) * 100)}%`;
+}
+
+/** Append one firm's outcome as it lands, so progress is visible, not inferred. */
+function logBatchRow(name, message, failed = false) {
+  const row = document.createElement("div");
+  row.className = `batch-log-row${failed ? " is-failed" : ""}`;
+  row.innerHTML = `<b>${escapeHtml(name)}</b><span>${escapeHtml(message)}</span>`;
+  $("#batch-progress-log").append(row);
+  $("#batch-progress-log").scrollTop = $("#batch-progress-log").scrollHeight;
+}
+
+function finishBatchProgress(total, errorCount) {
+  const panel = $("#batch-progress");
+  panel.classList.add(errorCount ? "is-failed" : "is-done");
+  $("#batch-progress-title").textContent = errorCount
+    ? `Finished with ${errorCount} problem(s)`
+    : "Finished";
+  $("#batch-progress-detail").textContent = errorCount
+    ? `${total - errorCount} of ${total} firm(s) succeeded. The rest are in the manual queue with a reason.`
+    : `All ${total} firm(s) completed.`;
+  $("#batch-bar-fill").style.width = "100%";
+}
+
+function describeBatchResult(row) {
+  if (row.error) return row.error;
+  if (row.confidence) {
+    return `research ${row.confidence}, ${row.hooks ?? 0} hook(s)`;
+  }
+  if (row.contact_status) return `status: ${humanize(row.contact_status)}`;
+  return "done";
+}
+
+function firmNameFor(targetId, row) {
+  if (row && row.firm) return row.firm;
+  const target = (state.targets || []).find((item) => item.id === targetId);
+  return target ? target.firm : targetId;
+}
+
+async function runBatch(path, ids) {
+  const config = BATCH_ACTIONS[path];
+  const total = ids.length;
+  const chunks = [];
+  for (let i = 0; i < total; i += config.chunk) chunks.push(ids.slice(i, i + config.chunk));
+
+  setBatchButtonsDisabled(true);
   setLoading(true);
+  showBatchProgress(config, total);
+
+  let done = 0;
+  const errors = [];
   try {
-    const result = await api(path, { method: "POST", body: JSON.stringify({ target_ids: ids }) });
-    const errors = result.errors || [];
+    for (const chunk of chunks) {
+      let result;
+      try {
+        result = await api(path, {
+          method: "POST",
+          body: JSON.stringify({ target_ids: chunk }),
+        });
+      } catch (error) {
+        // A whole chunk failing must not abandon the chunks after it.
+        chunk.forEach((id) => {
+          errors.push(id);
+          logBatchRow(firmNameFor(id), error.message, true);
+        });
+        done += chunk.length;
+        updateBatchProgress(done, total);
+        continue;
+      }
+      for (const row of result.results || []) {
+        const failed = Boolean(row.error);
+        if (failed) errors.push(row.target_id);
+        logBatchRow(firmNameFor(row.target_id, row), describeBatchResult(row), failed);
+      }
+      done += chunk.length;
+      updateBatchProgress(done, total);
+    }
+
+    finishBatchProgress(total, errors.length);
     showToast(
       errors.length
         ? `${errors.length} firm(s) need manual review. Successful firms were preserved.`
-        : successMessage,
+        : config.done,
       errors.length > 0,
     );
     await loadState();
   } catch (error) {
+    finishBatchProgress(total, total - done);
     showToast(error.message, true);
   } finally {
+    setBatchButtonsDisabled(false);
     setLoading(false);
+    updateSelectionControls();
   }
+}
+
+function setBatchButtonsDisabled(disabled) {
+  ["#derive-selected", "#research-selected", "#contacts-selected"]
+    .forEach((selector) => { $(selector).disabled = disabled; });
 }
 
 function openDraftDialog(targetId) {
@@ -658,7 +1018,6 @@ async function logout() {
     selectedTargets = new Set();
     selectedDraftId = null;
     setAuthenticated(false);
-    $("#login-password").value = "";
     history.replaceState(null, "", window.location.pathname);
   }
 }
@@ -667,25 +1026,12 @@ function bindEvents() {
   $$('[data-close]').forEach((button) => button.addEventListener("click", () => {
     document.getElementById(button.dataset.close).close();
   }));
-  $("#login-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
+  $("#google-signin").addEventListener("click", () => {
     $("#login-error").textContent = "";
-    const submit = $("#login-submit");
-    submit.disabled = true;
-    submit.textContent = "Signing in securely";
     try {
-      await signIn($("#login-email").value.trim(), $("#login-password").value);
-      setAuthenticated(true);
-      await loadState();
-      const requestedView = window.location.hash.slice(1);
-      switchView(VIEW_META[requestedView] ? requestedView : "overview");
+      startGoogleSignIn();
     } catch (error) {
-      saveSession(null);
-      setAuthenticated(false);
       $("#login-error").textContent = error.message;
-    } finally {
-      submit.disabled = !config;
-      submit.textContent = "Sign in to Bridge";
     }
   });
   $("#logout-button").addEventListener("click", logout);
@@ -710,17 +1056,27 @@ function bindEvents() {
     renderPipeline();
   });
   $("#derive-selected").addEventListener("click", () => {
-    try { runBatch("/api/derive-status", selectedIds(), "Contact statuses derived from the CRM snapshot."); }
+    try { runBatch("/api/derive-status", selectedIds()); }
     catch (error) { showToast(error.message, true); }
   });
   $("#research-selected").addEventListener("click", () => {
-    try { runBatch("/api/research", selectedIds(), "Research completed. Review confidence and manual routing."); }
+    try { runBatch("/api/research", selectedIds()); }
     catch (error) { showToast(error.message, true); }
   });
   $("#contacts-selected").addEventListener("click", async () => {
+    const ids = selectedIds();
+    // Contact runs are not chunked: the credit cap you confirm applies to one
+    // run, so splitting the selection would split the cap you agreed to.
+    if (ids.length > 25) {
+      return showToast(
+        `Finding contacts runs 25 firms at a time because you confirm one credit cap per run. `
+        + `Narrow the selection from ${ids.length} to 25 or fewer.`,
+        true,
+      );
+    }
     try {
       setLoading(true);
-      const preview = await api("/api/contacts/preview", { method: "POST", body: JSON.stringify({ target_ids: selectedIds() }) });
+      const preview = await api("/api/contacts/preview", { method: "POST", body: JSON.stringify({ target_ids: ids }) });
       $("#contact-run-id").value = preview.run_id;
       const remaining = preview.hunter_balance?.remaining;
       $("#contact-cap").max = preview.credits_max;
@@ -734,21 +1090,40 @@ function bindEvents() {
     finally { setLoading(false); }
   });
 
+  $$(".intake-tab").forEach((tab) => {
+    tab.addEventListener("click", () => selectIntakeTab(tab.dataset.intakeTab));
+  });
+  ["#intake-email-format", "#intake-email-source", "#intake-domain", "#intake-website"]
+    .forEach((selector) => $(selector).addEventListener("input", renderFormatNote));
+  $("#intake-check").addEventListener("click", checkBulkIntake);
+
   $("#intake-form").addEventListener("submit", async (event) => {
     event.preventDefault();
-    const firms = $("#intake-lines").value.split(/\n+/).map((line) => line.trim()).filter(Boolean).map((line) => {
-      const [firm = "", domain = "", region = "US", firm_type = "", priority = "3"] = line.split("|").map((part) => part.trim());
-      return { firm, domain, region, firm_type, priority: Number(priority) || 3 };
-    });
-    if (!firms.length) return showToast("Enter at least one firm.", true);
+    let firms;
+    try {
+      firms = intakeMode === "bulk" ? readBulkIntake() : readSingleIntake();
+    } catch (error) { return showToast(error.message, true); }
+    if (!firms.length) {
+      return showToast(
+        intakeMode === "bulk" ? "Paste at least one firm." : "Enter a firm name.", true,
+      );
+    }
     setLoading(true);
     try {
       const result = await api("/api/intake", {
         method: "POST",
         body: JSON.stringify({ firms, run_research: $("#intake-research").checked }),
       });
-      showToast(`${result.targets.length} firm(s) added to ${state.user.owner}'s lane.`);
-      $("#intake-lines").value = "";
+      renderIntakeResults(result);
+      const added = result.targets.length;
+      const skipped = (result.skipped || []).length;
+      showToast(
+        skipped
+          ? `${added} firm(s) added, ${skipped} skipped. See the results below.`
+          : `${added} firm(s) added to ${state.user.owner}'s lane.`,
+        added === 0,
+      );
+      if (added) clearIntakeForm();
       if (result.research_target_ids.length) {
         const research = await api("/api/research", { method: "POST", body: JSON.stringify({ target_ids: result.research_target_ids }) });
         showToast(
@@ -832,8 +1207,11 @@ async function boot() {
   bindEvents();
   try {
     await loadConfig();
-    const stored = localStorage.getItem(SESSION_KEY);
-    if (stored) session = JSON.parse(stored);
+    const gotRedirectSession = consumeGoogleRedirect();
+    if (!gotRedirectSession) {
+      const stored = localStorage.getItem(SESSION_KEY);
+      if (stored) session = JSON.parse(stored);
+    }
     if (session?.access_token) {
       setAuthenticated(true);
       try {

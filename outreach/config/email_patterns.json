@@ -1,5 +1,5 @@
 {
-  "_comment": "Domain -> observed email format. Patterns MUST be derived only from public sources: press releases, investor relations pages, published bios, conference programs. Never from LinkedIn. Every entry carries the source_url the pattern was derived from. Entries missing a source_url are ignored by contacts/discover.py. This registry starts empty on purpose: a pattern is only added once a real published address has been seen at that domain.",
+  "_comment": "Domain -> observed email format. Every entry carries the source_url the pattern was derived from; entries missing one are dropped at load time by common.config.load_email_patterns. Sources are public pages (press releases, investor relations, published bios, conference programs) or a licensed verification API. Jamari's call, 2026-08-13: a licensed API whose corpus includes LinkedIn is within rule 3, because BLK is not scraping LinkedIn. Set contacts.hunter.reject_linkedin_derived_sources in settings.yaml to true to refuse those instead. Direct scraping stays impossible either way: common/http.py refuses linkedin.com at the request layer. A pattern is only added once a real published address has been seen at that domain, or once a human confirms the format at intake.",
   "_pattern_tokens": {
     "{first}": "given name, lowercased",
     "{last}": "family name, lowercased",

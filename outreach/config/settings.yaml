@@ -102,16 +102,22 @@ drafts:
   model: claude-opus-5
   api_key_env: ANTHROPIC_API_KEY
   template_version: "2026-27.v1"
+  # compose_firm_paragraph is intentionally unwired (see drafts/generate.py), so
+  # firm paragraphs are always composed deterministically from sourced hooks.
+  # The model and api_key_env above are kept for the tested code path only.
   firm_paragraph:
     min_sentences: 2
     max_sentences: 3
-    max_validator_retries: 2
-    # On repeated validator failure: "fallback" composes deterministically from
-    # the hook sentences; "manual_queue" routes the firm out instead.
-    on_validator_failure: fallback
   out_dir: ../drafts/out
 
 # ── Review and send (Phase 5) ─────────────────────────────────────────────────
+# Reality check, 2026-08-16. Only `review.queue_path` (read for its parent
+# directory by tools/verify_domains.py), `review.manual_queue_path`, and
+# `send.daily_cap_per_mailbox` are read by code today. Everything under `send.auth`,
+# plus suppression_path, send_log_path, mailbox, and prospectus_by_region, describes
+# the unbuilt Gmail-drafts stage. They are kept as recorded intent, not as
+# configuration that currently does anything. There is no send code path: an
+# approved draft becomes a prefilled Gmail compose URL that a human clicks.
 review:
   queue_path: ../review/queue.csv
   manual_queue_path: ../review/manual_queue.csv

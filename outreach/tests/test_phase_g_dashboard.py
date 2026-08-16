@@ -46,8 +46,25 @@ def jamari() -> DashboardUser:
 
 
 class IntakeStorage:
-    def __init__(self) -> None:
+    """Fake storage for intake.
+
+    `existing` seeds rows that intake's dedupe pass should see, and `reject`
+    maps a firm_slug to the error its insert should raise, which is how a
+    unique-constraint collision reaches the service in production.
+    """
+
+    def __init__(
+        self,
+        existing: list[dict[str, Any]] | None = None,
+        reject: dict[str, str] | None = None,
+    ) -> None:
         self.inserts: list[tuple[str, Any, str, bool]] = []
+        self.existing = existing or []
+        self.reject = reject or {}
+        self._next = 0
+
+    def select(self, table: str, token: str, *, params: Any = None) -> list[dict[str, Any]]:
+        return list(self.existing) if table == "targets" else []
 
     def insert(
         self,
@@ -59,7 +76,14 @@ class IntakeStorage:
     ) -> list[dict[str, Any]]:
         self.inserts.append((table, rows, token, return_rows))
         if table == "targets":
-            return [{"id": f"target-{index}", **row} for index, row in enumerate(rows)]
+            # Intake inserts one row at a time so a single collision cannot
+            # discard the rest of the batch.
+            assert isinstance(rows, dict), "intake must insert targets one row at a time"
+            message = self.reject.get(rows["firm_slug"])
+            if message:
+                raise RuntimeError(message)
+            self._next += 1
+            return [{"id": f"target-{self._next - 1}", **rows}]
         if table == "action_runs":
             return [{"id": "run-1", **rows}] if return_rows else []
         return [{"id": "queue-1", **rows}] if return_rows else []
@@ -67,17 +91,127 @@ class IntakeStorage:
 
 def test_batch_intake_forces_authenticated_owner(jamari: DashboardUser) -> None:
     storage = IntakeStorage()
-    rows = intake_targets(
+    result = intake_targets(
         storage,
         jamari,
         [IntakeFirm(firm="Example Capital", domain="example.com")],
     )
 
+    rows = result["accepted"]
     assert rows[0]["owner"] == "jamari"
     assert rows[0]["created_by"] == jamari.user_id
     target_insert = storage.inserts[0]
     assert target_insert[0] == "targets"
     assert target_insert[2] == jamari.access_token
+
+
+def test_intake_keeps_good_rows_when_one_firm_is_already_known(
+    jamari: DashboardUser,
+) -> None:
+    """One duplicate must not discard the rest of a sourced batch."""
+    storage = IntakeStorage(existing=[
+        {"firm": "Known Capital", "firm_slug": "known", "domain": "known.com"},
+    ])
+    result = intake_targets(storage, jamari, [
+        IntakeFirm(firm="Alpha Partners", domain="alpha.com"),
+        IntakeFirm(firm="Known Capital", domain="known.com"),
+        IntakeFirm(firm="Beta Capital", domain="beta.com"),
+        IntakeFirm(firm="Alpha Partners", domain="alpha2.com"),
+        IntakeFirm(firm="Gamma Group", domain="known.com"),
+    ])
+
+    assert [row["firm"] for row in result["accepted"]] == [
+        "Alpha Partners", "Beta Capital",
+    ]
+    reasons = {item["firm"]: item["reason"] for item in result["skipped"]}
+    assert reasons["Known Capital"] == "Already in your pipeline."
+    assert reasons["Alpha Partners"] == "Duplicate firm in this batch."
+    assert "known.com" in reasons["Gamma Group"]
+
+
+def test_intake_reports_storage_rejection_per_row(jamari: DashboardUser) -> None:
+    """A unique-constraint collision skips one row, not the batch."""
+    storage = IntakeStorage(reject={
+        # firm_slug drops generic suffixes, so "Beta Capital" keys on "beta".
+        "beta": 'duplicate key value violates unique constraint "targets_firm_slug_key"',
+    })
+    result = intake_targets(storage, jamari, [
+        IntakeFirm(firm="Alpha Partners", domain="alpha.com"),
+        IntakeFirm(firm="Beta Capital", domain="beta.com"),
+        IntakeFirm(firm="Gamma Group", domain="gamma.com"),
+    ])
+
+    assert [row["firm"] for row in result["accepted"]] == ["Alpha Partners", "Gamma Group"]
+    assert result["skipped"] == [
+        {"firm": "Beta Capital", "reason": "A firm with this slug already exists."},
+    ]
+
+
+def test_intake_persists_the_new_sourcing_fields(jamari: DashboardUser) -> None:
+    storage = IntakeStorage()
+    result = intake_targets(storage, jamari, [
+        IntakeFirm(
+            firm="Example Capital",
+            website="https://www.example.com/about",
+            linkedin_url="https://www.linkedin.com/company/example",
+            firm_type="private equity",
+            email_format="{f}{last}@example.com",
+            email_format_source_url="https://example.com/team",
+        ),
+    ])
+
+    row = result["accepted"][0]
+    # domain is derived from the website, which is what sourcing turns up first
+    assert row["domain"] == "example.com"
+    assert row["website"] == "https://www.example.com/about"
+    assert row["linkedin_url"] == "https://www.linkedin.com/company/example"
+    assert row["firm_type"] == "PE"  # alias folded onto the controlled vocabulary
+    assert row["email_format"] == "{f}{last}@example.com"
+    assert row["email_format_source_url"] == "https://example.com/team"
+    assert result["skipped"] == []
+
+
+def test_intake_warns_on_near_duplicate_and_unknown_category(
+    jamari: DashboardUser,
+) -> None:
+    """Both are warnings. The operator decides, and the lead is still added.
+
+    firm_slug already collides "Sixth Street Partners" with "Sixth Street" by
+    design, so those are caught as hard duplicates. The fuzzy pass covers what
+    slugging does not fold, such as the abbreviation in "Meridian Intl".
+    """
+    storage = IntakeStorage(existing=[
+        {"firm": "Meridian Intl", "firm_slug": "meridian_intl",
+         "domain": "meridian-intl.com"},
+    ])
+    result = intake_targets(storage, jamari, [
+        IntakeFirm(firm="Meridian", domain="meridian.com", firm_type="Crypto Fund"),
+    ])
+
+    assert len(result["accepted"]) == 1
+    warnings = " ".join(item["warning"] for item in result["warnings"])
+    assert "Meridian Intl" in warnings
+    assert "Crypto Fund" in warnings
+    assert result["accepted"][0]["firm_type"] == "Crypto Fund"
+
+
+def test_intake_rejects_an_email_format_with_no_source() -> None:
+    """Rule 1 for patterns: unsourced is not weaker, it is not a pattern."""
+    with pytest.raises(ValidationError, match="email_format_source_url is required"):
+        IntakeFirm(firm="Example Capital", domain="example.com",
+                   email_format="{f}{last}@example.com")
+
+
+def test_intake_rejects_an_unusable_email_format() -> None:
+    with pytest.raises(ValidationError, match="not a usable pattern"):
+        IntakeFirm(firm="Example Capital", domain="example.com",
+                   email_format="{bogus}@example.com",
+                   email_format_source_url="https://example.com/team")
+
+
+def test_intake_rejects_a_non_linkedin_url_in_the_linkedin_field() -> None:
+    with pytest.raises(ValidationError, match="linkedin.com URL"):
+        IntakeFirm(firm="Example Capital", linkedin_url="https://twitter.com/example")
 
 
 def test_dashboard_uses_writable_ephemeral_cache_without_mutating_config() -> None:
@@ -342,11 +476,11 @@ def test_health_and_static_shell_are_served_with_security_headers() -> None:
     )
     assert index.status_code == 200
     assert "no public signup" in index.text.lower()
-    assert 'id="login-submit"' in index.text
-    assert 'type="submit" disabled' in index.text
+    assert 'id="google-signin"' in index.text
+    assert 'type="button" disabled' in index.text
     assert 'id="app-view" class="app-shell hidden" hidden' in index.text
-    assert '/styles.css?v=20260815.3' in index.text
-    assert '/app.js?v=20260815.3' in index.text
+    assert '/styles.css?v=20260816.3' in index.text
+    assert '/app.js?v=20260816.3' in index.text
     assert "Recommended next step" in index.text
     assert "Build the evidence before the email" in index.text
 
@@ -354,7 +488,7 @@ def test_health_and_static_shell_are_served_with_security_headers() -> None:
 def test_dashboard_login_waits_for_valid_public_config() -> None:
     javascript = (PROJECT_ROOT / "public" / "app.js").read_text(encoding="utf-8")
     assert "if (!data?.supabase_url || !data?.supabase_publishable_key)" in javascript
-    assert '$("#login-submit").disabled = false' in javascript
+    assert '$("#google-signin").disabled = false' in javascript
     assert "if (!config) throw new Error" in javascript
     assert "loginView.hidden = active" in javascript
     assert "appView.hidden = !active" in javascript
@@ -423,7 +557,8 @@ def test_sql_cross_owner_path_is_confirmed_expiring_and_one_time() -> None:
 def test_browser_bundle_contains_login_only_and_no_secret_key_name() -> None:
     javascript = (PROJECT_ROOT / "public" / "app.js").read_text(encoding="utf-8")
     html = (PROJECT_ROOT / "public" / "index.html").read_text(encoding="utf-8")
-    assert "grant_type=password" in javascript
+    assert "provider=google" in javascript
+    assert "grant_type=password" not in javascript
     assert "signUp" not in javascript
     assert "/signup" not in javascript
     assert "SUPABASE_SECRET_KEY" not in javascript + html

@@ -6,17 +6,35 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from common.config import normalize_firm_category
+from contacts.patterns import render_address
+
+
+def _bare_domain(value: str) -> str:
+    """Reduce a URL or host to a bare registrable domain."""
+    domain = value.strip().lower().removeprefix("https://").removeprefix("http://")
+    return domain.split("/", 1)[0].split("?", 1)[0].removeprefix("www.")
+
 
 class IntakeFirm(BaseModel):
     firm: str = Field(min_length=2, max_length=160)
     domain: str = Field(default="", max_length=253)
+    website: str = Field(default="", max_length=500)
+    linkedin_url: str = Field(default="", max_length=500)
     region: str = Field(default="US", max_length=40)
     firm_type: str = Field(default="", max_length=80)
     tier_target: str = Field(default="", max_length=40)
     priority: int = Field(default=3, ge=1, le=3)
     notes: str = Field(default="", max_length=1000)
+    email_format: str = Field(default="", max_length=120)
+    email_format_source_url: str = Field(default="", max_length=500)
 
-    @field_validator("firm", "domain", "region", "firm_type", "tier_target", "notes")
+    # Set during validation, not supplied by the caller. False means the firm_type
+    # was kept verbatim because it is outside the controlled vocabulary.
+    firm_type_recognized: bool = Field(default=True, exclude=True)
+
+    @field_validator("firm", "domain", "region", "firm_type", "tier_target", "notes",
+                     "website", "linkedin_url", "email_format", "email_format_source_url")
     @classmethod
     def clean_text(cls, value: str) -> str:
         return " ".join(value.strip().split())
@@ -24,8 +42,57 @@ class IntakeFirm(BaseModel):
     @field_validator("domain")
     @classmethod
     def clean_domain(cls, value: str) -> str:
-        domain = value.lower().removeprefix("https://").removeprefix("http://")
-        return domain.split("/", 1)[0].removeprefix("www.")
+        return _bare_domain(value)
+
+    @field_validator("linkedin_url")
+    @classmethod
+    def clean_linkedin(cls, value: str) -> str:
+        """Stored as a reference only.
+
+        Rule 3 stands: nothing fetches this. common/http.py refuses linkedin.com
+        at the request layer, so there is no scraping path either way.
+        """
+        if value and "linkedin.com" not in value.lower():
+            raise ValueError("linkedin_url must be a linkedin.com URL.")
+        return value
+
+    @field_validator("firm_type")
+    @classmethod
+    def clean_firm_type(cls, value: str) -> str:
+        canonical, _ = normalize_firm_category(value)
+        return canonical
+
+    @model_validator(mode="after")
+    def resolve_intake(self) -> "IntakeFirm":
+        # Sourcing usually turns up the website before the bare domain.
+        if not self.domain and self.website:
+            self.domain = _bare_domain(self.website)
+
+        _, recognized = normalize_firm_category(self.firm_type)
+        self.firm_type_recognized = recognized or not self.firm_type
+
+        if self.email_format:
+            # Rule 1 applied to patterns: unsourced is not weaker, it is not a pattern.
+            if not self.email_format_source_url:
+                raise ValueError(
+                    "email_format_source_url is required whenever email_format is set. "
+                    "Give the public page the format was read off."
+                )
+            # render_address is the existing parser and already rejects unknown
+            # tokens. Round-tripping it here means one definition of a valid pattern.
+            try:
+                render_address(self.email_format, "Jane", "Doe",
+                               self.domain or "example.com")
+            except ValueError as exc:
+                raise ValueError(
+                    f"email_format is not a usable pattern: {exc}. "
+                    "Use tokens like {first}, {last}, {f}, {l}, e.g. {f}{last}@acme.com."
+                ) from exc
+        elif self.email_format_source_url:
+            raise ValueError(
+                "email_format_source_url was given without an email_format."
+            )
+        return self
 
 
 class IntakeRequest(BaseModel):
