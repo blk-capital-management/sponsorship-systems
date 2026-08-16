@@ -907,62 +907,6 @@ def generate_owner_draft(
     return {"id": draft_id, **record, "status": "pending_review"}
 
 
-def generate_cross_owner_draft(
-    storage: SupabaseStorage,
-    user: DashboardUser,
-    *,
-    target_owner: str,
-    target_slug: str,
-    paragraph: str | None,
-    confirmation_text: str,
-) -> dict[str, Any]:
-    target_owner = normalize_owner(target_owner)
-    if target_owner == user.owner:
-        raise DashboardServiceError("Use the normal draft action for your own lane.")
-    expected = (
-        f"I confirm that {user.owner} is generating a draft for {target_owner}'s "
-        f"target {target_slug}."
-    )
-    if confirmation_text.strip() != expected:
-        raise DashboardServiceError(
-            "Cross-owner confirmation text did not match the explicit prompt."
-        )
-    confirmation = storage.insert(
-        "cross_owner_confirmations",
-        {
-            "actor_id": user.user_id,
-            "actor_owner": user.owner,
-            "target_owner": target_owner,
-            "action": "generate_draft",
-            "target_slug": target_slug,
-            "confirmation_text": confirmation_text.strip(),
-        },
-        user.access_token,
-    )[0]
-    context = storage.rpc(
-        "cross_owner_draft_context",
-        {"p_confirmation_id": confirmation["id"]},
-        user.access_token,
-    )
-    target = context["target"]
-    artifact = context.get("artifact")
-    contact = _contact_record(context["contact"]) if context.get("contact") else None
-    record = _generate_record(target, artifact, contact, paragraph)
-    draft_id = storage.rpc(
-        "save_cross_owner_draft",
-        {"p_confirmation_id": confirmation["id"], "p_payload": record},
-        user.access_token,
-    )
-    return {
-        "id": draft_id,
-        "owner": record["owner"],
-        "firm": record["firm"],
-        "status": "pending_review",
-        "confirmation_id": confirmation["id"],
-        "note": "Saved into the target owner's RLS lane.",
-    }
-
-
 def review_draft(
     storage: SupabaseStorage,
     user: DashboardUser,
@@ -1027,10 +971,6 @@ def dashboard_state(
         "manual_queue", user.access_token,
         params={"resolved_at": "is.null", "order": "queued_at.desc"},
     )
-    confirmations = storage.select(
-        "cross_owner_confirmations", user.access_token,
-        params={"order": "confirmed_at.desc", "limit": "20"},
-    )
     scoped_groups = {
         "targets": targets,
         "research": research,
@@ -1043,13 +983,6 @@ def dashboard_state(
             raise DashboardServiceError(
                 f"Owner-scope violation blocked while loading {label}."
             )
-    if any(
-        not _owner_is(row, user.owner, "actor_owner")
-        for row in confirmations
-    ):
-        raise DashboardServiceError(
-            "Owner-scope violation blocked while loading confirmations."
-        )
     targets_with_gate: list[dict[str, Any]] = []
     for target in targets:
         decision = evaluate_pre_hunter_gate(target)
@@ -1078,13 +1011,15 @@ def dashboard_state(
             "owner": user.owner,
             "display_name": user.display_name,
             "gmail_sender": user.gmail_sender,
+            "role": user.role,
+            "actor_display_name": user.actor_display_name,
+            "available_lanes": list(user.available_lanes),
         },
         "targets": targets_with_gate,
         "research": research,
         "contacts": contacts,
         "drafts": drafts,
         "manual_queue": manual,
-        "cross_owner_confirmations": confirmations,
         "hunter_balance": balance,
         "counts": {
             "targets": len(targets),

@@ -8,29 +8,30 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from app import app
-from dashboard.auth import DashboardUser
+from dashboard.auth import DashboardUser, current_user
 from dashboard.models import IntakeFirm, ReviewRequest
 from dashboard.services import (
     DashboardServiceError,
     dashboard_settings,
     dashboard_state,
     derive_status_batch,
-    generate_cross_owner_draft,
     get_target,
     intake_targets,
     mark_draft_sent,
     research_batch,
 )
-from dashboard.storage import SupabaseSettings, SupabaseStorage
+from dashboard.storage import SupabaseSettings, SupabaseStorage, _active_lane
 from scripts.seed_supabase import seed_drafts
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MIGRATION = PROJECT_ROOT / "supabase" / "migrations" / "001_phase_g_dashboard.sql"
+LANE_MIGRATION = PROJECT_ROOT / "supabase" / "migrations" / "005_lane_switching.sql"
 
 
 @pytest.fixture
@@ -42,6 +43,9 @@ def jamari() -> DashboardUser:
         display_name="Jamari Myers",
         gmail_sender="jamari@blkcapitalmanagement.org",
         access_token="jamari-user-jwt",
+        role="owner",
+        actor_display_name="Jamari Myers",
+        available_lanes=("fola", "jamari"),
     )
 
 
@@ -393,24 +397,6 @@ def test_status_batch_finalizes_and_preserves_success_when_one_target_fails(
     assert run["completed_at"]
 
 
-def test_cross_owner_action_requires_exact_confirmation(
-    jamari: DashboardUser,
-) -> None:
-    class NoWriteStorage:
-        def insert(self, *_args: Any, **_kwargs: Any) -> list[dict[str, Any]]:
-            raise AssertionError("confirmation must be validated before any write")
-
-    with pytest.raises(DashboardServiceError, match="did not match"):
-        generate_cross_owner_draft(
-            NoWriteStorage(),
-            jamari,
-            target_owner="fola",
-            target_slug="example_capital",
-            paragraph="Human paragraph.",
-            confirmation_text="yes",
-        )
-
-
 def test_reject_request_requires_logged_reason() -> None:
     with pytest.raises(ValidationError, match="rejection reason"):
         ReviewRequest(action="rejected", reason="  ")
@@ -455,6 +441,189 @@ def test_user_requests_pair_publishable_key_with_user_jwt() -> None:
     assert headers["Authorization"] == "Bearer signed-user-jwt"
 
 
+# ── Phase G.2: lane switching ──────────────────────────────────────────────
+
+
+def test_headers_carry_the_active_lane_for_caller_scoped_requests() -> None:
+    storage = SupabaseStorage(
+        SupabaseSettings(url="https://project.supabase.co", publishable_key="pub")
+    )
+    reset_token = _active_lane.set("fola")
+    try:
+        headers = storage._headers(token="user-jwt")
+    finally:
+        _active_lane.reset(reset_token)
+    assert headers["X-Blk-Lane"] == "fola"
+
+
+def test_headers_omit_the_lane_for_service_role_requests() -> None:
+    storage = SupabaseStorage(
+        SupabaseSettings(
+            url="https://project.supabase.co",
+            publishable_key="pub",
+            secret_key="service-role-jwt",
+        )
+    )
+    reset_token = _active_lane.set("fola")
+    try:
+        headers = storage._headers(service=True)
+    finally:
+        _active_lane.reset(reset_token)
+    assert "X-Blk-Lane" not in headers
+
+
+class FakeAuthStorage:
+    """Stands in for SupabaseStorage across the three calls current_user makes."""
+
+    def __init__(
+        self,
+        profile: dict[str, Any],
+        lane_access: list[dict[str, Any]],
+        identity: dict[str, Any],
+    ) -> None:
+        self.profile = profile
+        self.lane_access = lane_access
+        self.identity = identity
+
+    def auth_user(self, _token: str) -> dict[str, Any]:
+        return {"id": self.profile["user_id"], "email": self.profile["email"]}
+
+    def select(self, table: str, _token: str, *, params: Any = None) -> list[dict[str, Any]]:
+        if table == "profiles":
+            return [self.profile]
+        if table == "profile_lane_access":
+            return self.lane_access
+        raise AssertionError(f"Unexpected select from {table}")
+
+    def rpc(self, function: str, payload: dict[str, Any], _token: str) -> Any:
+        assert function == "lane_identity"
+        assert payload["p_lane"] in {"jamari", "fola"}
+        return self.identity
+
+
+JAMARI_IDENTITY = {"display_name": "Jamari Myers", "gmail_sender": "jamari@blkcapitalmanagement.org"}
+FOLA_IDENTITY = {"display_name": "Folakunmi Awofisayo", "gmail_sender": "folakunmi@blkcapitalmanagement.org"}
+
+
+def test_current_user_viewer_defaults_to_jamaris_lane_with_no_header() -> None:
+    storage = FakeAuthStorage(
+        profile={
+            "user_id": "justin-id", "email": "justin@blkcapitalmanagement.org",
+            "role": "viewer", "display_name": "Justin",
+        },
+        lane_access=[
+            {"lane": "jamari", "is_default": True},
+            {"lane": "fola", "is_default": False},
+        ],
+        identity=JAMARI_IDENTITY,
+    )
+    gen = current_user(token="justin-jwt", storage=storage, x_blk_lane=None)
+    try:
+        user = next(gen)
+        assert user.owner == "jamari"
+        assert user.role == "viewer"
+        assert user.actor_display_name == "Justin"
+        assert user.available_lanes == ("fola", "jamari")
+        assert user.display_name == "Jamari Myers"
+    finally:
+        gen.close()
+
+
+def test_current_user_switches_lane_via_header_when_permitted() -> None:
+    storage = FakeAuthStorage(
+        profile={
+            "user_id": "jamari-id", "email": "jamari@blkcapitalmanagement.org",
+            "role": "owner", "display_name": "Jamari Myers",
+        },
+        lane_access=[
+            {"lane": "jamari", "is_default": True},
+            {"lane": "fola", "is_default": False},
+        ],
+        identity=FOLA_IDENTITY,
+    )
+    gen = current_user(token="jamari-jwt", storage=storage, x_blk_lane="fola")
+    try:
+        user = next(gen)
+        assert user.owner == "fola"
+        assert user.gmail_sender == "folakunmi@blkcapitalmanagement.org"
+    finally:
+        gen.close()
+
+
+def test_current_user_rejects_a_lane_the_account_does_not_hold() -> None:
+    storage = FakeAuthStorage(
+        profile={
+            "user_id": "jamari-id", "email": "jamari@blkcapitalmanagement.org",
+            "role": "owner", "display_name": "Jamari Myers",
+        },
+        lane_access=[{"lane": "jamari", "is_default": True}],
+        identity=JAMARI_IDENTITY,
+    )
+    gen = current_user(token="jamari-jwt", storage=storage, x_blk_lane="fola")
+    with pytest.raises(HTTPException) as excinfo:
+        next(gen)
+    assert excinfo.value.status_code == 403
+    gen.close()
+
+
+def test_current_user_sets_and_resets_the_active_lane_around_the_request() -> None:
+    storage = FakeAuthStorage(
+        profile={
+            "user_id": "jamari-id", "email": "jamari@blkcapitalmanagement.org",
+            "role": "owner", "display_name": "Jamari Myers",
+        },
+        lane_access=[
+            {"lane": "jamari", "is_default": True},
+            {"lane": "fola", "is_default": False},
+        ],
+        identity=FOLA_IDENTITY,
+    )
+    assert _active_lane.get() is None
+    gen = current_user(token="jamari-jwt", storage=storage, x_blk_lane="fola")
+    next(gen)
+    assert _active_lane.get() == "fola"
+    gen.close()
+    assert _active_lane.get() is None
+
+
+def test_sql_lane_migration_leaves_owner_columns_and_checks_untouched() -> None:
+    """Business-data ownership of targets/drafts/etc. must not change."""
+    sql = LANE_MIGRATION.read_text(encoding="utf-8")
+    assert "alter table public.targets" not in sql
+    assert "alter table public.drafts add column" not in sql
+    assert "alter table public.drafts drop column if exists cross_owner_confirmation_id" in sql
+
+
+def test_sql_lane_migration_adds_the_two_new_viewer_accounts() -> None:
+    sql = LANE_MIGRATION.read_text(encoding="utf-8")
+    assert "justin@blkcapitalmanagement.org" in sql
+    assert "belayneh@blkcapitalmanagement.org" in sql
+    assert "role in ('owner', 'viewer')" in sql
+    assert "owner is null or owner in ('jamari', 'fola')" in sql
+
+
+def test_sql_lane_migration_grants_every_account_both_lanes_by_default() -> None:
+    sql = LANE_MIGRATION.read_text(encoding="utf-8")
+    assert "create table if not exists public.profile_lane_access" in sql
+    assert "lane text not null check (lane in ('jamari', 'fola'))" in sql
+    assert "profile_lane_access_select_self" in sql
+    assert "coalesce(allowed.owner, 'jamari') = 'jamari'" in sql
+    assert "coalesce(allowed.owner, 'jamari') = 'fola'" in sql
+
+
+def test_sql_current_owner_validates_the_active_lane_header() -> None:
+    sql = LANE_MIGRATION.read_text(encoding="utf-8")
+    assert "current_setting('request.headers', true)::json->>'x-blk-lane'" in sql
+    assert "is not permitted for this account" in sql
+
+
+def test_sql_lane_migration_removes_the_cross_owner_confirmation_flow() -> None:
+    sql = LANE_MIGRATION.read_text(encoding="utf-8")
+    assert "drop table if exists public.cross_owner_confirmations cascade" in sql
+    assert "drop function if exists public.save_cross_owner_draft(uuid, jsonb)" in sql
+    assert "drop function if exists public.cross_owner_draft_context(uuid)" in sql
+
+
 def test_dashboard_exposes_no_signup_or_send_route() -> None:
     paths = {route.path for route in app.routes}
     assert "/signup" not in paths
@@ -479,8 +648,8 @@ def test_health_and_static_shell_are_served_with_security_headers() -> None:
     assert 'id="google-signin"' in index.text
     assert 'type="button" disabled' in index.text
     assert 'id="app-view" class="app-shell hidden" hidden' in index.text
-    assert '/styles.css?v=20260816.3' in index.text
-    assert '/app.js?v=20260816.3' in index.text
+    assert '/styles.css?v=20260816.4' in index.text
+    assert '/app.js?v=20260816.4' in index.text
     assert "Recommended next step" in index.text
     assert "Build the evidence before the email" in index.text
 
@@ -517,14 +686,14 @@ def test_sql_enables_rls_on_every_phase_g_table() -> None:
     assert rls_tables == tables
 
 
-def test_sql_auth_allowlist_contains_exactly_two_accounts() -> None:
-    sql = MIGRATION.read_text(encoding="utf-8")
-    configured = set(
-        re.findall(r"'([^']+@blkcapitalmanagement\.org)', '(?:jamari|fola)'", sql)
-    )
+def test_sql_auth_allowlist_contains_exactly_the_configured_accounts() -> None:
+    sql = MIGRATION.read_text(encoding="utf-8") + "\n" + LANE_MIGRATION.read_text(encoding="utf-8")
+    configured = set(re.findall(r"'([\w.\-]+@blkcapitalmanagement\.org)'", sql))
     assert configured == {
         "jamari@blkcapitalmanagement.org",
         "folakunmi@blkcapitalmanagement.org",
+        "justin@blkcapitalmanagement.org",
+        "belayneh@blkcapitalmanagement.org",
     }
     assert "handle_blk_auth_user" in sql
     assert "permits only the configured BLK Bridge accounts" in sql
@@ -542,16 +711,10 @@ def test_sql_keeps_internal_tables_out_of_authenticated_data_api() -> None:
     assert "grant select, insert on public.drafts to authenticated;" not in sql
 
 
-def test_sql_cross_owner_path_is_confirmed_expiring_and_one_time() -> None:
-    sql = MIGRATION.read_text(encoding="utf-8")
-    assert "actor_owner <> target_owner" in sql
-    assert "confirmation_text = 'I confirm that ' || actor_owner" in sql
-    assert "confirmed_at between now() - interval '1 minute'" in sql
-    assert "confirmation_row.actor_owner <> public.current_owner()" in sql
-    assert "confirmation_row.confirmed_at < now() - interval '10 minutes'" in sql
-    assert "confirmation_row.context_accessed_at is not null" in sql
-    assert "confirmation_row.consumed_at is not null" in sql
-    assert "set consumed_at = now()" in sql
+# The one-off cross-owner confirmation flow (see the original PR) was replaced
+# by the always-available lane switcher; 001's original definition of it is
+# left untouched as history, and 005 tears it down (see
+# test_sql_lane_migration_removes_the_cross_owner_confirmation_flow above).
 
 
 def test_browser_bundle_contains_login_only_and_no_secret_key_name() -> None:
@@ -577,6 +740,10 @@ def test_seed_preserves_balyasny_human_approval_identity_and_event() -> None:
                 return [
                     {"user_id": "jamari-id", "owner": "jamari"},
                     {"user_id": "fola-id", "owner": "fola"},
+                    # Viewer profiles have owner = null; must not confuse the
+                    # exactly-jamari-and-fola check below.
+                    {"user_id": "justin-id", "owner": None},
+                    {"user_id": "belayneh-id", "owner": None},
                 ]
             return []
 

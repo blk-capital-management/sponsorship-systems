@@ -2,17 +2,37 @@
 
 Normal requests carry the caller's access token so Postgres RLS remains the
 authorization boundary. The secret key is used only by explicit provisioning
-and CRM-snapshot helpers; it is never returned to the browser.
+and CRM-snapshot helpers; it is never returned to the browser. Caller-scoped
+requests also carry an X-Blk-Lane header (see set_active_lane below) so
+Postgres' current_owner() resolves the same active lane the Python layer
+resolved in dashboard.auth.current_user() -- RLS re-validates it independently
+rather than trusting the header at face value.
 """
 
 from __future__ import annotations
 
 import os
+from contextvars import ContextVar, Token
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Mapping
 
 import requests
+
+# The active lane for the request currently being handled. Set once by
+# dashboard.auth.current_user() and read by _headers() on every caller-scoped
+# call, so the ~40 storage.select/insert/update/... call sites in services.py
+# don't each need to pass it explicitly. Scoped via contextvars, so concurrent
+# requests (each their own asyncio task) never see each other's lane.
+_active_lane: ContextVar[str | None] = ContextVar("_active_lane", default=None)
+
+
+def set_active_lane(lane: str | None) -> Token:
+    return _active_lane.set(lane)
+
+
+def reset_active_lane(token: Token) -> None:
+    _active_lane.reset(token)
 
 
 class SupabaseConfigurationError(RuntimeError):
@@ -89,6 +109,9 @@ class SupabaseStorage:
             headers["Authorization"] = f"Bearer {key}"
         elif not service and token:
             headers["Authorization"] = f"Bearer {token}"
+            lane = _active_lane.get()
+            if lane:
+                headers["X-Blk-Lane"] = lane
         if prefer:
             headers["Prefer"] = prefer
         return headers

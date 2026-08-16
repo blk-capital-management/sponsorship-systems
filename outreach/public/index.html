@@ -7,7 +7,7 @@
     <meta name="description" content="BLK Bridge sponsor outreach workspace">
     <title>BLK Bridge</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2362318b'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Arial' font-size='34' font-weight='700' fill='white'%3EB%3C/text%3E%3C/svg%3E">
-    <link rel="stylesheet" href="/styles.css?v=20260816.3">
+    <link rel="stylesheet" href="/styles.css?v=20260816.4">
   </head>
   <body>
     <main id="login-view" class="login-shell">
@@ -39,7 +39,7 @@
           </div>
           <p class="eyebrow">Authorized access</p>
           <h2 id="login-title">Welcome back</h2>
-          <p class="login-copy">Sign in with your BLK Capital Management Google Workspace account. Access is limited to Jamari and Fola.</p>
+          <p class="login-copy">Sign in with your BLK Capital Management Google Workspace account. Access is limited to the configured BLK Bridge team.</p>
           <div class="stack">
             <button id="google-signin" class="button secondary wide" type="button" disabled>
               <svg class="google-icon" viewBox="0 0 18 18" width="16" height="16" aria-hidden="true" focusable="false">
@@ -81,9 +81,6 @@
           <button class="nav-item" data-view="manual">
             <span class="nav-step">04</span><span class="nav-copy"><strong>Manual queue</strong><small>Resolve exceptions</small></span><span id="nav-manual-count" class="nav-count"></span>
           </button>
-          <button class="nav-item" data-view="cross-owner">
-            <span class="nav-step">05</span><span class="nav-copy"><strong>Cross-owner</strong><small>Controlled exception</small></span>
-          </button>
         </nav>
 
         <div class="sidebar-safety">
@@ -110,7 +107,7 @@
           </div>
           <div class="top-actions">
             <div class="sync-status"><span class="live-dot"></span><span id="sync-status">Connecting</span></div>
-            <span id="owner-badge" class="owner-badge"></span>
+            <select id="lane-switcher" class="owner-badge" aria-label="Active lane"></select>
             <button id="refresh-button" class="button secondary" type="button">Refresh data</button>
           </div>
         </header>
@@ -371,35 +368,6 @@
           </article>
         </section>
 
-        <section id="view-cross-owner" class="view">
-          <article class="context-banner compact warning">
-            <div><span class="context-step">Step 5</span><h3>Use only for an explicit owner exception</h3><p>Normal cross-owner reads are blocked. This flow grants one target context for ten minutes and records who confirmed it.</p></div>
-          </article>
-          <div class="split-grid cross-owner-grid">
-            <article class="panel">
-              <div class="panel-heading"><div><p class="eyebrow">Controlled exception</p><h3>Generate in the other lane</h3><p class="section-copy">Complete all four fields. The confirmation sentence must match exactly.</p></div></div>
-              <form id="cross-owner-form" class="stack numbered-form">
-                <label for="cross-owner-target"><span class="field-number">1</span> Target owner</label>
-                <select id="cross-owner-target"></select>
-                <label for="cross-owner-slug"><span class="field-number">2</span> Exact target slug</label>
-                <input id="cross-owner-slug" pattern="[a-z0-9_]+" placeholder="houlihan_lokey" required>
-                <label for="cross-owner-paragraph"><span class="field-number">3</span> Human-authored firm paragraph, if cold</label>
-                <textarea id="cross-owner-paragraph" rows="6" placeholder="Use only facts from the reviewed research artifact."></textarea>
-                <div class="confirmation-box">
-                  <p><span class="field-number">4</span> Copy and type this confirmation exactly</p>
-                  <code id="cross-owner-prompt"></code>
-                </div>
-                <label for="cross-owner-confirmation">Typed confirmation</label>
-                <input id="cross-owner-confirmation" autocomplete="off" required>
-                <button class="button primary" type="submit">Confirm exception and generate</button>
-              </form>
-            </article>
-            <article class="panel audit-panel">
-              <div class="panel-heading"><div><p class="eyebrow">Audit trail</p><h3>Your confirmations</h3><p class="section-copy">Open confirmations expire after ten minutes and can be used once.</p></div></div>
-              <div id="confirmation-list" class="compact-list"></div>
-            </article>
-          </div>
-        </section>
       </div>
       <button id="sidebar-scrim" class="sidebar-scrim" type="button" aria-label="Close navigation"></button>
     </div>
@@ -430,6 +398,6 @@
     </dialog>
 
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-    <script src="/app.js?v=20260816.3" defer></script>
+    <script src="/app.js?v=20260816.4" defer></script>
   </body>
 </html>

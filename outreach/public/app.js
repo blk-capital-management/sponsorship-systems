@@ -1,7 +1,9 @@
 const SESSION_KEY = "blk_bridge_session";
+const LANE_KEY = "blk_bridge_lane";
 
 let config = null;
 let session = null;
+let activeLane = null;
 let state = null;
 let selectedTargets = new Set();
 let selectedDraftId = null;
@@ -13,7 +15,6 @@ const VIEW_META = {
   pipeline: ["Firm pipeline", "Move selected firms through status, research, contacts, and drafting."],
   drafts: ["Draft review", "Inspect the complete email record before making a human approval decision."],
   manual: ["Manual queue", "Resolve missing facts and weak evidence that Bridge will not guess."],
-  "cross-owner": ["Cross-owner exception", "Create one logged, time-limited exception for another owner lane."],
 };
 
 // Mirrors SUBJECT_BY_STATUS in drafts/generate.py, used only for drafts stored
@@ -353,6 +354,7 @@ async function api(path, options = {}, retry = true) {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${session?.access_token || ""}`,
+      ...(activeLane ? { "X-Blk-Lane": activeLane } : {}),
       ...(options.headers || {}),
     },
   });
@@ -368,11 +370,38 @@ async function api(path, options = {}, retry = true) {
 async function loadState() {
   setLoading(true);
   try {
-    state = await api("/api/state");
+    try {
+      state = await api("/api/state");
+    } catch (error) {
+      // A stale locally-stored lane the account no longer holds must not lock
+      // the workspace out; fall back to the account's default lane once.
+      if (!activeLane || !/not permitted/i.test(error.message)) throw error;
+      activeLane = null;
+      localStorage.removeItem(LANE_KEY);
+      state = await api("/api/state");
+    }
+    activeLane = state.user.owner;
+    localStorage.setItem(LANE_KEY, activeLane);
     renderAll();
     $("#sync-status").textContent = `Updated ${new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
   } finally {
     setLoading(false);
+  }
+}
+
+/** Switch which lane's data this session reads and writes. */
+async function setLane(lane) {
+  if (!lane || lane === activeLane) return;
+  const previous = activeLane;
+  activeLane = lane;
+  localStorage.setItem(LANE_KEY, lane);
+  try {
+    await loadState();
+    showToast(`Switched to ${lane}'s lane.`);
+  } catch (error) {
+    activeLane = previous;
+    if (previous) localStorage.setItem(LANE_KEY, previous);
+    showToast(error.message, true);
   }
 }
 
@@ -756,27 +785,24 @@ async function resolveManualItem(itemId, note) {
   }
 }
 
-function crossOwnerPrompt() {
-  const targetOwner = $("#cross-owner-target").value;
-  const slug = $("#cross-owner-slug").value.trim();
-  return `I confirm that ${state.user.owner} is generating a draft for ${targetOwner}'s target ${slug}.`;
-}
-
-function renderCrossOwner() {
-  const other = state.user.owner === "jamari" ? "fola" : "jamari";
-  $("#cross-owner-target").innerHTML = `<option value="${other}">${other}</option>`;
-  $("#cross-owner-prompt").textContent = crossOwnerPrompt();
-  const confirmations = state.cross_owner_confirmations || [];
-  $("#confirmation-list").innerHTML = confirmations.length ? confirmations.map((item) => `
-    <div class="compact-row"><div><strong>${escapeHtml(item.target_slug)}</strong><span>${escapeHtml(item.actor_owner)} to ${escapeHtml(item.target_owner)} · ${new Date(item.confirmed_at).toLocaleString()}</span></div>${pill(item.consumed_at ? "used" : "open")}</div>
-  `).join("") : emptyState("No exceptions recorded", "Confirmed cross-owner actions will appear here with their usage status.");
+/** The lane switcher lists every lane this account may act in (own lane plus
+ * any granted by profile_lane_access) and lets a trusted account toggle
+ * between them, replacing the old one-off cross-owner confirmation flow. */
+function renderLaneSwitcher() {
+  const lanes = state.user.available_lanes?.length ? state.user.available_lanes : [state.user.owner];
+  const switcher = $("#lane-switcher");
+  switcher.innerHTML = lanes.map((lane) =>
+    `<option value="${escapeHtml(lane)}" ${lane === state.user.owner ? "selected" : ""}>${escapeHtml(lane)} lane</option>`
+  ).join("");
+  switcher.disabled = lanes.length < 2;
 }
 
 function renderIdentity() {
-  $("#user-name").textContent = state.user.display_name;
+  $("#user-name").textContent = state.user.actor_display_name || state.user.display_name;
   $("#user-email").textContent = state.user.email;
-  $("#owner-badge").textContent = `${state.user.owner} lane`;
-  $("#user-avatar").textContent = state.user.display_name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+  renderLaneSwitcher();
+  const initialsSource = state.user.actor_display_name || state.user.display_name;
+  $("#user-avatar").textContent = initialsSource.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
 }
 
 function renderAll() {
@@ -785,7 +811,6 @@ function renderAll() {
   renderPipeline();
   renderDrafts();
   renderManualQueue();
-  renderCrossOwner();
   const counts = state.counts || {};
   $("#nav-target-count").textContent = counts.targets ?? 0;
   $("#nav-draft-count").textContent = counts.pending_review ?? 0;
@@ -1036,6 +1061,7 @@ function bindEvents() {
   });
   $("#logout-button").addEventListener("click", logout);
   $("#refresh-button").addEventListener("click", () => loadState().catch((error) => showToast(error.message, true)));
+  $("#lane-switcher").addEventListener("change", (event) => setLane(event.target.value));
   $$(".nav-item").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.view)));
   $$(".jump").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.jump)));
   $("#primary-next-action").addEventListener("click", (event) => switchView(event.currentTarget.dataset.view));
@@ -1178,29 +1204,6 @@ function bindEvents() {
     } catch (error) { showToast(error.message, true); }
     finally { setLoading(false); }
   });
-
-  const updatePrompt = () => { if (state) $("#cross-owner-prompt").textContent = crossOwnerPrompt(); };
-  $("#cross-owner-slug").addEventListener("input", updatePrompt);
-  $("#cross-owner-target").addEventListener("change", updatePrompt);
-  $("#cross-owner-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    try {
-      const result = await api("/api/drafts/cross-owner", {
-        method: "POST",
-        body: JSON.stringify({
-          target_owner: $("#cross-owner-target").value,
-          target_slug: $("#cross-owner-slug").value.trim(),
-          firm_specific_paragraph: $("#cross-owner-paragraph").value.trim() || null,
-          confirmation_text: $("#cross-owner-confirmation").value,
-        }),
-      });
-      showToast(`${result.firm} draft saved into ${result.owner}'s review lane.`);
-      $("#cross-owner-form").reset();
-      await loadState();
-    } catch (error) { showToast(error.message, true); }
-    finally { setLoading(false); }
-  });
 }
 
 async function boot() {
@@ -1212,6 +1215,7 @@ async function boot() {
       const stored = localStorage.getItem(SESSION_KEY);
       if (stored) session = JSON.parse(stored);
     }
+    activeLane = localStorage.getItem(LANE_KEY) || null;
     if (session?.access_token) {
       setAuthenticated(true);
       try {

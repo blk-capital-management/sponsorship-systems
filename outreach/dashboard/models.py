@@ -119,13 +119,6 @@ class DraftRequest(BaseModel):
     firm_specific_paragraph: str | None = Field(default=None, max_length=3000)
 
 
-class CrossOwnerDraftRequest(BaseModel):
-    target_owner: Literal["jamari", "fola"]
-    target_slug: str = Field(pattern=r"^[a-z0-9_]+$")
-    firm_specific_paragraph: str | None = Field(default=None, max_length=3000)
-    confirmation_text: str = Field(min_length=20, max_length=500)
-
-
 class ReviewRequest(BaseModel):
     action: Literal["approved", "rejected"]
     reason: str | None = Field(default=None, max_length=1500)

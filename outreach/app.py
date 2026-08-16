@@ -14,7 +14,6 @@ from dashboard.auth import DashboardUser, current_user
 from dashboard.models import (
     ContactPreviewRequest,
     ContactRunRequest,
-    CrossOwnerDraftRequest,
     DraftRequest,
     IntakeRequest,
     ResolveManualRequest,
@@ -25,7 +24,6 @@ from dashboard.services import (
     DashboardServiceError,
     dashboard_state,
     derive_status_batch,
-    generate_cross_owner_draft,
     generate_owner_draft,
     intake_targets,
     mark_draft_sent,
@@ -202,22 +200,6 @@ def create_draft_endpoint(
         target_id=payload.target_id,
         contact_id=payload.contact_id,
         paragraph=payload.firm_specific_paragraph,
-    )
-
-
-@app.post("/api/drafts/cross-owner")
-def create_cross_owner_draft_endpoint(
-    payload: CrossOwnerDraftRequest,
-    user: DashboardUser = Depends(current_user),
-    storage: SupabaseStorage = Depends(get_storage),
-) -> dict[str, Any]:
-    return generate_cross_owner_draft(
-        storage,
-        user,
-        target_owner=payload.target_owner,
-        target_slug=payload.target_slug,
-        paragraph=payload.firm_specific_paragraph,
-        confirmation_text=payload.confirmation_text,
     )
 
 

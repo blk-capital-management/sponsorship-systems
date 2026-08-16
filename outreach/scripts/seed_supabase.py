@@ -185,7 +185,9 @@ def seed_drafts(
     storage: SupabaseStorage, targets: dict[str, dict[str, Any]]
 ) -> int:
     profiles = storage.service_select("profiles", select="user_id,owner")
-    user_ids = {str(row["owner"]): str(row["user_id"]) for row in profiles}
+    # Viewer profiles (Justin, Belayneh) have owner = null; only owner profiles
+    # seed drafts, since only owner lanes hold data to seed against.
+    user_ids = {str(row["owner"]): str(row["user_id"]) for row in profiles if row.get("owner")}
     if set(user_ids) != {"jamari", "fola"}:
         raise RuntimeError(
             "Exactly the Jamari and Fola Auth profiles must exist before draft seeding."
