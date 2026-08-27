@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -11,7 +12,16 @@ from pydantic import ValidationError
 
 from app import app
 from dashboard.auth import DashboardUser
-from dashboard.crm import enrich_target, pipeline_visible
+from dashboard.crm import (
+    OUTREACH_ADVANCED,
+    OUTREACH_AWAITING_RESPONSE,
+    OUTREACH_NOT_SENT,
+    effective_sponsorship_tier,
+    enrich_target,
+    latest_outreach_at,
+    outreach_queue_state,
+    pipeline_visible,
+)
 from dashboard.models import DraftRequest, MeetingNoteRequest, StatusOverrideRequest
 from research.hook_ids import artifact_with_hook_ids, research_hook_id
 from dashboard.services import (
@@ -33,6 +43,9 @@ from scripts.seed_supabase import target_payload
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MIGRATION = PROJECT_ROOT / "supabase" / "migrations" / "006_crm_firm_library.sql"
+TIER_MIGRATION = (
+    PROJECT_ROOT / "supabase" / "migrations" / "007_sponsor_tier_lifecycle.sql"
+)
 
 
 @pytest.fixture
@@ -62,6 +75,96 @@ def test_relationship_and_pipeline_stage_are_independent_and_manual_wins() -> No
     assert target["relationship_status_source"] == "manual"
     assert target["pipeline_stage_source"] == "automatic"
     assert target["pipeline_visible"] is True
+
+
+@pytest.mark.parametrize(("tier", "expiration", "expected"), [
+    ("Gold", "2026-09-08", "Gold"),
+    ("Gold", None, None),
+    ("Platinum", "2025-12-31", None),
+    (None, "2027-01-20", None),
+])
+def test_effective_sponsorship_tier_requires_future_expiration(
+    tier: str | None,
+    expiration: str | None,
+    expected: str | None,
+) -> None:
+    assert effective_sponsorship_tier(
+        {
+            "sponsorship_tier": tier,
+            "relationship_expiration": expiration,
+        },
+        today=date(2026, 8, 27),
+    ) == expected
+
+
+def test_expiration_change_suppresses_stale_tier_without_waiting_for_cleanup() -> None:
+    target = {
+        "sponsorship_tier": "Diamond",
+        "relationship_expiration": "2027-01-20",
+    }
+    assert effective_sponsorship_tier(target, today=date(2026, 8, 27)) == "Diamond"
+
+    target["relationship_expiration"] = "2026-08-27"
+    assert effective_sponsorship_tier(target, today=date(2026, 8, 27)) is None
+    target["relationship_expiration"] = None
+    assert effective_sponsorship_tier(target, today=date(2026, 8, 27)) is None
+
+
+def test_enriched_target_exposes_only_the_effective_tier() -> None:
+    enriched = enrich_target({
+        "relationship_status_auto": "Cold Prospect",
+        "pipeline_stage_auto": "Researching",
+        "pipeline_active": True,
+        "sponsorship_tier": "Gold",
+        "relationship_tier": "Gold",
+        "tier_target": "Gold",
+        "relationship_expiration": None,
+    })
+    assert enriched["effective_sponsorship_tier"] is None
+
+
+def test_outreach_queue_uses_actual_send_records_not_drafts_or_stage_labels() -> None:
+    target = {
+        "relationship_status_auto": "Cold Prospect",
+        "pipeline_stage_auto": "Outreach Sent",
+        "pipeline_active": True,
+    }
+    assert outreach_queue_state(target, []) == OUTREACH_NOT_SENT
+    assert outreach_queue_state(
+        target,
+        [{"status": "approved", "generated_at": "2026-08-20T12:00:00+00:00"}],
+    ) == OUTREACH_NOT_SENT
+    assert outreach_queue_state(
+        target,
+        [{"status": "sent", "sent_at": "2026-08-21T12:00:00+00:00"}],
+    ) == OUTREACH_AWAITING_RESPONSE
+
+
+def test_awaiting_response_excludes_recorded_advancement() -> None:
+    target = {
+        "relationship_status_auto": "Cold Prospect",
+        "pipeline_stage_auto": "Responded",
+        "pipeline_active": True,
+    }
+    drafts = [{"status": "sent", "sent_at": "2026-08-21T12:00:00+00:00"}]
+    assert outreach_queue_state(target, drafts) == OUTREACH_ADVANCED
+
+
+def test_outreach_derivation_is_read_only_and_tracks_latest_send() -> None:
+    target = {
+        "relationship_status_auto": "Cold Prospect",
+        "pipeline_stage_auto": "Follow-Up Due",
+        "pipeline_active": True,
+    }
+    drafts = [
+        {"status": "sent", "sent_at": "2026-08-20T12:00:00+00:00"},
+        {"status": "sent", "sent_at": "2026-08-22T12:00:00+00:00"},
+    ]
+    before = (deepcopy(target), deepcopy(drafts))
+
+    assert outreach_queue_state(target, drafts) == OUTREACH_AWAITING_RESPONSE
+    assert latest_outreach_at(drafts) == "2026-08-22T12:00:00+00:00"
+    assert (target, drafts) == before
 
 
 def test_clearing_override_returns_to_automatic_and_terminal_firms_can_reopen() -> None:
@@ -276,8 +379,52 @@ def test_dashboard_state_keeps_active_and_inactive_firms_in_master_library(
     closed = next(target for target in result["targets"] if target["id"] == "closed")
     assert active["primary_contact"] == "Ava Recruiter"
     assert active["last_activity"].startswith("2026-08-21")
+    assert active["outreach_queue_state"] == OUTREACH_NOT_SENT
+    assert active["last_outreach_at"] is None
+    assert result["counts"]["outreach_not_sent"] == 1
+    assert result["counts"]["outreach_awaiting_response"] == 0
     assert closed["pipeline_stage_effective"] == "Closed / Partner"
     assert closed["pipeline_visible"] is False
+
+
+def test_dashboard_state_derives_awaiting_response_and_last_outreach(
+    user: DashboardUser, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class SentStateStorage:
+        def select(self, table, token, *, params=None, lane=None, select="*"):
+            if table == "targets":
+                return [{
+                    "id": "sent-target",
+                    "owner": "jamari",
+                    "firm": "Sent Prospect",
+                    "contact_status": "cold_prospect",
+                    "relationship_status_auto": "Cold Prospect",
+                    "pipeline_stage_auto": "Researching",
+                    "pipeline_active": True,
+                }]
+            if table == "drafts":
+                return [{
+                    "id": "draft-1",
+                    "target_id": "sent-target",
+                    "owner": "jamari",
+                    "status": "sent",
+                    "sent_at": "2026-08-21T12:00:00+00:00",
+                    "generated_at": "2026-08-20T12:00:00+00:00",
+                }]
+            return []
+
+    monkeypatch.setattr(
+        "dashboard.services.hunter_balance",
+        lambda _storage, _user: {"used": 0, "available": 0, "remaining": 0},
+    )
+    result = dashboard_state(SentStateStorage(), user)
+    target = result["targets"][0]
+
+    assert target["pipeline_stage_effective"] == "Outreach Sent"
+    assert target["outreach_queue_state"] == OUTREACH_AWAITING_RESPONSE
+    assert target["last_outreach_at"] == "2026-08-21T12:00:00+00:00"
+    assert result["counts"]["outreach_not_sent"] == 0
+    assert result["counts"]["outreach_awaiting_response"] == 1
 
 
 def test_reconciliation_obeys_authority_and_explicit_corrections() -> None:
@@ -315,6 +462,19 @@ def test_seed_snapshot_preserves_independent_relationship_and_stage() -> None:
     assert payload["relationship_status_auto"] == "Not Renewing"
     assert payload["pipeline_stage_auto"] == "Re-engagement"
     assert payload["pipeline_active"] is True
+
+
+def test_seed_snapshot_imports_only_a_future_dated_sponsorship_tier() -> None:
+    base = {
+        "owner": "jamari",
+        "firm": "Acme Capital",
+        "domain": "acme.example",
+        "relationship_tier": "Gold",
+    }
+    stale = target_payload({**base, "relationship_expiration": "2025-12-31"})
+    current = target_payload({**base, "relationship_expiration": "2099-01-20"})
+    assert stale["sponsorship_tier"] is None
+    assert current["sponsorship_tier"] == "Gold"
 
 
 def test_reconciliation_flags_duplicates_ambiguous_matches_and_ambiguous_dates() -> None:
@@ -375,6 +535,22 @@ def test_migration_is_additive_audited_and_rls_scoped() -> None:
     assert "where id = p_target_id and owner = public.current_owner()" in sql
 
 
+def test_tier_lifecycle_migration_cleans_and_guards_invalid_values() -> None:
+    sql = TIER_MIGRATION.read_text(encoding="utf-8").lower()
+    for fragment in (
+        "alter column sponsorship_tier drop not null",
+        "set sponsorship_tier = null",
+        "nullif(btrim(sponsorship_tier), '') is null",
+        "relationship_expiration is null",
+        "relationship_expiration <= current_date",
+        "before insert or update of sponsorship_tier, relationship_expiration",
+        "new.sponsorship_tier := null",
+        "enforce_current_sponsorship_tier",
+    ):
+        assert fragment in sql
+    assert "delete from public.targets" not in sql
+
+
 def test_firm_library_ui_and_cold_only_conference_copy_are_present() -> None:
     html = (PROJECT_ROOT / "public" / "index.html").read_text(encoding="utf-8")
     javascript = (PROJECT_ROOT / "public" / "app.js").read_text(encoding="utf-8")
@@ -391,6 +567,17 @@ def test_firm_library_ui_and_cold_only_conference_copy_are_present() -> None:
     assert "librarySearch.trim().toLowerCase()" in javascript
     assert "libraryFilters.relationship" in javascript
     assert "libraryFilters.assetClass" in javascript
+    assert "target.effective_sponsorship_tier" in javascript
+    assert "target.sponsorship_tier || target.relationship_tier" not in javascript
+    assert 'data-outreach-filter="not_sent"' in html
+    assert 'data-outreach-filter="awaiting_response"' in html
+    assert "target.outreach_queue_state === pipelineOutreach" in javascript
+    assert "pipelineOutreach = button.dataset.outreachFilter" in javascript
+    filter_handler = javascript.split(
+        "$$('[data-outreach-filter]').forEach((button) => button.addEventListener",
+        1,
+    )[1].split("}));", 1)[0]
+    assert "api(" not in filter_handler
     assert "Return to automatic" in javascript
     assert 'class="draft-hook-checkbox"' in javascript
     assert "supporting_hook_ids: supportingHookIds" in javascript

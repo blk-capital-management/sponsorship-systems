@@ -352,9 +352,15 @@ textarea { resize: vertical; line-height: 1.5; }
 .crm-batch-toolbar > div span { margin-top: 3px; color: var(--muted); font-size: 8px; line-height: 1.45; }
 .filter-group { display: flex; gap: 8px; align-items: end; }
 .search-field, .filter-field { display: grid; gap: 5px; }
-.search-field span, .filter-field span { color: var(--muted); font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
+.search-field span, .filter-field span, .outreach-filter > span { color: var(--muted); font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
 .search-field input { width: 190px; }
 .filter-field select { width: 150px; }
+.outreach-filter { display: grid; gap: 5px; }
+.segmented-control { display: flex; padding: 3px; border: 1px solid var(--line); border-radius: 9px; background: var(--wash); }
+.segmented-control button { min-height: 29px; padding: 5px 8px; border: 0; border-radius: 6px; color: var(--muted); background: transparent; font: inherit; font-size: 8px; font-weight: 760; white-space: nowrap; cursor: pointer; }
+.segmented-control button b { margin-left: 3px; font-size: 7px; }
+.segmented-control button.is-active { color: var(--violet-dark); background: white; box-shadow: 0 1px 4px rgba(50, 31, 60, .10); }
+.segmented-control button:focus-visible { outline: 2px solid var(--violet); outline-offset: 1px; }
 .table-wrap { overflow: auto; }
 table { width: 100%; min-width: 980px; border-collapse: collapse; font-size: 10px; }
 th { position: sticky; top: 0; z-index: 1; padding: 10px 11px; color: var(--muted); background: white; text-align: left; font-size: 8px; font-weight: 850; text-transform: uppercase; letter-spacing: .065em; white-space: nowrap; }

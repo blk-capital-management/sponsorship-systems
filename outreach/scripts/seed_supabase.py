@@ -29,6 +29,7 @@ from dashboard.crm import (  # noqa: E402
     ACTIVE_PIPELINE_STAGES,
     canonical_pipeline_stage,
     canonical_relationship,
+    effective_sponsorship_tier,
 )
 from dashboard.storage import SupabaseSettings, SupabaseStorage  # noqa: E402
 from scripts.derive_target_status import normalize_firm, read_crm  # noqa: E402
@@ -54,7 +55,9 @@ def target_payload(row: dict[str, str]) -> dict[str, Any]:
         relationship_status=relationship_status,
         notes=row.get("notes"),
     )
-    return {
+    relationship_tier = row.get("relationship_tier", "").strip()
+    relationship_expiration = row.get("relationship_expiration", "").strip() or None
+    payload = {
         "owner": row["owner"].strip().lower(),
         "firm": row["firm"].strip(),
         "firm_slug": firm_slug(row["firm"]),
@@ -75,14 +78,19 @@ def target_payload(row: dict[str, str]) -> dict[str, Any]:
         "has_known_contact": as_bool(row.get("has_known_contact")),
         "contact_needs_refresh": as_bool(row.get("contact_needs_refresh")),
         "relationship_record_id": row.get("relationship_record_id", "").strip(),
-        "relationship_tier": row.get("relationship_tier", "").strip(),
+        "relationship_tier": relationship_tier,
         "relationship_status": row.get("relationship_status", "").strip(),
         "relationship_contact_name": row.get("relationship_contact_name", "").strip(),
         "relationship_contact_email": row.get("relationship_contact_email", "").strip(),
-        "relationship_expiration": row.get("relationship_expiration", "").strip() or None,
+        "relationship_expiration": relationship_expiration,
         "relationship_decline_reason": row.get("relationship_decline_reason", "").strip(),
         "relationship_crm_source": row.get("relationship_crm_source", "").strip(),
     }
+    payload["sponsorship_tier"] = effective_sponsorship_tier({
+        "sponsorship_tier": row.get("sponsorship_tier") or relationship_tier,
+        "relationship_expiration": relationship_expiration,
+    })
+    return payload
 
 
 def read_target_rows() -> list[dict[str, str]]:

@@ -448,6 +448,7 @@ def test_derive_status_reconstructs_crm_rows_from_the_database(jamari: Dashboard
     assert result["contact_status"] == "existing_partner"
     assert result["has_known_contact"] is True
     assert result["relationship_tier"] == "Gold"
+    assert result["sponsorship_tier"] == "Gold"
     assert result["relationship_contact_email"] == "jane@acme.com"
 
 

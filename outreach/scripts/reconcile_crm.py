@@ -30,7 +30,11 @@ REPO_ROOT = PROJECT_ROOT.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from dashboard.crm import canonical_pipeline_stage, canonical_relationship  # noqa: E402
+from dashboard.crm import (  # noqa: E402
+    canonical_pipeline_stage,
+    canonical_relationship,
+    effective_sponsorship_tier,
+)
 from scripts.derive_target_status import normalize_firm  # noqa: E402
 
 
@@ -363,7 +367,7 @@ def database_record(row: Mapping[str, Any]) -> dict[str, str]:
         "firm": clean(row.get("firm")),
         "relationship_status": relationship,
         "pipeline_stage": stage,
-        "tier": clean(row.get("sponsorship_tier") or row.get("relationship_tier") or row.get("tier_target")),
+        "tier": clean(effective_sponsorship_tier(row)),
         "region": clean(row.get("region")),
         "partnership_scope": clean(row.get("partnership_scope") or row.get("region")),
         "partnership_type": clean(row.get("partnership_type") or row.get("relationship")),

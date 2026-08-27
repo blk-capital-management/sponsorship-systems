@@ -13,6 +13,7 @@ than a second CRM dimension.
 
 from __future__ import annotations
 
+from datetime import date, datetime
 from typing import Any, Mapping
 
 
@@ -57,6 +58,53 @@ ACTIVE_PIPELINE_STAGES = frozenset({
 })
 
 TERMINAL_RELATIONSHIPS = frozenset({"Not Interested", "Archived"})
+
+OUTREACH_NOT_SENT = "not_sent"
+OUTREACH_AWAITING_RESPONSE = "awaiting_response"
+OUTREACH_ADVANCED = "advanced"
+OUTREACH_NOT_APPLICABLE = "not_applicable"
+
+_OUTREACH_ADVANCEMENT_STAGES = frozenset({
+    "Responded",
+    "Meeting Scheduled",
+    "Renewal / In Conversation",
+    "Proposal / Contract",
+    "Closed / Partner",
+    "Closed / No Active Workflow",
+})
+
+
+def _date_value(value: Any) -> date | None:
+    """Parse a database date without guessing incomplete or ambiguous values."""
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        return date.fromisoformat(text[:10])
+    except ValueError:
+        return None
+
+
+def effective_sponsorship_tier(
+    target: Mapping[str, Any], *, today: date | None = None
+) -> str | None:
+    """Return a tier only while the firm has a future-dated agreement.
+
+    ``relationship_expiration`` is the existing database field backing the
+    product's expiration date. ``expiration_date`` is accepted as an API/data
+    alias so callers do not need a second implementation of the lifecycle rule.
+    """
+    tier = str(target.get("sponsorship_tier") or "").strip()
+    expiration = _date_value(
+        target.get("expiration_date") or target.get("relationship_expiration")
+    )
+    if not tier or expiration is None or expiration <= (today or date.today()):
+        return None
+    return tier
 
 
 def canonical_relationship(
@@ -172,6 +220,32 @@ def effective_pipeline_stage(target: Mapping[str, Any]) -> str:
     return override or automatic_pipeline_stage(target)
 
 
+def latest_outreach_at(drafts: list[Mapping[str, Any]]) -> str | None:
+    """Return the newest human-confirmed send timestamp for a firm."""
+    timestamps = [str(draft.get("sent_at")) for draft in drafts if draft.get("sent_at")]
+    return max(timestamps) if timestamps else None
+
+
+def outreach_queue_state(
+    target: Mapping[str, Any], drafts: list[Mapping[str, Any]]
+) -> str:
+    """Derive the acquisition queue from send records and CRM advancement.
+
+    A draft, contact, or stage label never counts as a send. ``sent_at`` is set
+    only by the human-confirmed mark-sent RPC and is therefore the authoritative
+    source for initial outreach.
+    """
+    relationship = effective_relationship(target)
+    stage = effective_pipeline_stage(target)
+    if relationship != "Cold Prospect":
+        return OUTREACH_NOT_APPLICABLE
+    if stage in _OUTREACH_ADVANCEMENT_STAGES:
+        return OUTREACH_ADVANCED
+    if latest_outreach_at(drafts) is None:
+        return OUTREACH_NOT_SENT
+    return OUTREACH_AWAITING_RESPONSE
+
+
 def pipeline_visible(target: Mapping[str, Any]) -> bool:
     """An active workflow, not relationship status alone, controls visibility."""
     active_value = target.get("pipeline_active", True)
@@ -216,6 +290,7 @@ def enrich_target(
         ),
         "relationship_status_is_overridden": bool(row.get("relationship_status_override")),
         "pipeline_stage_is_overridden": bool(row.get("pipeline_stage_override")),
+        "effective_sponsorship_tier": effective_sponsorship_tier(row),
     })
     row["pipeline_visible"] = pipeline_visible(row)
     row["contact_status"] = legacy_contact_status(relationship)

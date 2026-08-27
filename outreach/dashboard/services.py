@@ -28,11 +28,16 @@ from contacts.record import ContactRecord
 from contacts.verify import verify_rows
 from dashboard.auth import DashboardUser
 from dashboard.crm import (
+    OUTREACH_AWAITING_RESPONSE,
+    OUTREACH_NOT_SENT,
     canonical_relationship,
     canonical_pipeline_stage,
+    effective_sponsorship_tier,
     effective_relationship,
     enrich_target,
+    latest_outreach_at,
     legacy_contact_status,
+    outreach_queue_state,
 )
 from dashboard.models import IntakeFirm
 from dashboard.storage import SupabaseConfigurationError, SupabaseStorage
@@ -712,6 +717,13 @@ def derive_status(
         ) from exc
     result = derive(target["firm"], _crm_rows_from_database(raw_rows), date.today())
     deciding = result.deciding
+    expiration = (
+        deciding.expiration.isoformat() if deciding and deciding.expiration else None
+    )
+    sponsorship_tier = effective_sponsorship_tier({
+        "sponsorship_tier": deciding.tier if deciding else None,
+        "relationship_expiration": expiration,
+    })
     new_auto = canonical_relationship(
         deciding.status if deciding else "", result.contact_status
     )
@@ -727,12 +739,11 @@ def derive_status(
         "contact_needs_refresh": bool(target.get("contact_needs_refresh")),
         "relationship_record_id": deciding.record_id if deciding else "",
         "relationship_tier": deciding.tier if deciding else "",
+        "sponsorship_tier": sponsorship_tier,
         "relationship_status": deciding.status if deciding else "",
         "relationship_contact_name": "; ".join(deciding.contacts) if deciding else "",
         "relationship_contact_email": "; ".join(deciding.emails) if deciding else "",
-        "relationship_expiration": (
-            deciding.expiration.isoformat() if deciding and deciding.expiration else None
-        ),
+        "relationship_expiration": expiration,
         "relationship_decline_reason": deciding.decline_reason if deciding else "",
         "relationship_crm_source": deciding.where() if deciding else "",
     }
@@ -1325,7 +1336,7 @@ def _automatic_stage_from_activity(
     # an operator can explicitly put any of these firms back into Re-engagement.
     if relationship in {"Global Partner", "Not Interested", "Archived"}:
         return canonical_pipeline_stage("", relationship_status=relationship)
-    if any(draft.get("status") == "sent" for draft in drafts):
+    if any(draft.get("sent_at") for draft in drafts):
         return "Outreach Sent"
     if any(draft.get("status") in {"pending_review", "approved", "rejected"} for draft in drafts):
         return "Draft Ready"
@@ -1566,6 +1577,8 @@ def dashboard_state(
                 drafts=drafts_by_target.get(target_id, []),
             ),
         )
+        target_drafts = drafts_by_target.get(target_id, [])
+        queue_state = outreach_queue_state(enriched, target_drafts)
         decision = evaluate_pre_hunter_gate(enriched)
         target_contacts = contacts_by_target.get(target_id, [])
         own_timestamps = [
@@ -1580,6 +1593,8 @@ def dashboard_state(
                 else target.get("relationship_contact_name") or ""
             ),
             "last_activity": max(own_timestamps) if own_timestamps else "",
+            "outreach_queue_state": queue_state,
+            "last_outreach_at": latest_outreach_at(target_drafts),
             "hunter_gate": {
                 "skip": decision.skip,
                 "status": "skipped" if decision.skip else "eligible",
@@ -1623,6 +1638,16 @@ def dashboard_state(
         "counts": {
             "targets": len(targets_with_gate),
             "pipeline_targets": sum(bool(t.get("pipeline_visible")) for t in targets_with_gate),
+            "outreach_not_sent": sum(
+                t.get("pipeline_visible")
+                and t.get("outreach_queue_state") == OUTREACH_NOT_SENT
+                for t in targets_with_gate
+            ),
+            "outreach_awaiting_response": sum(
+                t.get("pipeline_visible")
+                and t.get("outreach_queue_state") == OUTREACH_AWAITING_RESPONSE
+                for t in targets_with_gate
+            ),
             "cold_prospect": sum(t.get("contact_status") == "cold_prospect" for t in targets_with_gate),
             "existing_partner": sum(t.get("contact_status") == "existing_partner" for t in targets_with_gate),
             "lapsed_partner": sum(t.get("contact_status") == "lapsed_partner" for t in targets_with_gate),

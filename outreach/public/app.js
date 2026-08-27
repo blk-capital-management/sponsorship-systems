@@ -11,6 +11,7 @@ let selectedFirmId = null;
 let firmDetail = null;
 let pipelineSearch = "";
 let pipelineStatus = "all";
+let pipelineOutreach = "all";
 let librarySearch = "";
 const libraryFilters = {
   relationship: "all", stage: "all", owner: "all",
@@ -607,6 +608,18 @@ function renderPipeline() {
   const drafts = draftsByTarget();
   const query = pipelineSearch.trim().toLowerCase();
   const pipelineTargets = state.targets.filter((target) => target.pipeline_visible);
+  const outreachCounts = {
+    all: state.counts?.pipeline_targets || pipelineTargets.length,
+    not_sent: state.counts?.outreach_not_sent || 0,
+    awaiting_response: state.counts?.outreach_awaiting_response || 0,
+  };
+  $$('[data-outreach-filter]').forEach((button) => {
+    const selected = button.dataset.outreachFilter === pipelineOutreach;
+    button.classList.toggle("is-active", selected);
+    button.setAttribute("aria-pressed", String(selected));
+    const count = button.querySelector("b");
+    if (count) count.textContent = outreachCounts[button.dataset.outreachFilter] ?? 0;
+  });
   const pipelineIds = new Set(pipelineTargets.map((target) => target.id));
   for (const targetId of selectedTargets) {
     if (!pipelineIds.has(targetId)) selectedTargets.delete(targetId);
@@ -614,7 +627,11 @@ function renderPipeline() {
   const visibleTargets = pipelineTargets.filter((target) => {
     const matchesQuery = !query || `${target.firm} ${target.domain || ""}`.toLowerCase().includes(query);
     const status = target.relationship_status_effective || "Cold Prospect";
-    return matchesQuery && (pipelineStatus === "all" || status === pipelineStatus);
+    const matchesOutreach = pipelineOutreach === "all"
+      || target.outreach_queue_state === pipelineOutreach;
+    return matchesQuery
+      && (pipelineStatus === "all" || status === pipelineStatus)
+      && matchesOutreach;
   });
   $("#pipeline-body").innerHTML = visibleTargets.length ? visibleTargets.map((target) => {
     const artifact = research.get(target.id);
@@ -622,6 +639,10 @@ function renderPipeline() {
     const targetDrafts = drafts.get(target.id) || [];
     const latestDraft = targetDrafts[0];
     const gate = target.hunter_gate || { status: "unknown", reason: "Gate not evaluated." };
+    const outreachTitle = target.outreach_queue_state === "awaiting_response"
+      && target.last_outreach_at
+      ? `Last outreach ${String(target.last_outreach_at).slice(0, 10)}`
+      : "";
     return `<tr>
       <td><input class="target-check" type="checkbox" data-id="${target.id}" ${selectedTargets.has(target.id) ? "checked" : ""}></td>
       <td class="firm-cell">
@@ -639,13 +660,13 @@ function renderPipeline() {
         <span>${targetContacts.length ? `${targetContacts.length} verified` : `<span class="quiet">None yet</span>`}</span>
         <button class="text-button add-contact" type="button" data-id="${target.id}" data-firm="${escapeHtml(target.firm)}">Add contact</button>
       </td>
-      <td>${latestDraft ? pill(latestDraft.status) : "None"}</td>
+      <td><span${outreachTitle ? ` title="${escapeHtml(outreachTitle)}"` : ""}>${latestDraft ? pill(latestDraft.status) : "None"}</span></td>
       <td>${draftBlocker(target, artifact, targetContacts)
         ? `<span class="quiet" title="${escapeHtml(draftBlocker(target, artifact, targetContacts))}">Not ready</span>`
         : `<button class="text-button create-draft" data-id="${target.id}">Create draft</button>`}</td>
       <td><button class="text-button danger remove-target" type="button" data-id="${target.id}" data-firm="${escapeHtml(target.firm)}">Remove from pipeline</button></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="10">${emptyState(pipelineTargets.length ? "No matching firms" : "Your pipeline is empty", pipelineTargets.length ? "Clear the search or change the relationship filter." : "Add or reopen a firm from Firm Library.")}</td></tr>`;
+  }).join("") : `<tr><td colspan="10">${emptyState(pipelineTargets.length ? "No matching firms" : "Your pipeline is empty", pipelineTargets.length ? "Clear the search or change a pipeline filter." : "Add or reopen a firm from Firm Library.")}</td></tr>`;
 
   $$(".target-check").forEach((input) => input.addEventListener("change", () => {
     if (input.checked) selectedTargets.add(input.dataset.id);
@@ -668,7 +689,9 @@ function renderPipeline() {
     }
     renderPipeline();
   };
-  $("#pipeline-results-summary").textContent = `Showing ${visibleTargets.length} of ${pipelineTargets.length} active workflow firms · ${state.targets.length} total in Firm Library`;
+  const outreachLabel = pipelineOutreach === "all" ? "all outreach states"
+    : pipelineOutreach === "not_sent" ? "not sent" : "awaiting response";
+  $("#pipeline-results-summary").textContent = `Showing ${visibleTargets.length} of ${pipelineTargets.length} active workflow firms · ${outreachLabel} · ${state.targets.length} total in Firm Library`;
   updateSelectionControls(visibleTargets);
 }
 
@@ -742,13 +765,13 @@ function renderLibrary() {
   syncLibraryFilter("#library-owner", targets.map((target) => target.assigned_owner_effective || target.owner), libraryFilters.owner);
   syncLibraryFilter("#library-asset-class", targets.map((target) => target.firm_type), libraryFilters.assetClass);
   syncLibraryFilter("#library-region", targets.map((target) => target.region), libraryFilters.region);
-  syncLibraryFilter("#library-tier", targets.map((target) => target.sponsorship_tier || target.relationship_tier || target.tier_target), libraryFilters.tier);
+  syncLibraryFilter("#library-tier", targets.map((target) => target.effective_sponsorship_tier), libraryFilters.tier);
   $("#library-relationship").value = libraryFilters.relationship;
   $("#library-stage").value = libraryFilters.stage;
 
   const query = librarySearch.trim().toLowerCase();
   const rows = targets.filter((target) => {
-    const tier = target.sponsorship_tier || target.relationship_tier || target.tier_target || "";
+    const tier = target.effective_sponsorship_tier || "";
     return (!query || `${target.firm} ${target.domain || ""}`.toLowerCase().includes(query))
       && (libraryFilters.relationship === "all" || target.relationship_status_effective === libraryFilters.relationship)
       && (libraryFilters.stage === "all" || target.pipeline_stage_effective === libraryFilters.stage)
@@ -759,7 +782,7 @@ function renderLibrary() {
   });
   $("#library-summary").textContent = `${rows.length} of ${targets.length} permanent firm record(s)`;
   $("#library-body").innerHTML = rows.length ? rows.map((target) => {
-    const tier = target.sponsorship_tier || target.relationship_tier || target.tier_target || "";
+    const tier = target.effective_sponsorship_tier || "";
     return `<tr>
       <td class="firm-cell"><button class="library-firm-link" type="button" data-id="${target.id}"><strong>${escapeHtml(target.firm)}</strong><span>${escapeHtml(target.domain || "No domain")}</span></button></td>
       <td>${statusControl(target, "relationship_status")}</td>
@@ -818,13 +841,13 @@ function renderFirmDetail() {
     <div class="firm-detail-grid">
       <article class="panel firm-section span-2"><div class="detail-section-heading"><h4>Overview</h4></div><div class="crm-field-grid">
         ${detailValue("Firm", target.firm)}${detailValue("Domain", target.domain)}${detailValue("Asset class", target.firm_type)}${detailValue("Region", target.region)}
-        ${detailValue("Assigned owner", target.assigned_owner || target.owner)}${detailValue("Access lane", target.owner)}${detailValue("Relationship status", target.relationship_status_effective)}${detailValue("Pipeline stage", target.pipeline_stage_effective)}${detailValue("Sponsorship tier", target.sponsorship_tier || target.relationship_tier || target.tier_target)}
+        ${detailValue("Assigned owner", target.assigned_owner || target.owner)}${detailValue("Access lane", target.owner)}${detailValue("Relationship status", target.relationship_status_effective)}${detailValue("Pipeline stage", target.pipeline_stage_effective)}${detailValue("Sponsorship tier", target.effective_sponsorship_tier)}
         ${detailValue("Expiration / renewal date", target.relationship_expiration)}${detailValue("Partnership scope", target.partnership_scope)}${detailValue("Partnership type", target.partnership_type)}${detailValue("Next step", target.next_step)}${detailValue("Next-step due", target.next_step_due)}
       </div></article>
       <article class="panel firm-section"><div class="detail-section-heading"><h4>Contacts</h4></div><div class="crm-list">${contacts.length ? contacts.map((contact) => `
         <div class="crm-list-row"><div><strong>${escapeHtml(contact.name || "Unnamed contact")}${contact.dropped ? " (inactive)" : ""}</strong><span>${escapeHtml(contact.title || "No title")} · ${escapeHtml(contact.email || "No email")}</span>${contact.contact_provenance?.discovery_url ? `<span>Source: ${escapeHtml(contact.contact_provenance.discovery_url)}</span>` : ""}</div>${pill(contact.verification_status || "unverified")}</div>`).join("") : emptyState("No contacts", "Add a sourced contact from the pipeline or firm record.")}</div></article>
       <article class="panel firm-section"><div class="detail-section-heading"><h4>Partnership</h4></div><div class="crm-field-grid single">
-        ${detailValue("Tier", target.sponsorship_tier || target.relationship_tier || target.tier_target)}${detailValue("Scope", target.partnership_scope || target.region)}${detailValue("Type", target.partnership_type)}${detailValue("Expiration", target.relationship_expiration)}${detailValue("Historical status", target.relationship_status)}${detailValue("Renewal notes", target.renewal_notes || target.relationship_decline_reason)}${detailValue("Last touchpoint", target.last_touchpoint)}${detailValue("Email-chain notes", target.email_chain_notes)}${detailValue("Contact verification", target.contact_verified_status)}
+        ${detailValue("Tier", target.effective_sponsorship_tier)}${detailValue("Scope", target.partnership_scope || target.region)}${detailValue("Type", target.partnership_type)}${detailValue("Expiration", target.relationship_expiration)}${detailValue("Historical status", target.relationship_status)}${detailValue("Renewal notes", target.renewal_notes || target.relationship_decline_reason)}${detailValue("Last touchpoint", target.last_touchpoint)}${detailValue("Email-chain notes", target.email_chain_notes)}${detailValue("Contact verification", target.contact_verified_status)}
       </div></article>
       <article class="panel firm-section span-2"><div class="detail-section-heading"><h4>Research</h4></div><div class="research-records">${hooks.length ? hooks.map((hook) => `<div class="research-record"><p>${escapeHtml(hook.text || hook.claim || "Sourced research finding")}</p><a href="${escapeHtml(safeHttpUrl(hook.firm_claim_source || hook.source_url))}" target="_blank" rel="noopener noreferrer">${escapeHtml(hook.firm_claim_source || hook.source_url || "Source unavailable")}</a></div>`).join("") : emptyState("No sourced research", "Unsourced meeting notes stay separate and do not appear here.")}</div></article>
       <article class="panel firm-section span-2"><div class="detail-section-heading"><h4>Meeting notes</h4><button id="add-meeting-note" class="button secondary" type="button">+ Add Meeting Note</button></div><div class="meeting-note-list">${notes.length ? notes.map((note) => `<article class="meeting-note-card"><div><strong>${escapeHtml(note.interaction_type || "Meeting")} · ${escapeHtml(note.interaction_date)}</strong><span>${escapeHtml((note.participants || []).join(", ") || "Participants not recorded")}</span></div><p>${escapeHtml(note.notes)}</p>${note.next_step ? `<p><strong>Next step:</strong> ${escapeHtml(note.next_step)}${note.follow_up_date ? ` · ${escapeHtml(note.follow_up_date)}` : ""}</p>` : ""}<button class="text-button edit-meeting-note" type="button" data-id="${note.id}">Edit</button></article>`).join("") : emptyState("No meeting notes", "Add a meeting, call, or interaction note without inventing missing details.")}</div></article>
@@ -1511,6 +1534,10 @@ function bindEvents() {
     pipelineStatus = event.target.value;
     renderPipeline();
   });
+  $$('[data-outreach-filter]').forEach((button) => button.addEventListener("click", () => {
+    pipelineOutreach = button.dataset.outreachFilter;
+    renderPipeline();
+  }));
   $("#apply-batch-relationship").addEventListener("click", () => {
     try { applyBatchStatus("relationship_status", $("#batch-relationship-status").value); }
     catch (error) { showToast(error.message, true); }

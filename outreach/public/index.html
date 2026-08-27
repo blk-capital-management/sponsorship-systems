@@ -306,6 +306,11 @@
               <div class="filter-group">
                 <label class="search-field" for="pipeline-search"><span>Search</span><input id="pipeline-search" type="search" placeholder="Firm or domain"></label>
                 <label class="filter-field" for="pipeline-filter"><span>Relationship</span><select id="pipeline-filter"><option value="all">All relationships</option></select></label>
+                <div class="outreach-filter"><span>Outreach</span><div class="segmented-control" role="group" aria-label="Outreach queue">
+                  <button type="button" class="is-active" data-outreach-filter="all" aria-pressed="true">All <b>0</b></button>
+                  <button type="button" data-outreach-filter="not_sent" aria-pressed="false">Not sent <b>0</b></button>
+                  <button type="button" data-outreach-filter="awaiting_response" aria-pressed="false">Awaiting response <b>0</b></button>
+                </div></div>
               </div>
               <div class="button-row">
                 <button id="derive-selected" class="button secondary step-button" type="button" disabled>
