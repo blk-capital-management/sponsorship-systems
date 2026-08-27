@@ -52,15 +52,19 @@ _WORD = re.compile(r"[A-Za-z][A-Za-z'&.\-]*|\d[\d,.%]*")
 
 @dataclass
 class SentenceEvidence:
-    """One paragraph sentence and the hook that backs it."""
+    """One paragraph sentence and the selected hook(s) that back it."""
     sentence: str
     source_url: str | None
     hook_index: int | None
     unsupported_terms: list[str] = field(default_factory=list)
+    source_urls: list[str] = field(default_factory=list)
+    hook_indices: list[int] = field(default_factory=list)
+    hook_ids: list[str] = field(default_factory=list)
+    unsupported_phrase: str | None = None
 
     @property
     def supported(self) -> bool:
-        return self.source_url is not None and not self.unsupported_terms
+        return bool(self.source_url or self.source_urls) and not self.unsupported_terms
 
 
 @dataclass
@@ -168,11 +172,73 @@ def _approved_blk_vocabulary(facts: dict[str, Any]) -> set[str]:
     return vocab
 
 
+_CONTENT_STOPWORDS = _ENTITY_STOPWORDS | frozenset({
+    "also", "already", "can", "could", "day", "does", "firm", "firm's",
+    "group", "has", "have", "having", "makes", "make", "may", "people",
+    "program", "programs", "same", "something", "team", "teams", "through",
+    "will", "would",
+})
+
+# These words connect a sourced firm fact to BLK's mission.  They express the
+# writer's interpretation rather than a new factual assertion about the firm.
+_INTERPRETIVE_VOCAB = frozenset({
+    "ambitious", "connect", "connecting", "connection", "drawn", "emphasis",
+    "fit", "focus", "natural", "network", "partner", "partnership", "relevant",
+    "relationship", "student", "students", "talent", "undergraduate",
+    "undergraduates",
+})
+
+_FIRM_REFERENCE = re.compile(
+    r"\b(?:the firm|the company|its|their|they|them|your|you)\b", re.IGNORECASE
+)
+
+# A small, deliberately conservative set of claim patterns that are dangerous
+# when they appear in human-authored copy without matching language in a hook.
+_FACTUAL_CLAIM_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"\bmore than\b", re.IGNORECASE), "more than"),
+    (re.compile(r"\bless than\b", re.IGNORECASE), "less than"),
+    (re.compile(r"\bany competing\b", re.IGNORECASE), "any competing"),
+    (re.compile(r"\bnext year\b", re.IGNORECASE), "next year"),
+    (re.compile(r"\b(?:double|triple)[sd]?\b", re.IGNORECASE), "double/triple"),
+    (re.compile(r"\bplans?\b|\bplanned\b", re.IGNORECASE), "plans"),
+    (re.compile(r"\b(?:hire|hires|hired|hiring)\b", re.IGNORECASE), "hires"),
+    (re.compile(r"\b(?:largest|leading|only|most)\b", re.IGNORECASE), "superlative"),
+    (re.compile(r"\bspecifically identified\b", re.IGNORECASE), "specifically identified"),
+    (re.compile(r"\brecruiting priority\b", re.IGNORECASE), "recruiting priority"),
+)
+
+
+def _normal_token(token: str) -> str:
+    """Normalize just enough morphology to compare copy with source prose."""
+    value = token.lower().replace("’", "'").strip(".'")
+    if value.endswith("'s"):
+        value = value[:-2]
+    if value in {"u.s", "u.s.", "us"}:
+        return "us"
+    if len(value) > 5 and value.endswith("ies"):
+        return value[:-3] + "y"
+    if len(value) > 4 and value.endswith("es"):
+        return value[:-1]
+    if len(value) > 3 and value.endswith("s") and not value.endswith("ss"):
+        return value[:-1]
+    return value
+
+
+def _normalized_vocabulary(value: str) -> set[str]:
+    return {_normal_token(token) for token in _WORD.findall(value) if _normal_token(token)}
+
+
+def _phrase_is_sourced(phrase: str, hook_vocabs: list[set[str]]) -> bool:
+    phrase_tokens = _normalized_vocabulary(phrase)
+    return bool(phrase_tokens) and any(phrase_tokens <= vocab for vocab in hook_vocabs)
+
+
 def check_firm_paragraph(
     paragraph: str,
     hooks: list[dict[str, Any]],
     facts: dict[str, Any],
     *,
+    firm_name: str = "",
     min_sentences: int = 2,
     max_sentences: int = 3,
 ) -> ProvenanceReport:
@@ -222,59 +288,101 @@ def check_firm_paragraph(
         )
 
     hook_vocabs = [
-        _vocabulary([h.get("text") or h.get("value") or ""]) for h in usable_hooks
+        _normalized_vocabulary(
+            " ".join(str(h.get(key) or "") for key in ("text", "value", "quote"))
+        )
+        for h in usable_hooks
     ]
-    blk_vocab = _approved_blk_vocabulary(facts)
+    hook_union = set().union(*hook_vocabs)
+    blk_vocab = {_normal_token(token) for token in _approved_blk_vocabulary(facts)}
+    firm_vocab = _normalized_vocabulary(firm_name)
 
     for sentence in sentences:
         terms = _claim_terms(sentence)
-        firm_terms = [t for t in terms if t.lower().strip(".") not in blk_vocab]
+        firm_terms = [
+            term for term in terms
+            if _normal_token(term) not in blk_vocab | firm_vocab
+        ]
 
         # Pick the hook that best explains this sentence, not merely the first
         # that covers its vocabulary. Hooks about the same firm share words like
         # the firm's name, so first-match credits sentences to the wrong URL,
         # and a wrong source_url in the evidence block is worse than none.
-        sentence_vocab = _vocabulary([sentence])
-        best_index: int | None = None
-        best_unsupported: list[str] = firm_terms
-        best_overlap = -1
-        for index, hook_vocab in enumerate(hook_vocabs):
-            unsupported = [
-                t for t in firm_terms if t.lower().strip(".") not in hook_vocab
-            ]
-            overlap = len(sentence_vocab & hook_vocab)
-            better = (
-                best_index is None
-                or len(unsupported) < len(best_unsupported)
-                or (len(unsupported) == len(best_unsupported) and overlap > best_overlap)
-            )
-            if better:
-                best_index, best_unsupported, best_overlap = index, unsupported, overlap
+        sentence_vocab = _normalized_vocabulary(sentence)
+        content_vocab = {
+            token for token in sentence_vocab
+            if token not in blk_vocab | firm_vocab | _CONTENT_STOPWORDS | _INTERPRETIVE_VOCAB
+        }
+        overlaps = [len(content_vocab & hook_vocab) for hook_vocab in hook_vocabs]
+        best_overlap = max(overlaps, default=0)
+        best_index = overlaps.index(best_overlap) if best_overlap else None
+        best_unsupported = [
+            term for term in firm_terms
+            if _normal_token(term) not in hook_union
+        ]
+
+        unsupported_claims = [
+            label for pattern, label in _FACTUAL_CLAIM_PATTERNS
+            if pattern.search(sentence) and not _phrase_is_sourced(pattern.search(sentence).group(0), hook_vocabs)
+        ]
+        mentions_firm_name = bool(firm_vocab & sentence_vocab)
+        mentions_blk = "blk" in sentence_vocab
+        firm_reference = mentions_firm_name or (
+            bool(_FIRM_REFERENCE.search(sentence)) and not mentions_blk
+        )
+        # A factual firm sentence needs meaningful lexical contact with at
+        # least one selected hook.  One token is enough for a very short claim;
+        # longer claims require two, while connective BLK language is ignored.
+        required_overlap = 1 if len(content_vocab) <= 3 else 2
+        insufficient_support = firm_reference and bool(content_vocab) and best_overlap < required_overlap
+        if insufficient_support:
+            unsupported_words = sorted(content_vocab - hook_union)[:6]
+            best_unsupported.extend(word for word in unsupported_words if word not in best_unsupported)
+        best_unsupported.extend(
+            claim for claim in unsupported_claims if claim not in best_unsupported
+        )
 
         # A sentence making no firm-specific claim needs no hook, but it also
         # cannot be the whole paragraph, which the sentence-count gate covers.
-        if not firm_terms:
+        if not firm_reference and not firm_terms and not unsupported_claims:
             report.sentences.append(
                 SentenceEvidence(sentence=sentence, source_url=None, hook_index=None)
             )
             continue
 
+        relevant_indices = [
+            index for index, overlap in enumerate(overlaps)
+            if overlap > 0 and (overlap >= 2 or index == best_index)
+        ]
+        if best_index is not None and best_index not in relevant_indices:
+            relevant_indices.insert(0, best_index)
+        source_urls = [firm_claim_source_of(usable_hooks[index]) for index in relevant_indices]
+        hook_ids = [
+            str(usable_hooks[index].get("research_hook_id") or "")
+            for index in relevant_indices
+            if usable_hooks[index].get("research_hook_id")
+        ]
+        unsupported_phrase = ", ".join(best_unsupported) if best_unsupported else None
+
         evidence = SentenceEvidence(
             sentence=sentence,
-            source_url=(
-                firm_claim_source_of(usable_hooks[best_index])
-                if not best_unsupported else None
-            ),
-            hook_index=best_index if not best_unsupported else None,
+            source_url=source_urls[0] if source_urls and not best_unsupported else None,
+            hook_index=relevant_indices[0] if relevant_indices and not best_unsupported else None,
             unsupported_terms=best_unsupported,
+            source_urls=source_urls if not best_unsupported else [],
+            hook_indices=relevant_indices if not best_unsupported else [],
+            hook_ids=hook_ids if not best_unsupported else [],
+            unsupported_phrase=unsupported_phrase,
         )
         report.sentences.append(evidence)
 
         if best_unsupported:
             report.violations.append(
-                f"no source_url backs {', '.join(repr(t) for t in best_unsupported)} "
-                f"in sentence: {sentence!r}. Every firm-specific claim must trace to "
-                "a research hook (rule 1)."
+                f"Sentence {len(report.sentences)} contains a factual claim not "
+                "supported by the selected research hooks. Unsupported phrase: "
+                f"{unsupported_phrase!r}; no source_url backs it. Sentence: "
+                f"{sentence!r}. Every "
+                "firm-specific claim must trace to selected stored evidence (rule 1)."
             )
 
     return report
@@ -286,13 +394,17 @@ def build_evidence_block(report: ProvenanceReport, hooks: list[dict[str, Any]]) 
     lines = ["## Evidence", ""]
     for i, ev in enumerate(report.sentences, start=1):
         lines.append(f"{i}. {ev.sentence}")
-        if ev.hook_index is None:
+        indices = ev.hook_indices or ([ev.hook_index] if ev.hook_index is not None else [])
+        if not indices:
             lines.append("   Source: no firm-specific claim in this sentence")
         else:
-            hook = usable[ev.hook_index]
-            quote = hook.get("quote") or hook.get("text") or ""
-            lines.append(f"   Source: {ev.source_url}")
-            if quote:
-                lines.append(f"   Supporting text: {quote.strip()[:300]}")
+            for index in indices:
+                hook = usable[index]
+                quote = hook.get("quote") or hook.get("text") or ""
+                lines.append(f"   Source: {firm_claim_source_of(hook)}")
+                if hook.get("research_hook_id"):
+                    lines.append(f"   Hook ID: {hook['research_hook_id']}")
+                if quote:
+                    lines.append(f"   Supporting text: {quote.strip()[:300]}")
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"

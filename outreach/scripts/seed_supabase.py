@@ -25,6 +25,11 @@ if str(PROJECT_ROOT) not in sys.path:
 from common.config import load_settings, resolve_path  # noqa: E402
 from common.namespaces import build_contact_provenance  # noqa: E402
 from common.slugify import firm_slug  # noqa: E402
+from dashboard.crm import (  # noqa: E402
+    ACTIVE_PIPELINE_STAGES,
+    canonical_pipeline_stage,
+    canonical_relationship,
+)
 from dashboard.storage import SupabaseSettings, SupabaseStorage  # noqa: E402
 from scripts.derive_target_status import normalize_firm, read_crm  # noqa: E402
 
@@ -41,6 +46,14 @@ def as_int(value: Any, default: int = 0) -> int:
 
 
 def target_payload(row: dict[str, str]) -> dict[str, Any]:
+    relationship_status = canonical_relationship(
+        row.get("relationship_status"), row.get("contact_status")
+    )
+    pipeline_stage = canonical_pipeline_stage(
+        row.get("status"),
+        relationship_status=relationship_status,
+        notes=row.get("notes"),
+    )
     return {
         "owner": row["owner"].strip().lower(),
         "firm": row["firm"].strip(),
@@ -54,6 +67,11 @@ def target_payload(row: dict[str, str]) -> dict[str, Any]:
         "relationship": row.get("relationship", "prospect").strip() or "prospect",
         "notes": row.get("notes", "").strip(),
         "contact_status": row.get("contact_status", "cold_prospect").strip(),
+        "relationship_status_auto": relationship_status,
+        "relationship_status_auto_source": "seed_snapshot",
+        "pipeline_stage_auto": pipeline_stage,
+        "pipeline_stage_auto_source": "seed_snapshot",
+        "pipeline_active": pipeline_stage in ACTIVE_PIPELINE_STAGES,
         "has_known_contact": as_bool(row.get("has_known_contact")),
         "contact_needs_refresh": as_bool(row.get("contact_needs_refresh")),
         "relationship_record_id": row.get("relationship_record_id", "").strip(),

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from common.config import normalize_firm_category
 from contacts.patterns import render_address
+from dashboard.crm import PIPELINE_STAGES, RELATIONSHIP_STATUSES
 
 
 def _bare_domain(value: str) -> str:
@@ -133,6 +135,38 @@ class TargetBatchRequest(BaseModel):
     target_ids: list[str] = Field(min_length=1, max_length=25)
 
 
+class StatusOverrideRequest(BaseModel):
+    field: Literal["relationship_status", "pipeline_stage"]
+    value: str | None = Field(default=None, max_length=80)
+    clear: bool = False
+    reason: str | None = Field(default=None, max_length=500)
+
+    @field_validator("value", "reason")
+    @classmethod
+    def clean_optional_text(cls, value: str | None) -> str | None:
+        return " ".join(value.strip().split()) if value else None
+
+    @model_validator(mode="after")
+    def validate_status_change(self) -> "StatusOverrideRequest":
+        if self.clear:
+            if self.value:
+                raise ValueError("A cleared override must not include a value.")
+            return self
+        if not self.value:
+            raise ValueError("A status value is required.")
+        allowed = (
+            RELATIONSHIP_STATUSES
+            if self.field == "relationship_status" else PIPELINE_STAGES
+        )
+        if self.value not in allowed:
+            raise ValueError(f"Unrecognized {self.field.replace('_', ' ')}.")
+        return self
+
+
+class BatchStatusOverrideRequest(StatusOverrideRequest):
+    target_ids: list[str] = Field(min_length=1, max_length=25)
+
+
 class ContactPreviewRequest(TargetBatchRequest):
     pass
 
@@ -146,6 +180,15 @@ class DraftRequest(BaseModel):
     target_id: str
     contact_id: str | None = None
     firm_specific_paragraph: str | None = Field(default=None, max_length=3000)
+    supporting_hook_ids: list[str] = Field(default_factory=list, max_length=3)
+
+    @field_validator("supporting_hook_ids")
+    @classmethod
+    def clean_supporting_hook_ids(cls, value: list[str]) -> list[str]:
+        cleaned = [item.strip() for item in value if item.strip()]
+        if len(cleaned) != len(set(cleaned)):
+            raise ValueError("Each supporting research hook may be selected only once.")
+        return cleaned
 
 
 class ReviewRequest(BaseModel):
@@ -210,3 +253,33 @@ class ResolveManualRequest(BaseModel):
         if not cleaned:
             raise ValueError("A resolution note is required.")
         return cleaned
+
+
+class MeetingNoteRequest(BaseModel):
+    interaction_date: date
+    interaction_type: str = Field(default="Meeting", max_length=80)
+    participants: list[str] = Field(default_factory=list, max_length=50)
+    notes: str = Field(min_length=1, max_length=12000)
+    next_step: str = Field(default="", max_length=2000)
+    follow_up_date: date | None = None
+
+    @field_validator("interaction_type", "notes", "next_step")
+    @classmethod
+    def clean_note_text(cls, value: str) -> str:
+        return " ".join(value.strip().split())
+
+    @field_validator("participants")
+    @classmethod
+    def clean_participants(cls, values: list[str]) -> list[str]:
+        cleaned: list[str] = []
+        for value in values:
+            participant = " ".join(value.strip().split())
+            if participant and participant not in cleaned:
+                cleaned.append(participant)
+        return cleaned
+
+    @model_validator(mode="after")
+    def validate_dates(self) -> "MeetingNoteRequest":
+        if not self.notes:
+            raise ValueError("Meeting notes are required.")
+        return self

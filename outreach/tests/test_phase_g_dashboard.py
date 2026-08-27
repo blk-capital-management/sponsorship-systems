@@ -421,6 +421,10 @@ def test_derive_status_reconstructs_crm_rows_from_the_database(jamari: Dashboard
     future_expiration = (date.today() + timedelta(days=365)).isoformat()
 
     class CrmStorage:
+        def insert(self, table, rows, token, *, return_rows=True, lane=None):
+            assert table == "crm_audit_events"
+            return []
+
         def select(self, table, token, *, params=None, lane=None):
             assert table == "targets"
             return [{"id": "t1", "firm": "Acme Capital", "owner": "jamari",
@@ -736,8 +740,8 @@ def test_health_and_static_shell_are_served_with_security_headers() -> None:
     assert 'id="google-signin"' in index.text
     assert 'type="button" disabled' in index.text
     assert 'id="app-view" class="app-shell hidden" hidden' in index.text
-    assert '/styles.css?v=20260816.4' in index.text
-    assert '/app.js?v=20260816.4' in index.text
+    assert '/styles.css?v=20260826.2' in index.text
+    assert '/app.js?v=20260826.2' in index.text
     assert "Recommended next step" in index.text
     assert "Build the evidence before the email" in index.text
 
@@ -1043,6 +1047,7 @@ class TargetMutationStorage:
         self.conflicts = conflicts or []
         self.updates: list[tuple[str, Any, Any]] = []
         self.deletes: list[tuple[str, Any]] = []
+        self.rpcs: list[tuple[str, dict[str, Any], str, str | None]] = []
 
     def select(
         self, table: str, token: str, *, params: Any = None, lane: str | None = None
@@ -1073,6 +1078,15 @@ class TargetMutationStorage:
         self, table: str, token: str, *, params: Any, lane: str | None = None
     ) -> None:
         self.deletes.append((table, params))
+
+    def rpc(
+        self, function: str, payload: dict[str, Any], token: str, *, lane: str | None = None
+    ) -> dict[str, Any]:
+        self.rpcs.append((function, payload, token, lane))
+        if function == "set_target_pipeline_active":
+            self.target = {**self.target, "pipeline_active": payload["p_active"]}
+            return self.target
+        return {}
 
 
 def test_update_target_domain_attaches_domain_and_closes_manual_queue(
@@ -1111,10 +1125,21 @@ def test_update_target_domain_blocks_cross_owner_target_even_if_storage_leaks(
         update_target_domain(storage, jamari, "fola-target", "example.com")
 
 
-def test_delete_target_removes_the_row_by_id(jamari: DashboardUser) -> None:
+def test_delete_target_removes_only_the_active_pipeline_workflow(jamari: DashboardUser) -> None:
     storage = TargetMutationStorage({"id": "t1", "owner": "jamari", "firm": "Core Industrial Partners"})
-    delete_target(storage, jamari, "t1")
-    assert storage.deletes == [("targets", {"id": "eq.t1"})]
+    result = delete_target(storage, jamari, "t1")
+    assert result["pipeline_active"] is False
+    assert storage.deletes == []
+    assert storage.rpcs == [(
+        "set_target_pipeline_active",
+        {
+            "p_target_id": "t1",
+            "p_active": False,
+            "p_reason": "Removed from Firm Pipeline; retained in Firm Library.",
+        },
+        jamari.access_token,
+        jamari.owner,
+    )]
 
 
 def test_delete_target_blocks_cross_owner_target_even_if_storage_leaks(
@@ -1155,6 +1180,7 @@ class ManualContactStorage:
         self.contact = contact
         self.inserts: list[tuple[str, Any]] = []
         self.deletes: list[tuple[str, Any]] = []
+        self.updates: list[tuple[str, Any]] = []
 
     def select(
         self, table: str, token: str, *, params: Any = None, lane: str | None = None
@@ -1183,6 +1209,17 @@ class ManualContactStorage:
         self, table: str, token: str, *, params: Any, lane: str | None = None
     ) -> None:
         self.deletes.append((table, params))
+        if table == "contacts":
+            self.contact = None
+
+    def update(
+        self, table: str, values: Any, token: str, *, params: Any,
+        return_rows: bool = True, lane: str | None = None,
+    ) -> list[dict[str, Any]]:
+        self.updates.append((table, values))
+        if table == "targets":
+            self.target = {**self.target, **values}
+        return []
 
 
 def test_add_manual_contact_writes_manual_provenance(jamari: DashboardUser) -> None:
@@ -1208,6 +1245,10 @@ def test_add_manual_contact_writes_manual_provenance(jamari: DashboardUser) -> N
     assert row["target_id"] == "t1"
     assert row["owner"] == "jamari"
     assert row["dropped"] is False
+    assert storage.updates[-1] == (
+        "targets",
+        {"pipeline_stage_auto": "Contact Ready", "pipeline_stage_auto_source": "manual_contact"},
+    )
 
 
 def test_add_manual_contact_blocks_cross_owner_target(jamari: DashboardUser) -> None:
@@ -1227,6 +1268,10 @@ def test_remove_contact_deletes_owned_row(jamari: DashboardUser) -> None:
     )
     remove_contact(storage, jamari, "c1")
     assert storage.deletes == [("contacts", {"id": "eq.c1"})]
+    assert storage.updates[-1] == (
+        "targets",
+        {"pipeline_stage_auto": "Researching", "pipeline_stage_auto_source": "contact_removed"},
+    )
 
 
 def test_remove_contact_blocks_cross_owner_contact(jamari: DashboardUser) -> None:

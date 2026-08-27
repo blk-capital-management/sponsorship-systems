@@ -27,11 +27,19 @@ from contacts.providers.hunter import HunterProvider
 from contacts.record import ContactRecord
 from contacts.verify import verify_rows
 from dashboard.auth import DashboardUser
+from dashboard.crm import (
+    canonical_relationship,
+    canonical_pipeline_stage,
+    effective_relationship,
+    enrich_target,
+    legacy_contact_status,
+)
 from dashboard.models import IntakeFirm
 from dashboard.storage import SupabaseConfigurationError, SupabaseStorage
 from drafts.generate import generate_draft
 from drafts.routing import COLD_PROSPECT
 from research.fetch import build_artifact, crawl_firm, validate_artifact
+from research.hook_ids import artifact_with_hook_ids
 from scripts.derive_target_status import CrmRow, derive, normalize_firm
 
 
@@ -139,18 +147,112 @@ def update_target_domain(
     return rows[0]
 
 
-def delete_target(storage: SupabaseStorage, user: DashboardUser, target_id: str) -> None:
-    """Remove a target from the owner's lane.
+def delete_target(
+    storage: SupabaseStorage, user: DashboardUser, target_id: str
+) -> dict[str, Any]:
+    """Remove a firm from the operational pipeline without deleting CRM data.
 
-    get_target enforces the owner-lane check before anything is deleted.
-    Research, contacts, drafts, and manual-queue rows cascade at the database
-    level (on delete cascade in 001_phase_g_dashboard.sql), so nothing further
-    needs cleaning up here.
+    The name is retained for route compatibility.  The database RPC changes
+    only ``pipeline_active`` and records the action; the firm, contacts,
+    research, drafts, and history remain available in Firm Library.
     """
     get_target(storage, user, target_id)
-    storage.delete(
-        "targets", user.access_token, lane=user.owner, params={"id": _eq(target_id)},
+    result = storage.rpc(
+        "set_target_pipeline_active",
+        {
+            "p_target_id": target_id,
+            "p_active": False,
+            "p_reason": "Removed from Firm Pipeline; retained in Firm Library.",
+        },
+        user.access_token,
+        lane=user.owner,
     )
+    return enrich_target(dict(result or {}))
+
+
+def update_status_override(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    target_id: str,
+    *,
+    field: str,
+    value: str | None,
+    clear: bool,
+    reason: str | None = None,
+) -> dict[str, Any]:
+    """Set or clear one manual status override through the atomic audit RPC."""
+    get_target(storage, user, target_id)
+    result = storage.rpc(
+        "set_target_status_override",
+        {
+            "p_target_id": target_id,
+            "p_field": field,
+            "p_value": value,
+            "p_clear": clear,
+            "p_reason": reason,
+        },
+        user.access_token,
+        lane=user.owner,
+    )
+    return enrich_target(dict(result or {}))
+
+
+def batch_status_override(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    target_ids: list[str],
+    *,
+    field: str,
+    value: str | None,
+    clear: bool,
+    reason: str | None = None,
+) -> list[dict[str, Any]]:
+    """Extend the existing partial-success batch runner for CRM statuses."""
+    action_type = (
+        "batch_relationship_status"
+        if field == "relationship_status" else "batch_pipeline_stage"
+    )
+    return _run_owned_batch(
+        storage,
+        user,
+        target_ids,
+        action_type=action_type,
+        failure_reason=f"Batch {field.replace('_', ' ')} change failed.",
+        run_one=lambda target_id: update_status_override(
+            storage,
+            user,
+            target_id,
+            field=field,
+            value=value,
+            clear=clear,
+            reason=reason,
+        ),
+    )
+
+
+def _set_automatic_pipeline_stage(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    target: dict[str, Any],
+    stage: str,
+    source: str,
+) -> None:
+    """Advance only the automatic dimension; a manual override stays intact."""
+    if (
+        str(target.get("pipeline_stage_auto") or "") == stage
+        and str(target.get("pipeline_stage_auto_source") or "") == source
+    ):
+        return
+    storage.update(
+        "targets",
+        {"pipeline_stage_auto": stage, "pipeline_stage_auto_source": source},
+        user.access_token,
+        lane=user.owner,
+        params={"id": _eq(str(target["id"]))},
+        return_rows=False,
+    )
+    target["pipeline_stage_auto"] = stage
+    target["pipeline_stage_auto_source"] = source
 
 
 def _intake_error_reason(exc: Exception) -> str:
@@ -260,6 +362,11 @@ def intake_targets(
             "relationship": "prospect",
             "notes": item.notes,
             "contact_status": "cold_prospect",
+            "relationship_status_auto": "Cold Prospect",
+            "relationship_status_auto_source": "intake",
+            "pipeline_stage_auto": "Researching",
+            "pipeline_stage_auto_source": "intake",
+            "pipeline_active": True,
             "has_known_contact": False,
             "contact_needs_refresh": False,
             "email_format": item.email_format,
@@ -484,6 +591,7 @@ def research_target(
                 "resolved_at": "is.null",
             }, return_rows=False,
         )
+    _set_automatic_pipeline_stage(storage, user, target, "Researching", "research")
     return artifact
 
 
@@ -604,8 +712,17 @@ def derive_status(
         ) from exc
     result = derive(target["firm"], _crm_rows_from_database(raw_rows), date.today())
     deciding = result.deciding
+    new_auto = canonical_relationship(
+        deciding.status if deciding else "", result.contact_status
+    )
+    effective = str(target.get("relationship_status_override") or "").strip() or new_auto
     values = {
-        "contact_status": result.contact_status,
+        # contact_status remains the compatibility projection consumed by the
+        # Hunter gate and drafting router. A manual relationship override must
+        # therefore win here too.
+        "contact_status": legacy_contact_status(effective),
+        "relationship_status_auto": new_auto,
+        "relationship_status_auto_source": "crm_derivation",
         "has_known_contact": result.has_known_contact,
         "contact_needs_refresh": bool(target.get("contact_needs_refresh")),
         "relationship_record_id": deciding.record_id if deciding else "",
@@ -623,7 +740,7 @@ def derive_status(
         "targets", values, user.access_token, lane=user.owner,
         params={"id": _eq(target_id)},
     )
-    return updated[0] if updated else {**target, **values}
+    return enrich_target(updated[0] if updated else {**target, **values})
 
 
 def derive_status_batch(
@@ -889,6 +1006,13 @@ def run_contact_discovery(
             ]
             if rows:
                 storage.insert("contacts", rows, user.access_token, lane=user.owner, return_rows=False)
+            _set_automatic_pipeline_stage(
+                storage,
+                user,
+                target,
+                "Contact Ready" if kept else "Researching",
+                "contact_discovery",
+            )
             results.append({
                 "firm": target["firm"], "status": "completed",
                 "discovered": len(discovered), "kept": len(kept), "dropped": len(dropped),
@@ -949,6 +1073,9 @@ def add_manual_contact(
     inserted = storage.insert("contacts", row, user.access_token, lane=user.owner)
     if not inserted:
         raise DashboardServiceError("Insert returned no row.")
+    _set_automatic_pipeline_stage(
+        storage, user, target, "Contact Ready", "manual_contact"
+    )
     return inserted[0]
 
 
@@ -966,6 +1093,18 @@ def remove_contact(
         )
     storage.delete(
         "contacts", user.access_token, lane=user.owner, params={"id": _eq(contact_id)},
+    )
+    target = get_target(storage, user, str(rows[0]["target_id"]))
+    remaining = storage.select(
+        "contacts", user.access_token, lane=user.owner,
+        params={"target_id": _eq(str(target["id"])), "dropped": "eq.false", "limit": "1"},
+    )
+    _set_automatic_pipeline_stage(
+        storage,
+        user,
+        target,
+        "Contact Ready" if remaining else "Researching",
+        "contact_removed",
     )
 
 
@@ -990,6 +1129,7 @@ def _generate_record(
     artifact: dict[str, Any] | None,
     contact: ContactRecord | None,
     paragraph: str | None,
+    supporting_hook_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="blk-bridge-draft-") as tmp:
         return generate_draft(
@@ -997,6 +1137,7 @@ def _generate_record(
             contact,
             target=target,
             firm_specific_paragraph=paragraph,
+            supporting_hook_ids=supporting_hook_ids,
             out_dir=Path(tmp),
             review_dir=Path(tmp),
         )
@@ -1009,6 +1150,7 @@ def generate_owner_draft(
     target_id: str,
     contact_id: str | None,
     paragraph: str | None,
+    supporting_hook_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     target = get_target(storage, user, target_id)
     artifact = get_artifact(storage, user, target_id)
@@ -1026,12 +1168,15 @@ def generate_owner_draft(
                 "A verified owner-scoped contact is required for a cold draft."
             )
         contact = _contact_record(rows[0])
-    record = _generate_record(target, artifact, contact, paragraph)
+    record = _generate_record(
+        target, artifact, contact, paragraph, supporting_hook_ids
+    )
     draft_id = storage.rpc(
         "save_validated_draft",
         {"p_target_id": target_id, "p_payload": record},
         user.access_token, lane=user.owner,
     )
+    _set_automatic_pipeline_stage(storage, user, target, "Draft Ready", "draft_generation")
     return {"id": draft_id, **record, "status": "pending_review"}
 
 
@@ -1063,7 +1208,13 @@ def mark_draft_sent(
     result = storage.rpc(
         "mark_draft_sent", {"p_draft_id": draft_id}, user.access_token, lane=user.owner
     )
-    return dict(result or {})
+    draft = dict(result or {})
+    if draft.get("target_id"):
+        target = get_target(storage, user, str(draft["target_id"]))
+        _set_automatic_pipeline_stage(
+            storage, user, target, "Outreach Sent", "human_confirmed_send"
+        )
+    return draft
 
 
 def resolve_manual_item(
@@ -1079,6 +1230,264 @@ def resolve_manual_item(
         user.access_token, lane=user.owner,
     )
     return dict(result or {})
+
+
+def create_meeting_note(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    target_id: str,
+    *,
+    interaction_date: date,
+    interaction_type: str,
+    participants: list[str],
+    notes: str,
+    next_step: str,
+    follow_up_date: date | None,
+) -> dict[str, Any]:
+    """Create an owner-scoped interaction note on the master firm record."""
+    target = get_target(storage, user, target_id)
+    rows = storage.insert(
+        "meeting_notes",
+        {
+            "target_id": target_id,
+            "owner": target["owner"],
+            "interaction_date": interaction_date.isoformat(),
+            "interaction_type": interaction_type,
+            "participants": participants,
+            "notes": notes,
+            "next_step": next_step,
+            "follow_up_date": follow_up_date.isoformat() if follow_up_date else None,
+            "created_by": user.user_id,
+            "updated_by": user.user_id,
+        },
+        user.access_token,
+        lane=user.owner,
+    )
+    if not rows:
+        raise DashboardServiceError("Meeting note insert returned no row.")
+    return rows[0]
+
+
+def update_meeting_note(
+    storage: SupabaseStorage,
+    user: DashboardUser,
+    note_id: str,
+    *,
+    interaction_date: date,
+    interaction_type: str,
+    participants: list[str],
+    notes: str,
+    next_step: str,
+    follow_up_date: date | None,
+) -> dict[str, Any]:
+    """Edit an existing note without replacing its identity or created timestamp."""
+    existing = storage.select(
+        "meeting_notes",
+        user.access_token,
+        lane=user.owner,
+        params={"id": _eq(note_id), "limit": "1"},
+    )
+    if len(existing) != 1 or not _owner_is(existing[0], user.owner):
+        raise DashboardServiceError(
+            "Meeting note was not found in your owner lane. RLS may have denied it."
+        )
+    rows = storage.update(
+        "meeting_notes",
+        {
+            "interaction_date": interaction_date.isoformat(),
+            "interaction_type": interaction_type,
+            "participants": participants,
+            "notes": notes,
+            "next_step": next_step,
+            "follow_up_date": follow_up_date.isoformat() if follow_up_date else None,
+            "updated_by": user.user_id,
+        },
+        user.access_token,
+        lane=user.owner,
+        params={"id": _eq(note_id)},
+    )
+    if not rows:
+        raise DashboardServiceError("Meeting note update returned no row.")
+    return rows[0]
+
+
+def _automatic_stage_from_activity(
+    target: dict[str, Any],
+    *,
+    artifact: dict[str, Any] | None,
+    contacts: list[dict[str, Any]],
+    drafts: list[dict[str, Any]],
+) -> str:
+    """Use known workflow facts without ever confusing generation with sending."""
+    relationship = effective_relationship(target)
+    # Historical artifacts must not reopen a terminal acquisition workflow.
+    # A manual pipeline-stage override still wins later in enrich_target(), so
+    # an operator can explicitly put any of these firms back into Re-engagement.
+    if relationship in {"Global Partner", "Not Interested", "Archived"}:
+        return canonical_pipeline_stage("", relationship_status=relationship)
+    if any(draft.get("status") == "sent" for draft in drafts):
+        return "Outreach Sent"
+    if any(draft.get("status") in {"pending_review", "approved", "rejected"} for draft in drafts):
+        return "Draft Ready"
+    if contacts:
+        return "Contact Ready"
+    if artifact:
+        return "Researching"
+    return canonical_pipeline_stage(
+        target.get("pipeline_stage_auto") or target.get("crm_status"),
+        relationship_status=relationship,
+        notes=target.get("notes"),
+    )
+
+
+def _activity_timeline(
+    *,
+    target: dict[str, Any],
+    research: list[dict[str, Any]],
+    contacts: list[dict[str, Any]],
+    drafts: list[dict[str, Any]],
+    reviews: list[dict[str, Any]],
+    notes: list[dict[str, Any]],
+    audits: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Build a factual, chronological CRM history from records Bridge owns."""
+    events: list[dict[str, Any]] = []
+    for event in audits:
+        events.append({
+            "id": event.get("id"),
+            "type": "status_change",
+            "occurred_at": event.get("created_at"),
+            "title": f"{str(event.get('field_name') or '').replace('_', ' ').title()} changed",
+            "detail": (
+                f"{event.get('prior_value') or 'None'} to {event.get('new_value') or 'None'}"
+                f" ({event.get('change_source') or 'unknown'})"
+            ),
+            "reason": event.get("reason"),
+        })
+    for note in notes:
+        events.append({
+            "id": note.get("id"),
+            "type": "meeting_note",
+            "occurred_at": note.get("interaction_date") or note.get("created_at"),
+            "title": note.get("interaction_type") or "Meeting note",
+            "detail": note.get("notes"),
+            "next_step": note.get("next_step"),
+        })
+    for item in research:
+        events.append({
+            "id": item.get("id"), "type": "research",
+            "occurred_at": item.get("researched_at"),
+            "title": "Research completed",
+            "detail": f"{item.get('confidence') or 'unknown'} confidence; {item.get('hook_count') or 0} sourced hook(s)",
+        })
+    for contact in contacts:
+        events.append({
+            "id": contact.get("id"), "type": "contact",
+            "occurred_at": contact.get("created_at"),
+            "title": "Contact added",
+            "detail": f"{contact.get('name') or 'Unnamed contact'}; {contact.get('verification_status') or 'unverified'}",
+        })
+    for draft in drafts:
+        events.append({
+            "id": draft.get("id"), "type": "draft",
+            "occurred_at": draft.get("generated_at"),
+            "title": "Draft generated",
+            "detail": f"Draft status: {draft.get('status') or 'unknown'}",
+        })
+        if draft.get("sent_at"):
+            events.append({
+                "id": f"{draft.get('id')}-sent", "type": "outreach_sent",
+                "occurred_at": draft.get("sent_at"),
+                "title": "Outreach marked sent by a human",
+                "detail": "Bridge recorded the human-confirmed send; it did not transmit the email.",
+            })
+    draft_by_id = {str(draft.get("id")): draft for draft in drafts}
+    for review in reviews:
+        if str(review.get("draft_id")) not in draft_by_id:
+            continue
+        events.append({
+            "id": review.get("id"), "type": "draft_review",
+            "occurred_at": review.get("created_at"),
+            "title": f"Draft {review.get('action') or 'reviewed'}",
+            "detail": review.get("reason") or "Human review event.",
+        })
+    if target.get("created_at"):
+        events.append({
+            "id": f"{target.get('id')}-created", "type": "firm_created",
+            "occurred_at": target.get("created_at"),
+            "title": "Firm added to BLK Bridge", "detail": "Master firm record created.",
+        })
+    return sorted(
+        events,
+        key=lambda event: str(event.get("occurred_at") or ""),
+        reverse=True,
+    )
+
+
+def get_firm_detail(
+    storage: SupabaseStorage, user: DashboardUser, target_id: str
+) -> dict[str, Any]:
+    """Load one CRM record and its factual child history under the caller lane."""
+    target = get_target(storage, user, target_id)
+    child_params = {"target_id": _eq(target_id)}
+    research = storage.select(
+        "research_artifacts", user.access_token, lane=user.owner, params=child_params
+    )
+    contacts = storage.select(
+        "contacts", user.access_token, lane=user.owner,
+        params={**child_params, "order": "created_at.desc"},
+    )
+    drafts = storage.select(
+        "drafts", user.access_token, lane=user.owner,
+        params={**child_params, "order": "generated_at.desc"},
+    )
+    notes = storage.select(
+        "meeting_notes", user.access_token, lane=user.owner,
+        params={**child_params, "order": "interaction_date.desc,created_at.desc"},
+    )
+    audits = storage.select(
+        "crm_audit_events", user.access_token, lane=user.owner,
+        params={**child_params, "order": "created_at.desc"},
+    )
+    draft_ids = [str(draft["id"]) for draft in drafts if draft.get("id")]
+    reviews = storage.select(
+        "review_events", user.access_token, lane=user.owner,
+        params={"draft_id": f"in.({','.join(draft_ids)})", "order": "created_at.desc"},
+    ) if draft_ids else []
+    groups = (research, contacts, drafts, notes, audits, reviews)
+    if any(not _owner_is(row, user.owner) for rows in groups for row in rows):
+        raise DashboardServiceError("Owner-scope violation blocked in firm detail.")
+    automatic_stage = _automatic_stage_from_activity(
+        target,
+        artifact=research[0] if research else None,
+        contacts=[row for row in contacts if not row.get("dropped")],
+        drafts=drafts,
+    )
+    enriched = enrich_target(target, automatic_stage=automatic_stage)
+    return {
+        "target": enriched,
+        "contacts": contacts,
+        "research": [
+            {
+                **row,
+                "artifact": artifact_with_hook_ids(row["artifact"]),
+            }
+            if isinstance(row.get("artifact"), dict) else row
+            for row in research
+        ],
+        "drafts": drafts,
+        "meeting_notes": notes,
+        "audit_events": audits,
+        "activity": _activity_timeline(
+            target=enriched,
+            research=research,
+            contacts=contacts,
+            drafts=drafts,
+            reviews=reviews,
+            notes=notes,
+            audits=audits,
+        ),
+    }
 
 
 def dashboard_state(
@@ -1099,23 +1508,78 @@ def dashboard_state(
         "manual_queue", user.access_token, lane=user.owner,
         params={"resolved_at": "is.null", "order": "queued_at.desc"},
     )
+    meeting_notes = storage.select(
+        "meeting_notes", user.access_token, lane=user.owner,
+        params={"order": "updated_at.desc"},
+    )
+    audit_events = storage.select(
+        "crm_audit_events", user.access_token, lane=user.owner,
+        params={"order": "created_at.desc"},
+    )
     scoped_groups = {
         "targets": targets,
         "research": research,
         "contacts": contacts,
         "drafts": drafts,
         "manual queue": manual,
+        "meeting notes": meeting_notes,
+        "CRM audit events": audit_events,
     }
     for label, rows in scoped_groups.items():
         if any(not _owner_is(row, user.owner) for row in rows):
             raise DashboardServiceError(
                 f"Owner-scope violation blocked while loading {label}."
             )
+    research_by_target = {str(row.get("target_id")): row for row in research}
+    contacts_by_target: dict[str, list[dict[str, Any]]] = {}
+    drafts_by_target: dict[str, list[dict[str, Any]]] = {}
+    activity_by_target: dict[str, list[str]] = {}
+    for row in contacts:
+        contacts_by_target.setdefault(str(row.get("target_id")), []).append(row)
+    for row in drafts:
+        drafts_by_target.setdefault(str(row.get("target_id")), []).append(row)
+    activity_groups = (
+        (research, ("researched_at", "updated_at")),
+        (contacts, ("created_at",)),
+        (drafts, ("sent_at", "approved_at", "rejected_at", "generated_at")),
+        (meeting_notes, ("updated_at", "interaction_date", "created_at")),
+        (audit_events, ("created_at",)),
+    )
+    for rows, fields in activity_groups:
+        for row in rows:
+            occurred_at = next((str(row.get(field)) for field in fields if row.get(field)), "")
+            if occurred_at:
+                activity_by_target.setdefault(str(row.get("target_id")), []).append(occurred_at)
+
     targets_with_gate: list[dict[str, Any]] = []
     for target in targets:
-        decision = evaluate_pre_hunter_gate(target)
+        target_id = str(target.get("id"))
+        enriched = enrich_target(
+            target,
+            automatic_stage=_automatic_stage_from_activity(
+                target,
+                artifact=research_by_target.get(target_id),
+                contacts=[
+                    row for row in contacts_by_target.get(target_id, [])
+                    if not row.get("dropped")
+                ],
+                drafts=drafts_by_target.get(target_id, []),
+            ),
+        )
+        decision = evaluate_pre_hunter_gate(enriched)
+        target_contacts = contacts_by_target.get(target_id, [])
+        own_timestamps = [
+            str(value) for value in (target.get("updated_at"), target.get("created_at"))
+            if value
+        ] + activity_by_target.get(target_id, [])
         targets_with_gate.append({
-            **target,
+            **enriched,
+            "assigned_owner_effective": target.get("assigned_owner") or target.get("owner"),
+            "primary_contact": (
+                target_contacts[0].get("name") if target_contacts
+                else target.get("relationship_contact_name") or ""
+            ),
+            "last_activity": max(own_timestamps) if own_timestamps else "",
             "hunter_gate": {
                 "skip": decision.skip,
                 "status": "skipped" if decision.skip else "eligible",
@@ -1144,16 +1608,24 @@ def dashboard_state(
             "available_lanes": list(user.available_lanes),
         },
         "targets": targets_with_gate,
-        "research": research,
+        "research": [
+            {
+                **row,
+                "artifact": artifact_with_hook_ids(row["artifact"]),
+            }
+            if isinstance(row.get("artifact"), dict) else row
+            for row in research
+        ],
         "contacts": contacts,
         "drafts": drafts,
         "manual_queue": manual,
         "hunter_balance": balance,
         "counts": {
-            "targets": len(targets),
-            "cold_prospect": sum(t.get("contact_status") == "cold_prospect" for t in targets),
-            "existing_partner": sum(t.get("contact_status") == "existing_partner" for t in targets),
-            "lapsed_partner": sum(t.get("contact_status") == "lapsed_partner" for t in targets),
+            "targets": len(targets_with_gate),
+            "pipeline_targets": sum(bool(t.get("pipeline_visible")) for t in targets_with_gate),
+            "cold_prospect": sum(t.get("contact_status") == "cold_prospect" for t in targets_with_gate),
+            "existing_partner": sum(t.get("contact_status") == "existing_partner" for t in targets_with_gate),
+            "lapsed_partner": sum(t.get("contact_status") == "lapsed_partner" for t in targets_with_gate),
             "pending_review": sum(d.get("status") == "pending_review" for d in drafts),
             "approved": sum(d.get("status") == "approved" for d in drafts),
             "sent": sum(d.get("status") == "sent" for d in drafts),

@@ -4,6 +4,9 @@
 3. Any em dash in generated output fails.
 """
 
+import json
+from pathlib import Path
+
 import pytest
 
 from common.provenance import (
@@ -13,6 +16,18 @@ from common.provenance import (
     check_firm_paragraph,
     find_tone_violations,
     split_sentences,
+)
+from research.hook_ids import artifact_with_hook_ids
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+CITADEL_PARAGRAPH = (
+    "Citadel’s focus on developing exceptional undergraduates across the U.S., "
+    "Europe, and APAC makes its early-career programs especially relevant to "
+    "BLK’s student network. I was also drawn to the firm’s emphasis on giving "
+    "people the opportunity to contribute their best thinking regardless of "
+    "title or tenure, which makes a partnership with BLK a natural fit for "
+    "connecting Citadel with ambitious undergraduate talent."
 )
 
 
@@ -131,3 +146,51 @@ def test_evidence_block_lists_a_source_per_claim(hooks, blk_facts):
 
 def test_split_sentences_handles_short_paragraphs():
     assert len(split_sentences("One thing here. Two things there. Three now.")) == 3
+
+
+# ── Citadel selected-hook regression ─────────────────────────────────────────
+
+def test_citadel_paragraph_passes_with_sentence_level_selected_hook_provenance(
+    blk_facts,
+):
+    artifact = artifact_with_hook_ids(json.loads(
+        (PROJECT_ROOT / "research" / "out" / "citadel.json").read_text(encoding="utf-8")
+    ))
+    report = check_firm_paragraph(
+        CITADEL_PARAGRAPH,
+        artifact["alignment_hooks"],
+        blk_facts,
+        firm_name="Citadel",
+    )
+
+    assert report.ok, report.describe()
+    assert len(report.sentences) == 2
+    assert all(sentence.source_urls for sentence in report.sentences)
+    assert all(sentence.hook_ids for sentence in report.sentences)
+    assert any("discover-citadel" in url for url in report.sentences[0].source_urls)
+    assert any("our-culture" in url for url in report.sentences[1].source_urls)
+
+
+@pytest.mark.parametrize("paragraph", [
+    "Citadel hires more BLK members than any competing hedge fund. BLK would welcome a conversation.",
+    "Citadel plans to double its undergraduate internship class next year. BLK would welcome a conversation.",
+    "Citadel has specifically identified BLK Capital Management as a recruiting priority. BLK would welcome a conversation.",
+])
+def test_citadel_unsupported_claims_fail_with_actionable_sentence_message(
+    paragraph, blk_facts,
+):
+    artifact = artifact_with_hook_ids(json.loads(
+        (PROJECT_ROOT / "research" / "out" / "citadel.json").read_text(encoding="utf-8")
+    ))
+    report = check_firm_paragraph(
+        paragraph,
+        artifact["alignment_hooks"],
+        blk_facts,
+        firm_name="Citadel",
+    )
+
+    assert not report.ok
+    message = report.describe()
+    assert "Sentence 1" in message
+    assert "selected research hooks" in message
+    assert "Unsupported phrase" in message

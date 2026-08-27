@@ -22,3 +22,8 @@ token.json
 **/research/cache/
 **/drafts/out/
 **/contacts/out/
+
+# Local CRM source data and generated reconciliation review artifacts.
+# These contain operational sponsor/contact information and are never release inputs.
+Sponsor_CRM_2026-27_UPDATED 8_7_26.xlsx
+outreach/review/reconciliation/

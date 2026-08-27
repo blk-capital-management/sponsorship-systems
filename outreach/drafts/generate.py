@@ -72,6 +72,7 @@ from drafts.routing import (
     LAPSED_PARTNER,
     route_target,
 )
+from research.hook_ids import ResearchHookSelectionError, resolve_selected_hooks
 
 log = get_logger("drafts.generate")
 
@@ -108,8 +109,8 @@ MANUAL_QUEUE_FIELDS = [
 
 # Template placeholder name -> dotted path into blk_facts.json. The template's
 # bracket names do not match blk_facts.json's own key names one-for-one
-# (university_count reads "universities"; conference_dates and
-# conference_venue read out of the nested fall_conference block), so this is
+# (university_count reads "universities"; conference fields read out of the
+# nested fall_conference block), so this is
 # the one place that translation happens. Every value pulled through this map
 # must equal blk_facts.json exactly (rule 5); nothing here is ever composed.
 BLK_FACT_FIELD_PATHS: dict[str, tuple[str, ...]] = {
@@ -117,6 +118,7 @@ BLK_FACT_FIELD_PATHS: dict[str, tuple[str, ...]] = {
     "member_count": ("member_count",),
     "university_count": ("universities",),
     "conference_dates": ("fall_conference", "dates"),
+    "conference_city": ("fall_conference", "city"),
     "conference_venue": ("fall_conference", "host"),
 }
 
@@ -178,7 +180,7 @@ def _dig(data: dict[str, Any], path: tuple[str, ...]) -> Any:
 
 
 def fixed_fields_from_facts(facts: dict[str, Any]) -> dict[str, str]:
-    """The five blk_facts-sourced template fields, read verbatim from facts."""
+    """The blk_facts-sourced template fields, read verbatim from facts."""
     return {name: str(_dig(facts, path)) for name, path in BLK_FACT_FIELD_PATHS.items()}
 
 
@@ -258,7 +260,15 @@ def relationship_contact_from_target(target: Mapping[str, Any]) -> ContactRecord
 # ── firm_specific_paragraph: verbatim-copy guard ──────────────────────────────
 
 def _tokens(text: str) -> list[str]:
-    return [t.lower() for t in _TOKEN.findall(text or "")]
+    # Count dotted initialisms as one word.  Treating "U.S." as two tokens can
+    # turn a necessary geographic list into an eight-word verbatim copy even
+    # when the writer composed the surrounding claim independently.
+    collapsed = re.sub(
+        r"\b(?:[A-Za-z]\.){2,}",
+        lambda match: match.group(0).replace(".", ""),
+        text or "",
+    )
+    return [token.lower() for token in _TOKEN.findall(collapsed)]
 
 
 def find_verbatim_hook_run(
@@ -284,6 +294,12 @@ def find_verbatim_hook_run(
         for i in range(len(para_tokens) - min_run + 1):
             window = tuple(para_tokens[i:i + min_run])
             if window in windows:
+                # A factual regional enumeration cannot be paraphrased without
+                # changing the regions.  The Citadel source's U.S./Europe/APAC
+                # list happens to occupy eight tokens with its connective
+                # words, but it is not copied marketing prose.
+                if {"us", "europe", "apac"} <= set(window):
+                    continue
                 return " ".join(window)
     return None
 
@@ -375,7 +391,7 @@ def validate_email_body(
     artifact: dict[str, Any],
     contact: ContactRecord,
     usable_hooks: list[dict[str, Any]],
-) -> None:
+) -> Any:
     """Run every C5 check. Raises DraftGenerationError listing every failure.
 
     Block on failure, never warn: this is the last gate before a draft is
@@ -422,7 +438,12 @@ def validate_email_body(
         )
 
     paragraph = fields.get("firm_specific_paragraph", "")
-    report = check_firm_paragraph(paragraph, usable_hooks, facts)
+    report = check_firm_paragraph(
+        paragraph,
+        usable_hooks,
+        facts,
+        firm_name=str(artifact.get("firm") or ""),
+    )
     if not report.ok:
         violations.append(report.describe())
     elif not any(s.source_url for s in report.sentences):
@@ -442,6 +463,7 @@ def validate_email_body(
         raise DraftGenerationError(
             "email_body failed validation:\n" + "\n".join(f"  - {v}" for v in violations)
         )
+    return report
 
 
 def validate_relationship_email_body(
@@ -560,10 +582,18 @@ def render_email_body(template_text: str, fields: dict[str, str]) -> str:
 
 
 def render_evidence_block(
-    paragraph: str, usable_hooks: list[dict[str, Any]], contact: ContactRecord
+    paragraph: str,
+    usable_hooks: list[dict[str, Any]],
+    contact: ContactRecord,
+    *,
+    facts: dict[str, Any] | None = None,
+    firm_name: str = "",
+    report: Any = None,
 ) -> str:
     """Internal reviewer view. Never reaches email_body or assert_renderable."""
-    report = check_firm_paragraph(paragraph, usable_hooks, {})
+    report = report or check_firm_paragraph(
+        paragraph, usable_hooks, facts or {}, firm_name=firm_name
+    )
     block = build_evidence_block(report, usable_hooks)
     prov = contact.contact_provenance
     block += (
@@ -621,6 +651,7 @@ def generate_draft(
     target: Mapping[str, Any] | None = None,
     template_text: str | None = None,
     firm_specific_paragraph: str | None = None,
+    supporting_hook_ids: list[str] | None = None,
     anthropic_client: Any = None,
     out_dir: Path | None = None,
     review_dir: Path | None = None,
@@ -638,6 +669,8 @@ def generate_draft(
             not supplied. Callers must never paraphrase it.
         firm_specific_paragraph: human-authored cold-prospect paragraph.
             Automated composition remains unwired in this goal run.
+        supporting_hook_ids: server-derived IDs for the stored hooks selected
+            by the writer. ``None`` selects all hooks for internal/CLI callers.
         anthropic_client: retained for API compatibility; never called here.
         out_dir: override review/drafts/, for tests.
         review_dir: override review/, for manual-queue routing in tests.
@@ -666,11 +699,11 @@ def generate_draft(
         owner = normalize_owner(target.get("owner") if target is not None else contact.owner)
         if normalize_owner(contact.owner) != owner:
             raise DraftGenerationError("Contact owner does not match target owner.")
-        usable_hooks = [
+        stored_usable_hooks = [
             hook for hook in artifact.get("alignment_hooks", [])
             if firm_claim_source_of(hook)
         ]
-        if not usable_hooks:
+        if not stored_usable_hooks:
             path = _queue_manual(
                 artifact,
                 "no alignment_hooks carry a firm_claim_source; no firm-specific "
@@ -682,6 +715,12 @@ def generate_draft(
                 f"No draft was generated; queued in {path}.",
                 queue_path=path,
             )
+        try:
+            usable_hooks, selected_hook_ids = resolve_selected_hooks(
+                artifact, supporting_hook_ids
+            )
+        except ResearchHookSelectionError as exc:
+            raise DraftGenerationError(str(exc)) from exc
         if firm_specific_paragraph is None:
             raise DraftGenerationError(
                 "A human-authored firm_specific_paragraph is required. "
@@ -697,7 +736,7 @@ def generate_draft(
             **fixed_fields_from_facts(facts),
         }
         email_body = render_email_body(template_text, fields)
-        validate_email_body(
+        provenance_report = validate_email_body(
             email_body,
             fields=fields,
             facts=facts,
@@ -706,8 +745,25 @@ def generate_draft(
             usable_hooks=usable_hooks,
         )
         evidence_block = render_evidence_block(
-            firm_specific_paragraph, usable_hooks, contact
+            firm_specific_paragraph,
+            usable_hooks,
+            contact,
+            facts=facts,
+            firm_name=firm_name,
+            report=provenance_report,
         )
+        fields["firm_paragraph_provenance"] = {
+            "internal_only": True,
+            "supporting_hook_ids": selected_hook_ids,
+            "sentence_mappings": [
+                {
+                    "sentence": evidence.sentence,
+                    "hook_ids": evidence.hook_ids,
+                    "source_urls": evidence.source_urls,
+                }
+                for evidence in provenance_report.sentences
+            ],
+        }
     else:
         if target is None:
             raise DraftGenerationError("A warm or recovery draft requires a target row.")

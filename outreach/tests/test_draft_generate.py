@@ -11,10 +11,13 @@ from common.provenance import assert_no_em_dash
 from contacts.record import ContactRecord
 from drafts import generate
 from drafts.routing import COLD_PROSPECT
+from research.hook_ids import artifact_with_hook_ids
 
 LOCKED_TEMPLATE_TEXT = """Hi {contact_first_name},
 
 My name is Jamari Myers, and I am the Co-Chair of Sponsorships at BLK Capital Management, a student-run finance nonprofit now in its tenth year.
+
+As we finalize our fall partner programming ahead of our {conference_dates} Fall Conference in {conference_city}, I wanted to reach out about establishing a relationship with {firm_name}.
 
 BLK exists to give firms direct access to a pre-vetted pipeline of undergraduate finance talent. Members are accepted through a multi-round selection process, and we received {applications_last_cycle} applications this past cycle. What that process produces is a network of {member_count} members across {university_count} universities in the US and EMEA who consistently place into investment banking, private equity, private credit, and public markets roles. More on our members, outcomes, and current partners is at blkcapitalmanagement.org.
 
@@ -143,13 +146,14 @@ def test_fixed_fields_render_exactly_from_blk_facts(facts):
         "member_count": "1500+",
         "university_count": "200+",
         "conference_dates": "November 12 and 13",
+        "conference_city": "New York",
         "conference_venue": "Wells Fargo",
     }
 
 
 @pytest.mark.parametrize("field_name", [
     "applications_last_cycle", "member_count", "university_count",
-    "conference_dates", "conference_venue",
+    "conference_dates", "conference_city", "conference_venue",
 ])
 def test_a_fixed_field_value_not_in_blk_facts_is_blocked(facts, field_name):
     fields = generate.fixed_fields_from_facts(facts)
@@ -212,6 +216,58 @@ def test_no_subject_line_carries_a_firm_specific_claim_or_an_em_dash(artifact, c
     for subject in generate.SUBJECT_BY_STATUS.values():
         assert_no_em_dash(subject)
         assert "{" not in subject and "}" not in subject
+
+
+def test_selected_citadel_hooks_are_resolved_and_persisted_internal_only(
+    contact, facts, tmp_path,
+):
+    citadel = artifact_with_hook_ids(json.loads(
+        (generate.PROJECT_ROOT / "research" / "out" / "citadel.json").read_text(
+            encoding="utf-8"
+        )
+    ))
+    selected = [hook["research_hook_id"] for hook in citadel["alignment_hooks"][1:]]
+    paragraph = (
+        "Citadel’s focus on developing exceptional undergraduates across the U.S., "
+        "Europe, and APAC makes its early-career programs especially relevant to "
+        "BLK’s student network. I was also drawn to the firm’s emphasis on giving "
+        "people the opportunity to contribute their best thinking regardless of "
+        "title or tenure, which makes a partnership with BLK a natural fit for "
+        "connecting Citadel with ambitious undergraduate talent."
+    )
+    record = generate.generate_draft(
+        citadel,
+        contact,
+        facts,
+        target={"firm": "Citadel", "owner": "jamari", "contact_status": "cold_prospect"},
+        template_text=LOCKED_TEMPLATE_TEXT,
+        firm_specific_paragraph=paragraph,
+        supporting_hook_ids=selected,
+        out_dir=tmp_path / "drafts",
+        review_dir=tmp_path / "review",
+    )
+
+    provenance = record["fields"]["firm_paragraph_provenance"]
+    assert provenance["internal_only"] is True
+    assert provenance["supporting_hook_ids"] == selected
+    assert len(provenance["sentence_mappings"]) == 2
+    assert all(mapping["hook_ids"] for mapping in provenance["sentence_mappings"])
+    assert "research_hook_id" not in record["email_body"]
+    assert not any(hook_id in record["email_body"] for hook_id in selected)
+
+
+def test_unknown_client_hook_id_cannot_supply_evidence(artifact, contact, facts, tmp_path):
+    with pytest.raises(generate.DraftGenerationError, match="stored artifact"):
+        generate.generate_draft(
+            artifact,
+            contact,
+            facts,
+            template_text=LOCKED_TEMPLATE_TEXT,
+            firm_specific_paragraph=GOOD_PARAGRAPH,
+            supporting_hook_ids=["rhook_client_supplied_url_is_not_evidence"],
+            out_dir=tmp_path / "drafts",
+            review_dir=tmp_path / "review",
+        )
 
 
 # ── C5 validators ──────────────────────────────────────────────────────────────

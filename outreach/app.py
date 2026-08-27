@@ -13,24 +13,31 @@ from contacts.hunter_guard import HunterBudgetError, HunterScopeError
 from common.config import load_firm_categories
 from common.logging import get_logger
 from dashboard.auth import DashboardUser, current_user
+from dashboard.crm import PIPELINE_STAGES, RELATIONSHIP_STATUSES
 from dashboard.models import (
+    BatchStatusOverrideRequest,
     ContactPreviewRequest,
     ContactRunRequest,
     DraftRequest,
     IntakeRequest,
     ManualContactRequest,
+    MeetingNoteRequest,
     ResolveManualRequest,
     ReviewRequest,
+    StatusOverrideRequest,
     TargetBatchRequest,
     TargetUpdateRequest,
 )
 from dashboard.services import (
     DashboardServiceError,
     add_manual_contact,
+    batch_status_override,
+    create_meeting_note,
     dashboard_state,
     delete_target,
     derive_status_batch,
     generate_owner_draft,
+    get_firm_detail,
     intake_targets,
     mark_draft_sent,
     preview_contact_run,
@@ -39,6 +46,8 @@ from dashboard.services import (
     research_batch,
     review_draft,
     run_contact_discovery,
+    update_meeting_note,
+    update_status_override,
     update_target_domain,
 )
 from dashboard.storage import (
@@ -144,6 +153,8 @@ def public_config(storage: SupabaseStorage = Depends(get_storage)) -> dict[str, 
         # The intake category list is served from config so the dropdown and the
         # validator can never disagree about what a valid category is.
         "firm_categories": [entry["label"] for entry in load_firm_categories()],
+        "relationship_statuses": list(RELATIONSHIP_STATUSES),
+        "pipeline_stages": list(PIPELINE_STAGES),
         # Served raw so the draft dialog can preview the real locked template
         # around the paragraph the operator is writing, with no second copy of
         # the wording to drift out of sync.
@@ -186,13 +197,101 @@ def update_target_endpoint(
     return update_target_domain(storage, user, target_id, payload.domain)
 
 
-@app.delete("/api/targets/{target_id}", status_code=204)
+@app.delete("/api/targets/{target_id}")
 def delete_target_endpoint(
     target_id: str,
     user: DashboardUser = Depends(current_user),
     storage: SupabaseStorage = Depends(get_storage),
-) -> None:
-    delete_target(storage, user, target_id)
+) -> dict[str, Any]:
+    return {"target": delete_target(storage, user, target_id)}
+
+
+@app.patch("/api/targets/{target_id}/status")
+def update_status_endpoint(
+    target_id: str,
+    payload: StatusOverrideRequest,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> dict[str, Any]:
+    return update_status_override(
+        storage,
+        user,
+        target_id,
+        field=payload.field,
+        value=payload.value,
+        clear=payload.clear,
+        reason=payload.reason,
+    )
+
+
+@app.post("/api/status-overrides/batch")
+def batch_status_endpoint(
+    payload: BatchStatusOverrideRequest,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> dict[str, Any]:
+    results = batch_status_override(
+        storage,
+        user,
+        payload.target_ids,
+        field=payload.field,
+        value=payload.value,
+        clear=payload.clear,
+        reason=payload.reason,
+    )
+    return {
+        "results": results,
+        "errors": [row for row in results if row.get("error")],
+    }
+
+
+@app.get("/api/firms/{target_id}")
+def firm_detail_endpoint(
+    target_id: str,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> dict[str, Any]:
+    return get_firm_detail(storage, user, target_id)
+
+
+@app.post("/api/firms/{target_id}/meeting-notes")
+def create_meeting_note_endpoint(
+    target_id: str,
+    payload: MeetingNoteRequest,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> dict[str, Any]:
+    return create_meeting_note(
+        storage,
+        user,
+        target_id,
+        interaction_date=payload.interaction_date,
+        interaction_type=payload.interaction_type,
+        participants=payload.participants,
+        notes=payload.notes,
+        next_step=payload.next_step,
+        follow_up_date=payload.follow_up_date,
+    )
+
+
+@app.patch("/api/meeting-notes/{note_id}")
+def update_meeting_note_endpoint(
+    note_id: str,
+    payload: MeetingNoteRequest,
+    user: DashboardUser = Depends(current_user),
+    storage: SupabaseStorage = Depends(get_storage),
+) -> dict[str, Any]:
+    return update_meeting_note(
+        storage,
+        user,
+        note_id,
+        interaction_date=payload.interaction_date,
+        interaction_type=payload.interaction_type,
+        participants=payload.participants,
+        notes=payload.notes,
+        next_step=payload.next_step,
+        follow_up_date=payload.follow_up_date,
+    )
 
 
 @app.post("/api/research")
@@ -276,6 +375,7 @@ def create_draft_endpoint(
         target_id=payload.target_id,
         contact_id=payload.contact_id,
         paragraph=payload.firm_specific_paragraph,
+        supporting_hook_ids=payload.supporting_hook_ids,
     )
 
 

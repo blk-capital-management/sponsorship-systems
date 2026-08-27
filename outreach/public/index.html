@@ -7,7 +7,7 @@
     <meta name="description" content="BLK Bridge sponsor outreach workspace">
     <title>BLK Bridge</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2362318b'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Arial' font-size='34' font-weight='700' fill='white'%3EB%3C/text%3E%3C/svg%3E">
-    <link rel="stylesheet" href="/styles.css?v=20260816.4">
+    <link rel="stylesheet" href="/styles.css?v=20260826.2">
   </head>
   <body>
     <main id="login-view" class="login-shell">
@@ -75,11 +75,14 @@
           <button class="nav-item" data-view="pipeline">
             <span class="nav-step">02</span><span class="nav-copy"><strong>Firm pipeline</strong><small>Research and contacts</small></span><span id="nav-target-count" class="nav-count"></span>
           </button>
+          <button class="nav-item" data-view="library">
+            <span class="nav-step">03</span><span class="nav-copy"><strong>Firm library</strong><small>Permanent CRM records</small></span><span id="nav-library-count" class="nav-count"></span>
+          </button>
           <button class="nav-item" data-view="drafts">
-            <span class="nav-step">03</span><span class="nav-copy"><strong>Draft review</strong><small>Evidence and approval</small></span><span id="nav-draft-count" class="nav-count alert"></span>
+            <span class="nav-step">04</span><span class="nav-copy"><strong>Draft review</strong><small>Evidence and approval</small></span><span id="nav-draft-count" class="nav-count alert"></span>
           </button>
           <button class="nav-item" data-view="manual">
-            <span class="nav-step">04</span><span class="nav-copy"><strong>Manual queue</strong><small>Resolve exceptions</small></span><span id="nav-manual-count" class="nav-count"></span>
+            <span class="nav-step">05</span><span class="nav-copy"><strong>Manual queue</strong><small>Resolve exceptions</small></span><span id="nav-manual-count" class="nav-count"></span>
           </button>
         </nav>
 
@@ -302,7 +305,7 @@
             <div class="pipeline-toolbar">
               <div class="filter-group">
                 <label class="search-field" for="pipeline-search"><span>Search</span><input id="pipeline-search" type="search" placeholder="Firm or domain"></label>
-                <label class="filter-field" for="pipeline-filter"><span>Status</span><select id="pipeline-filter"><option value="all">All statuses</option><option value="cold_prospect">Cold prospects</option><option value="existing_partner">Existing partners</option><option value="lapsed_partner">Lapsed partners</option><option value="unknown">Unknown</option></select></label>
+                <label class="filter-field" for="pipeline-filter"><span>Relationship</span><select id="pipeline-filter"><option value="all">All relationships</option></select></label>
               </div>
               <div class="button-row">
                 <button id="derive-selected" class="button secondary step-button" type="button" disabled>
@@ -318,6 +321,13 @@
                   <span class="step-text"><strong>Find contacts</strong><small>May spend Hunter credits.</small></span>
                 </button>
               </div>
+            </div>
+            <div class="crm-batch-toolbar">
+              <div><strong>CRM batch changes</strong><span>Manual values override automation and every change is audited.</span></div>
+              <label class="filter-field" for="batch-relationship-status"><span>Relationship status</span><select id="batch-relationship-status"><option value="">Choose status</option><option value="__automatic__">Return to automatic</option></select></label>
+              <button id="apply-batch-relationship" class="button secondary" type="button" disabled>Apply relationship</button>
+              <label class="filter-field" for="batch-pipeline-stage"><span>Pipeline stage</span><select id="batch-pipeline-stage"><option value="">Choose stage</option><option value="__automatic__">Return to automatic</option></select></label>
+              <button id="apply-batch-stage" class="button secondary" type="button" disabled>Apply stage</button>
             </div>
             <p id="batch-hint" class="batch-hint">Select firms to enable these actions.</p>
 
@@ -335,12 +345,42 @@
 
             <div class="table-wrap">
               <table>
-                <thead><tr><th><input id="select-all" type="checkbox" aria-label="Select all visible firms"></th><th>Firm</th><th>Relationship</th><th>Research</th><th>Hunter gate</th><th>Contacts</th><th>Draft</th><th><span class="sr-only">Action</span></th><th><span class="sr-only">Remove</span></th></tr></thead>
+                <thead><tr><th><input id="select-all" type="checkbox" aria-label="Select all visible firms"></th><th>Firm</th><th>Relationship status</th><th>Pipeline stage</th><th>Research</th><th>Hunter gate</th><th>Contacts</th><th>Draft</th><th><span class="sr-only">Action</span></th><th><span class="sr-only">Remove</span></th></tr></thead>
                 <tbody id="pipeline-body"></tbody>
               </table>
             </div>
             <div id="pipeline-results-summary" class="table-footer"></div>
           </article>
+        </section>
+
+        <section id="view-library" class="view">
+          <article class="context-banner compact">
+            <div><span class="context-step">CRM master</span><h3>Every firm and its history</h3><p>Firm Library keeps active, closed, archived, and not-interested records together. Pipeline removal never deletes the underlying CRM record.</p></div>
+          </article>
+          <article class="panel library-panel">
+            <div class="panel-heading table-heading"><div><p class="eyebrow">Permanent universe</p><h3>Firm library</h3><p id="library-summary" class="section-copy"></p></div></div>
+            <div class="library-filters">
+              <label class="search-field" for="library-search"><span>Search</span><input id="library-search" type="search" placeholder="Firm or domain"></label>
+              <label class="filter-field" for="library-relationship"><span>Relationship</span><select id="library-relationship"><option value="all">All</option></select></label>
+              <label class="filter-field" for="library-stage"><span>Pipeline stage</span><select id="library-stage"><option value="all">All</option></select></label>
+              <label class="filter-field" for="library-owner"><span>Owner</span><select id="library-owner"><option value="all">All</option></select></label>
+              <label class="filter-field" for="library-asset-class"><span>Asset class</span><select id="library-asset-class"><option value="all">All</option></select></label>
+              <label class="filter-field" for="library-region"><span>Region</span><select id="library-region"><option value="all">All</option></select></label>
+              <label class="filter-field" for="library-tier"><span>Tier</span><select id="library-tier"><option value="all">All</option></select></label>
+              <button id="library-clear-filters" class="button secondary" type="button">Clear filters</button>
+            </div>
+            <div class="table-wrap">
+              <table class="library-table">
+                <thead><tr><th>Firm</th><th>Relationship</th><th>Pipeline stage</th><th>Asset class</th><th>Region</th><th>Assigned owner</th><th>Sponsorship tier</th><th>Expiration</th><th>Primary contact</th><th>Last activity</th><th>Pipeline</th></tr></thead>
+                <tbody id="library-body"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <section id="view-firm" class="view">
+          <button id="back-to-library" class="text-button firm-back" type="button">← Back to Firm Library</button>
+          <div id="firm-detail" class="firm-detail-shell"></div>
         </section>
 
         <section id="view-drafts" class="view">
@@ -378,8 +418,9 @@
         <input id="draft-target-id" type="hidden">
 
         <div id="draft-hooks-panel">
-          <label>Sourced hooks to write from</label>
+          <label>Sourced hooks to support this paragraph</label>
           <div id="draft-hooks-list" class="hook-list"></div>
+          <p id="draft-provenance-summary" class="provenance-summary" aria-live="polite"></p>
         </div>
 
         <label id="draft-contact-label" for="draft-contact">Verified contact</label>
@@ -391,9 +432,10 @@
         <label id="draft-paragraph-label" for="draft-paragraph">Human-authored firm paragraph</label>
         <textarea id="draft-paragraph" rows="6" placeholder="Write two or three original sentences grounded only in the sourced hooks."></textarea>
         <span id="draft-paragraph-help" class="field-help">Bridge validates this language against the stored research artifact. It does not invent a firm-specific paragraph.</span>
+        <p id="draft-validation-error" class="form-error draft-validation-error" role="alert"></p>
 
         <div id="draft-preview-panel">
-          <label>Preview, as it will read with the template</label>
+          <div class="preview-heading"><label>Preview, as it will read with the template</label><span id="draft-preview-provenance" class="provenance-indicator"></span></div>
           <div id="draft-preview" class="draft-preview"></div>
         </div>
 
@@ -434,7 +476,24 @@
       </form>
     </dialog>
 
+    <dialog id="meeting-note-dialog" class="modal modal-wide">
+      <form id="meeting-note-form" method="dialog" class="stack">
+        <div class="modal-heading"><div><p class="eyebrow">CRM interaction</p><h3 id="meeting-note-heading">Add meeting note</h3><p class="section-copy">Record what happened and the next step without mixing notes into sourced research.</p></div><button class="icon-button" type="button" data-close="meeting-note-dialog" aria-label="Close">×</button></div>
+        <input id="meeting-note-id" type="hidden">
+        <input id="meeting-note-target-id" type="hidden">
+        <div class="field-grid">
+          <label class="field" for="meeting-note-date"><span>Date</span><input id="meeting-note-date" type="date" required></label>
+          <label class="field" for="meeting-note-type"><span>Interaction type</span><input id="meeting-note-type" type="text" maxlength="80" value="Meeting" placeholder="Meeting, call, conference"></label>
+          <label class="field span-2" for="meeting-note-participants"><span>Participants</span><input id="meeting-note-participants" type="text" placeholder="Comma-separated names"></label>
+          <label class="field span-2" for="meeting-note-notes"><span>Notes</span><textarea id="meeting-note-notes" rows="8" maxlength="12000" required></textarea></label>
+          <label class="field span-2" for="meeting-note-next-step"><span>Next step</span><textarea id="meeting-note-next-step" rows="3" maxlength="2000"></textarea></label>
+          <label class="field" for="meeting-note-follow-up"><span>Follow-up date</span><input id="meeting-note-follow-up" type="date"></label>
+        </div>
+        <div class="modal-actions"><button class="button secondary" type="button" data-close="meeting-note-dialog">Cancel</button><button class="button primary" type="submit">Save meeting note</button></div>
+      </form>
+    </dialog>
+
     <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-    <script src="/app.js?v=20260816.4" defer></script>
+    <script src="/app.js?v=20260826.2" defer></script>
   </body>
 </html>

@@ -7,12 +7,21 @@ let activeLane = null;
 let state = null;
 let selectedTargets = new Set();
 let selectedDraftId = null;
+let selectedFirmId = null;
+let firmDetail = null;
 let pipelineSearch = "";
 let pipelineStatus = "all";
+let librarySearch = "";
+const libraryFilters = {
+  relationship: "all", stage: "all", owner: "all",
+  assetClass: "all", region: "all", tier: "all",
+};
 
 const VIEW_META = {
   overview: ["Overview", "See what needs attention and choose the next best action."],
   pipeline: ["Firm pipeline", "Move selected firms through status, research, contacts, and drafting."],
+  library: ["Firm library", "Search every firm and open its complete CRM history."],
+  firm: ["Firm record", "Review contacts, research, partnership facts, drafts, notes, and activity."],
   drafts: ["Draft review", "Inspect the complete email record before making a human approval decision."],
   manual: ["Manual queue", "Resolve missing facts and weak evidence that Bridge will not guess."],
 };
@@ -282,6 +291,7 @@ async function loadConfig() {
   }
   config = data;
   renderCategoryOptions(data.firm_categories || []);
+  renderCrmOptions();
   $("#google-signin").disabled = false;
   $("#google-signin-label").textContent = "Continue with Google";
 }
@@ -294,6 +304,20 @@ function renderCategoryOptions(labels) {
     '<option value="">Not set</option>',
     ...labels.map((label) => `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`),
   ].join("");
+}
+
+function optionMarkup(values) {
+  return values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+}
+
+function renderCrmOptions() {
+  const relationships = config?.relationship_statuses || [];
+  const stages = config?.pipeline_stages || [];
+  $("#pipeline-filter").innerHTML = '<option value="all">All relationships</option>' + optionMarkup(relationships);
+  $("#batch-relationship-status").innerHTML = '<option value="">Choose status</option><option value="__automatic__">Return to automatic</option>' + optionMarkup(relationships);
+  $("#batch-pipeline-stage").innerHTML = '<option value="">Choose stage</option><option value="__automatic__">Return to automatic</option>' + optionMarkup(stages);
+  $("#library-relationship").innerHTML = '<option value="all">All</option>' + optionMarkup(relationships);
+  $("#library-stage").innerHTML = '<option value="all">All</option>' + optionMarkup(stages);
 }
 
 function saveSession(value) {
@@ -420,6 +444,25 @@ function pill(value, label = null) {
   return `<span class="pill ${escapeHtml(css)}">${escapeHtml(label || humanize(value))}</span>`;
 }
 
+function statusControl(target, field) {
+  const relationship = field === "relationship_status";
+  const effective = relationship
+    ? target.relationship_status_effective : target.pipeline_stage_effective;
+  const overridden = relationship
+    ? target.relationship_status_is_overridden : target.pipeline_stage_is_overridden;
+  const values = relationship
+    ? (config?.relationship_statuses || []) : (config?.pipeline_stages || []);
+  const automatic = relationship
+    ? target.relationship_status_auto : target.pipeline_stage_auto;
+  return `<div class="status-control${overridden ? " is-manual" : ""}">
+    <select class="row-status-select" data-id="${target.id}" data-field="${field}" aria-label="${relationship ? "Relationship status" : "Pipeline stage"} for ${escapeHtml(target.firm)}">
+      <option value="__automatic__" ${overridden ? "" : "selected"}>Automatic: ${escapeHtml(automatic)}</option>
+      ${values.map((value) => `<option value="${escapeHtml(value)}" ${overridden && value === effective ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}
+    </select>
+    ${overridden ? '<span class="override-marker" title="Manual override is taking precedence over automation">● Manual</span>' : '<span class="auto-marker">Automatic</span>'}
+  </div>`;
+}
+
 function researchByTarget() {
   return new Map((state?.research || []).map((item) => [item.target_id, item]));
 }
@@ -427,6 +470,7 @@ function researchByTarget() {
 function contactsByTarget() {
   const grouped = new Map();
   for (const item of state?.contacts || []) {
+    if (item.dropped) continue;
     if (!grouped.has(item.target_id)) grouped.set(item.target_id, []);
     grouped.get(item.target_id).push(item);
   }
@@ -524,10 +568,11 @@ function renderOverview() {
     : `<strong>${balance.remaining}</strong><span>search credits remaining · ${balance.used} of ${balance.available} used</span>`;
 
   const research = researchByTarget();
-  const top = [...state.targets].sort((left, right) => Number(left.priority || 99) - Number(right.priority || 99)).slice(0, 6);
+  const top = [...state.targets].filter((target) => target.pipeline_visible)
+    .sort((left, right) => Number(left.priority || 99) - Number(right.priority || 99)).slice(0, 6);
   $("#overview-targets").innerHTML = top.length ? top.map((target) => {
     const artifact = research.get(target.id);
-    return `<div class="compact-row"><div><strong>${escapeHtml(target.firm)}</strong><span>${escapeHtml(target.domain || "Domain required")} · Priority ${escapeHtml(target.priority || "not set")}</span></div><div class="compact-actions">${pill(target.contact_status)} ${artifact ? pill(artifact.confidence) : pill("not researched")}</div></div>`;
+    return `<div class="compact-row"><div><strong>${escapeHtml(target.firm)}</strong><span>${escapeHtml(target.domain || "Domain required")} · Priority ${escapeHtml(target.priority || "not set")}</span></div><div class="compact-actions">${pill(target.relationship_status_effective)} ${artifact ? pill(artifact.confidence) : pill("not researched")}</div></div>`;
   }).join("") : emptyState("No firms yet", "Add your first batch to begin the evidence workflow.");
 
   const drafts = state.drafts.filter((draft) => draft.status === "pending_review").slice(0, 5);
@@ -561,9 +606,14 @@ function renderPipeline() {
   const contacts = contactsByTarget();
   const drafts = draftsByTarget();
   const query = pipelineSearch.trim().toLowerCase();
-  const visibleTargets = state.targets.filter((target) => {
+  const pipelineTargets = state.targets.filter((target) => target.pipeline_visible);
+  const pipelineIds = new Set(pipelineTargets.map((target) => target.id));
+  for (const targetId of selectedTargets) {
+    if (!pipelineIds.has(targetId)) selectedTargets.delete(targetId);
+  }
+  const visibleTargets = pipelineTargets.filter((target) => {
     const matchesQuery = !query || `${target.firm} ${target.domain || ""}`.toLowerCase().includes(query);
-    const status = target.contact_status || "unknown";
+    const status = target.relationship_status_effective || "Cold Prospect";
     return matchesQuery && (pipelineStatus === "all" || status === pipelineStatus);
   });
   $("#pipeline-body").innerHTML = visibleTargets.length ? visibleTargets.map((target) => {
@@ -581,7 +631,8 @@ function renderPipeline() {
           <button class="text-button edit-domain" type="button" data-id="${target.id}" data-firm="${escapeHtml(target.firm)}" data-domain="${escapeHtml(target.domain || "")}">${target.domain ? "Edit" : "Add domain"}</button>
         </div>
       </td>
-      <td>${pill(target.contact_status)}</td>
+      <td>${statusControl(target, "relationship_status")}</td>
+      <td>${statusControl(target, "pipeline_stage")}</td>
       <td>${artifact ? pill(artifact.confidence) : pill("not researched")}</td>
       <td><span title="${escapeHtml(gate.reason)}">${pill(gate.status)}</span></td>
       <td class="contacts-cell">
@@ -592,9 +643,9 @@ function renderPipeline() {
       <td>${draftBlocker(target, artifact, targetContacts)
         ? `<span class="quiet" title="${escapeHtml(draftBlocker(target, artifact, targetContacts))}">Not ready</span>`
         : `<button class="text-button create-draft" data-id="${target.id}">Create draft</button>`}</td>
-      <td><button class="text-button danger remove-target" type="button" data-id="${target.id}" data-firm="${escapeHtml(target.firm)}">Remove</button></td>
+      <td><button class="text-button danger remove-target" type="button" data-id="${target.id}" data-firm="${escapeHtml(target.firm)}">Remove from pipeline</button></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="9">${emptyState(state.targets.length ? "No matching firms" : "Your pipeline is empty", state.targets.length ? "Clear the search or change the status filter." : "Add a batch above to begin.")}</td></tr>`;
+  }).join("") : `<tr><td colspan="10">${emptyState(pipelineTargets.length ? "No matching firms" : "Your pipeline is empty", pipelineTargets.length ? "Clear the search or change the relationship filter." : "Add or reopen a firm from Firm Library.")}</td></tr>`;
 
   $$(".target-check").forEach((input) => input.addEventListener("change", () => {
     if (input.checked) selectedTargets.add(input.dataset.id);
@@ -608,6 +659,8 @@ function renderPipeline() {
     promptTargetDomain(button.dataset.id, button.dataset.firm, button.dataset.domain)));
   $$(".remove-target").forEach((button) => button.addEventListener("click", () =>
     removeTarget(button.dataset.id, button.dataset.firm)));
+  $$(".row-status-select").forEach((select) => select.addEventListener("change", () =>
+    changeTargetStatus(select.dataset.id, select.dataset.field, select.value)));
   $("#select-all").onchange = (event) => {
     for (const target of visibleTargets) {
       if (event.target.checked) selectedTargets.add(target.id);
@@ -615,7 +668,7 @@ function renderPipeline() {
     }
     renderPipeline();
   };
-  $("#pipeline-results-summary").textContent = `Showing ${visibleTargets.length} of ${state.targets.length} firms in your lane`;
+  $("#pipeline-results-summary").textContent = `Showing ${visibleTargets.length} of ${pipelineTargets.length} active workflow firms · ${state.targets.length} total in Firm Library`;
   updateSelectionControls(visibleTargets);
 }
 
@@ -641,12 +694,12 @@ async function promptTargetDomain(targetId, firmName, currentDomain) {
 }
 
 async function removeTarget(targetId, firmName) {
-  if (!window.confirm(`Remove ${firmName} from your pipeline? This also deletes its research, contacts, and drafts.`)) return;
+  if (!window.confirm(`Remove ${firmName} from Firm Pipeline? Its firm record, contacts, research, drafts, notes, and history will remain in Firm Library.`)) return;
   setLoading(true);
   try {
     await api(`/api/targets/${targetId}`, { method: "DELETE" });
     selectedTargets.delete(targetId);
-    showToast(`${firmName} removed from your pipeline.`);
+    showToast(`${firmName} removed from Firm Pipeline and retained in Firm Library.`);
     await loadState();
   } catch (error) {
     showToast(error.message, true);
@@ -655,10 +708,160 @@ async function removeTarget(targetId, firmName) {
   }
 }
 
+async function changeTargetStatus(targetId, field, selectedValue) {
+  const clear = selectedValue === "__automatic__";
+  setLoading(true);
+  try {
+    await api(`/api/targets/${targetId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ field, value: clear ? null : selectedValue, clear }),
+    });
+    showToast(clear ? "Manual override cleared. Automation is in control again." : "Manual status saved and audit event recorded.");
+    await loadState();
+    if (selectedFirmId === targetId && $("#view-firm").classList.contains("active")) {
+      firmDetail = await api(`/api/firms/${targetId}`);
+      renderFirmDetail();
+    }
+  } catch (error) {
+    showToast(error.message, true);
+    await loadState().catch(() => {});
+  } finally {
+    setLoading(false);
+  }
+}
+
+function syncLibraryFilter(selector, values, selected) {
+  const control = $(selector);
+  const unique = [...new Set(values.map((value) => String(value || "").trim()).filter(Boolean))].sort();
+  control.innerHTML = '<option value="all">All</option>' + optionMarkup(unique);
+  control.value = unique.includes(selected) ? selected : "all";
+}
+
+function renderLibrary() {
+  const targets = state?.targets || [];
+  syncLibraryFilter("#library-owner", targets.map((target) => target.assigned_owner_effective || target.owner), libraryFilters.owner);
+  syncLibraryFilter("#library-asset-class", targets.map((target) => target.firm_type), libraryFilters.assetClass);
+  syncLibraryFilter("#library-region", targets.map((target) => target.region), libraryFilters.region);
+  syncLibraryFilter("#library-tier", targets.map((target) => target.sponsorship_tier || target.relationship_tier || target.tier_target), libraryFilters.tier);
+  $("#library-relationship").value = libraryFilters.relationship;
+  $("#library-stage").value = libraryFilters.stage;
+
+  const query = librarySearch.trim().toLowerCase();
+  const rows = targets.filter((target) => {
+    const tier = target.sponsorship_tier || target.relationship_tier || target.tier_target || "";
+    return (!query || `${target.firm} ${target.domain || ""}`.toLowerCase().includes(query))
+      && (libraryFilters.relationship === "all" || target.relationship_status_effective === libraryFilters.relationship)
+      && (libraryFilters.stage === "all" || target.pipeline_stage_effective === libraryFilters.stage)
+      && (libraryFilters.owner === "all" || (target.assigned_owner_effective || target.owner) === libraryFilters.owner)
+      && (libraryFilters.assetClass === "all" || target.firm_type === libraryFilters.assetClass)
+      && (libraryFilters.region === "all" || target.region === libraryFilters.region)
+      && (libraryFilters.tier === "all" || tier === libraryFilters.tier);
+  });
+  $("#library-summary").textContent = `${rows.length} of ${targets.length} permanent firm record(s)`;
+  $("#library-body").innerHTML = rows.length ? rows.map((target) => {
+    const tier = target.sponsorship_tier || target.relationship_tier || target.tier_target || "";
+    return `<tr>
+      <td class="firm-cell"><button class="library-firm-link" type="button" data-id="${target.id}"><strong>${escapeHtml(target.firm)}</strong><span>${escapeHtml(target.domain || "No domain")}</span></button></td>
+      <td>${statusControl(target, "relationship_status")}</td>
+      <td>${statusControl(target, "pipeline_stage")}</td>
+      <td>${escapeHtml(target.firm_type || "Not set")}</td>
+      <td>${escapeHtml(target.region || "Not set")}</td>
+      <td>${escapeHtml(target.assigned_owner_effective || target.owner || "Not set")}</td>
+      <td>${escapeHtml(tier || "Not set")}</td>
+      <td>${escapeHtml(target.relationship_expiration || "Not set")}</td>
+      <td>${escapeHtml(target.primary_contact || "Not set")}</td>
+      <td>${escapeHtml(String(target.last_activity || "Not set").slice(0, 10))}</td>
+      <td>${target.pipeline_visible ? pill("active", "Active") : pill("inactive", "Library only")}</td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="11">${emptyState("No matching firms", "Clear one or more filters to see the permanent firm universe.")}</td></tr>`;
+  $$(".library-firm-link").forEach((button) => button.addEventListener("click", () => openFirmRecord(button.dataset.id)));
+  $$("#library-body .row-status-select").forEach((select) => select.addEventListener("change", () =>
+    changeTargetStatus(select.dataset.id, select.dataset.field, select.value)));
+}
+
+function detailValue(label, value) {
+  return `<div class="crm-field"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value || "Not set")}</strong></div>`;
+}
+
+async function openFirmRecord(targetId) {
+  selectedFirmId = targetId;
+  firmDetail = null;
+  switchView("firm");
+  $("#firm-detail").innerHTML = emptyState("Loading firm record", "Contacts, research, history, notes, and drafts are being assembled.");
+  setLoading(true);
+  try {
+    firmDetail = await api(`/api/firms/${targetId}`);
+    renderFirmDetail();
+  } catch (error) {
+    $("#firm-detail").innerHTML = emptyState("Firm record unavailable", error.message);
+    showToast(error.message, true);
+  } finally {
+    setLoading(false);
+  }
+}
+
+function renderFirmDetail() {
+  if (!firmDetail?.target) return;
+  const target = firmDetail.target;
+  $("#page-title").textContent = target.firm;
+  const contacts = firmDetail.contacts || [];
+  const research = firmDetail.research || [];
+  const drafts = firmDetail.drafts || [];
+  const notes = firmDetail.meeting_notes || [];
+  const activity = firmDetail.activity || [];
+  const hooks = research.flatMap((item) => item.artifact?.alignment_hooks || []);
+  $("#firm-detail").innerHTML = `
+    <article class="firm-hero">
+      <div><p class="eyebrow light">Firm Library record</p><h3>${escapeHtml(target.firm)}</h3><p>${escapeHtml(target.domain || "No domain on file")} · ${escapeHtml(target.owner)} lane</p></div>
+      <div class="firm-hero-status">${statusControl(target, "relationship_status")}${statusControl(target, "pipeline_stage")}</div>
+    </article>
+    <div class="firm-detail-grid">
+      <article class="panel firm-section span-2"><div class="detail-section-heading"><h4>Overview</h4></div><div class="crm-field-grid">
+        ${detailValue("Firm", target.firm)}${detailValue("Domain", target.domain)}${detailValue("Asset class", target.firm_type)}${detailValue("Region", target.region)}
+        ${detailValue("Assigned owner", target.assigned_owner || target.owner)}${detailValue("Access lane", target.owner)}${detailValue("Relationship status", target.relationship_status_effective)}${detailValue("Pipeline stage", target.pipeline_stage_effective)}${detailValue("Sponsorship tier", target.sponsorship_tier || target.relationship_tier || target.tier_target)}
+        ${detailValue("Expiration / renewal date", target.relationship_expiration)}${detailValue("Partnership scope", target.partnership_scope)}${detailValue("Partnership type", target.partnership_type)}${detailValue("Next step", target.next_step)}${detailValue("Next-step due", target.next_step_due)}
+      </div></article>
+      <article class="panel firm-section"><div class="detail-section-heading"><h4>Contacts</h4></div><div class="crm-list">${contacts.length ? contacts.map((contact) => `
+        <div class="crm-list-row"><div><strong>${escapeHtml(contact.name || "Unnamed contact")}${contact.dropped ? " (inactive)" : ""}</strong><span>${escapeHtml(contact.title || "No title")} · ${escapeHtml(contact.email || "No email")}</span>${contact.contact_provenance?.discovery_url ? `<span>Source: ${escapeHtml(contact.contact_provenance.discovery_url)}</span>` : ""}</div>${pill(contact.verification_status || "unverified")}</div>`).join("") : emptyState("No contacts", "Add a sourced contact from the pipeline or firm record.")}</div></article>
+      <article class="panel firm-section"><div class="detail-section-heading"><h4>Partnership</h4></div><div class="crm-field-grid single">
+        ${detailValue("Tier", target.sponsorship_tier || target.relationship_tier || target.tier_target)}${detailValue("Scope", target.partnership_scope || target.region)}${detailValue("Type", target.partnership_type)}${detailValue("Expiration", target.relationship_expiration)}${detailValue("Historical status", target.relationship_status)}${detailValue("Renewal notes", target.renewal_notes || target.relationship_decline_reason)}${detailValue("Last touchpoint", target.last_touchpoint)}${detailValue("Email-chain notes", target.email_chain_notes)}${detailValue("Contact verification", target.contact_verified_status)}
+      </div></article>
+      <article class="panel firm-section span-2"><div class="detail-section-heading"><h4>Research</h4></div><div class="research-records">${hooks.length ? hooks.map((hook) => `<div class="research-record"><p>${escapeHtml(hook.text || hook.claim || "Sourced research finding")}</p><a href="${escapeHtml(safeHttpUrl(hook.firm_claim_source || hook.source_url))}" target="_blank" rel="noopener noreferrer">${escapeHtml(hook.firm_claim_source || hook.source_url || "Source unavailable")}</a></div>`).join("") : emptyState("No sourced research", "Unsourced meeting notes stay separate and do not appear here.")}</div></article>
+      <article class="panel firm-section span-2"><div class="detail-section-heading"><h4>Meeting notes</h4><button id="add-meeting-note" class="button secondary" type="button">+ Add Meeting Note</button></div><div class="meeting-note-list">${notes.length ? notes.map((note) => `<article class="meeting-note-card"><div><strong>${escapeHtml(note.interaction_type || "Meeting")} · ${escapeHtml(note.interaction_date)}</strong><span>${escapeHtml((note.participants || []).join(", ") || "Participants not recorded")}</span></div><p>${escapeHtml(note.notes)}</p>${note.next_step ? `<p><strong>Next step:</strong> ${escapeHtml(note.next_step)}${note.follow_up_date ? ` · ${escapeHtml(note.follow_up_date)}` : ""}</p>` : ""}<button class="text-button edit-meeting-note" type="button" data-id="${note.id}">Edit</button></article>`).join("") : emptyState("No meeting notes", "Add a meeting, call, or interaction note without inventing missing details.")}</div></article>
+      <article class="panel firm-section"><div class="detail-section-heading"><h4>Drafts</h4></div><div class="crm-list">${drafts.length ? drafts.map((draft) => `<div class="crm-list-row"><div><strong>${escapeHtml(draft.subject || "Draft")}</strong><span>${escapeHtml(String(draft.generated_at || "").slice(0, 10))}</span></div>${pill(draft.status)}</div>`).join("") : emptyState("No drafts", "Generated and reviewed drafts will appear here; generation never counts as sending.")}</div></article>
+      <article class="panel firm-section"><div class="detail-section-heading"><h4>Activity</h4></div><div class="activity-timeline">${activity.length ? activity.map((event) => `<div class="activity-event"><span>${escapeHtml(String(event.occurred_at || "").slice(0, 10))}</span><div><strong>${escapeHtml(event.title)}</strong><p>${escapeHtml(event.detail || "")}</p>${event.reason ? `<p>${escapeHtml(event.reason)}</p>` : ""}</div></div>`).join("") : emptyState("No activity", "Factual CRM events will appear as Bridge records them.")}</div></article>
+    </div>`;
+  $("#add-meeting-note").addEventListener("click", () => openMeetingNoteDialog());
+  $$(".edit-meeting-note").forEach((button) => button.addEventListener("click", () => openMeetingNoteDialog(button.dataset.id)));
+  $$("#firm-detail .row-status-select").forEach((select) => select.addEventListener("change", () =>
+    changeTargetStatus(select.dataset.id, select.dataset.field, select.value)));
+}
+
+function todayForDateInput() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function openMeetingNoteDialog(noteId = null) {
+  const note = noteId ? (firmDetail.meeting_notes || []).find((item) => item.id === noteId) : null;
+  $("#meeting-note-id").value = note?.id || "";
+  $("#meeting-note-target-id").value = selectedFirmId;
+  $("#meeting-note-heading").textContent = note ? "Edit meeting note" : "Add meeting note";
+  $("#meeting-note-date").value = note?.interaction_date || todayForDateInput();
+  $("#meeting-note-type").value = note?.interaction_type || "Meeting";
+  $("#meeting-note-participants").value = (note?.participants || []).join(", ");
+  $("#meeting-note-notes").value = note?.notes || "";
+  $("#meeting-note-next-step").value = note?.next_step || "";
+  $("#meeting-note-follow-up").value = note?.follow_up_date || "";
+  $("#meeting-note-dialog").showModal();
+}
+
 function updateSelectionControls(visibleTargets = state?.targets || []) {
   const count = selectedTargets.size;
   $("#selection-count").textContent = `${count} selected`;
-  ["#derive-selected", "#research-selected", "#contacts-selected"].forEach((selector) => { $(selector).disabled = count === 0; });
+  ["#derive-selected", "#research-selected", "#contacts-selected", "#apply-batch-relationship", "#apply-batch-stage"].forEach((selector) => { $(selector).disabled = count === 0; });
 
   // Say what will happen and roughly how long, before it is clicked.
   const hint = $("#batch-hint");
@@ -871,10 +1074,12 @@ function renderAll() {
   renderIdentity();
   renderOverview();
   renderPipeline();
+  renderLibrary();
   renderDrafts();
   renderManualQueue();
   const counts = state.counts || {};
-  $("#nav-target-count").textContent = counts.targets ?? 0;
+  $("#nav-target-count").textContent = counts.pipeline_targets ?? 0;
+  $("#nav-library-count").textContent = counts.targets ?? 0;
   $("#nav-draft-count").textContent = counts.pending_review ?? 0;
   $("#nav-manual-count").textContent = counts.manual_queue ?? 0;
 }
@@ -1032,14 +1237,55 @@ async function runBatch(path, ids) {
   }
 }
 
+async function applyBatchStatus(field, selectedValue) {
+  const ids = selectedIds();
+  if (!selectedValue) return showToast("Choose a status first.", true);
+  const clear = selectedValue === "__automatic__";
+  const label = field === "relationship_status" ? "relationship status" : "pipeline stage";
+  const change = clear ? "return to automatic" : `change to ${selectedValue}`;
+  if (!window.confirm(`Apply this ${label} change to ${ids.length} selected firm(s): ${change}? Every firm will receive its own audit event.`)) return;
+
+  const progress = {
+    title: `Updating ${label}`,
+    detail: "Applying owner-scoped manual overrides through the existing partial-success batch framework.",
+  };
+  setBatchButtonsDisabled(true);
+  setLoading(true);
+  showBatchProgress(progress, ids.length);
+  try {
+    const result = await api("/api/status-overrides/batch", {
+      method: "POST",
+      body: JSON.stringify({ target_ids: ids, field, value: clear ? null : selectedValue, clear }),
+    });
+    let done = 0;
+    let errors = 0;
+    for (const row of result.results || []) {
+      const failed = Boolean(row.error);
+      if (failed) errors += 1;
+      logBatchRow(firmNameFor(row.target_id || row.id, row), failed ? row.error : `${label}: ${clear ? "automatic" : selectedValue}`, failed);
+      done += 1;
+      updateBatchProgress(done, ids.length);
+    }
+    finishBatchProgress(ids.length, errors);
+    showToast(errors ? `${errors} firm(s) need manual review; successful changes were preserved.` : `${ids.length} audited status change(s) completed.`, errors > 0);
+    await loadState();
+  } catch (error) {
+    finishBatchProgress(ids.length, ids.length);
+    showToast(error.message, true);
+  } finally {
+    setBatchButtonsDisabled(false);
+    setLoading(false);
+  }
+}
+
 function setBatchButtonsDisabled(disabled) {
-  ["#derive-selected", "#research-selected", "#contacts-selected"]
+  ["#derive-selected", "#research-selected", "#contacts-selected", "#apply-batch-relationship", "#apply-batch-stage"]
     .forEach((selector) => { $(selector).disabled = disabled; });
 }
 
 function openDraftDialog(targetId) {
   const target = state.targets.find((item) => item.id === targetId);
-  const contacts = (state.contacts || []).filter((item) => item.target_id === targetId);
+  const contacts = (state.contacts || []).filter((item) => item.target_id === targetId && !item.dropped);
   $("#draft-target-id").value = targetId;
   $("#draft-dialog-title").textContent = `Generate for ${target.firm}`;
   const cold = target.contact_status === "cold_prospect";
@@ -1051,6 +1297,7 @@ function openDraftDialog(targetId) {
   $("#draft-paragraph-help").classList.toggle("hidden", !cold);
   $("#draft-paragraph").required = cold;
   $("#draft-paragraph").value = "";
+  $("#draft-validation-error").textContent = "";
   $("#draft-contact").innerHTML = contacts.length
     ? contacts.map((contact) => `<option value="${contact.id}">${escapeHtml(contact.name)} · ${escapeHtml(contact.title)} · ${escapeHtml(contact.email)}</option>`).join("")
     : `<option value="">No contact yet, add one</option>`;
@@ -1062,19 +1309,50 @@ function openDraftDialog(targetId) {
 /** Show the sourced alignment hooks for a target, the only facts a firm-specific paragraph may draw on. */
 function renderDraftHooks(targetId) {
   const panel = $("#draft-hooks-panel");
+  const target = state.targets?.find((item) => item.id === targetId);
   const artifact = (researchByTarget().get(targetId) || {}).artifact;
   const hooks = artifact?.alignment_hooks || [];
-  if (!hooks.length) {
+  if (target?.contact_status !== "cold_prospect" || !hooks.length) {
     panel.classList.add("hidden");
     $("#draft-hooks-list").innerHTML = "";
+    $("#draft-provenance-summary").textContent = "";
     return;
   }
   panel.classList.remove("hidden");
-  $("#draft-hooks-list").innerHTML = hooks.map((hook) => `
-    <div class="hook-item">
-      <p>${escapeHtml(hook.text)}</p>
-      <a href="${escapeHtml(safeHttpUrl(hook.firm_claim_source))}" target="_blank" rel="noopener noreferrer">${escapeHtml(hook.firm_claim_source)}</a>
-    </div>`).join("");
+  $("#draft-hooks-list").innerHTML = hooks.map((hook) => {
+    const basis = String(hook.basis || "stored research").replaceAll("_", " ");
+    const hookId = hook.research_hook_id || "";
+    return `
+      <label class="hook-item">
+        <input class="draft-hook-checkbox" type="checkbox" value="${escapeHtml(hookId)}" ${hookId ? "checked" : "disabled"}>
+        <span>
+          <span class="hook-source-label">${escapeHtml(basis)}</span>
+          <p>${escapeHtml(hook.text)}</p>
+          <a href="${escapeHtml(safeHttpUrl(hook.firm_claim_source))}" target="_blank" rel="noopener noreferrer">${escapeHtml(hook.firm_claim_source)}</a>
+        </span>
+      </label>`;
+  }).join("");
+  $$(".draft-hook-checkbox").forEach((checkbox) => checkbox.addEventListener("change", () => {
+    $("#draft-validation-error").textContent = "";
+    updateDraftProvenanceSummary();
+  }));
+  updateDraftProvenanceSummary();
+}
+
+function selectedDraftHookIds() {
+  return $$(".draft-hook-checkbox:checked").map((checkbox) => checkbox.value).filter(Boolean);
+}
+
+function updateDraftProvenanceSummary() {
+  const selected = selectedDraftHookIds();
+  const count = selected.length;
+  const message = count
+    ? `${count} stored research hook${count === 1 ? "" : "s"} selected. Bridge will map each supported sentence to these sources.`
+    : "Select at least one stored research hook to support the firm paragraph.";
+  $("#draft-provenance-summary").textContent = message;
+  $("#draft-preview-provenance").textContent = count
+    ? `${count} source${count === 1 ? "" : "s"} selected`
+    : "No source selected";
 }
 
 /** Live-fill the locked template with the paragraph being written, so it reads like a finished email while drafting. */
@@ -1087,6 +1365,7 @@ function renderDraftPreview() {
     return;
   }
   panel.classList.remove("hidden");
+  updateDraftProvenanceSummary();
   const contactId = $("#draft-contact").value;
   const contact = (state.contacts || []).find((item) => item.id === contactId);
   const firstName = contact?.name ? contact.name.trim().split(/\s+/)[0] : "[Contact]";
@@ -1191,6 +1470,8 @@ async function logout() {
     state = null;
     selectedTargets = new Set();
     selectedDraftId = null;
+    selectedFirmId = null;
+    firmDetail = null;
     setAuthenticated(false);
     history.replaceState(null, "", window.location.pathname);
   }
@@ -1230,6 +1511,34 @@ function bindEvents() {
     pipelineStatus = event.target.value;
     renderPipeline();
   });
+  $("#apply-batch-relationship").addEventListener("click", () => {
+    try { applyBatchStatus("relationship_status", $("#batch-relationship-status").value); }
+    catch (error) { showToast(error.message, true); }
+  });
+  $("#apply-batch-stage").addEventListener("click", () => {
+    try { applyBatchStatus("pipeline_stage", $("#batch-pipeline-stage").value); }
+    catch (error) { showToast(error.message, true); }
+  });
+  $("#library-search").addEventListener("input", (event) => {
+    librarySearch = event.target.value;
+    renderLibrary();
+  });
+  const libraryBindings = [
+    ["#library-relationship", "relationship"], ["#library-stage", "stage"],
+    ["#library-owner", "owner"], ["#library-asset-class", "assetClass"],
+    ["#library-region", "region"], ["#library-tier", "tier"],
+  ];
+  libraryBindings.forEach(([selector, key]) => $(selector).addEventListener("change", (event) => {
+    libraryFilters[key] = event.target.value;
+    renderLibrary();
+  }));
+  $("#library-clear-filters").addEventListener("click", () => {
+    librarySearch = "";
+    $("#library-search").value = "";
+    Object.keys(libraryFilters).forEach((key) => { libraryFilters[key] = "all"; });
+    renderLibrary();
+  });
+  $("#back-to-library").addEventListener("click", () => switchView("library"));
   $("#derive-selected").addEventListener("click", () => {
     try { runBatch("/api/derive-status", selectedIds()); }
     catch (error) { showToast(error.message, true); }
@@ -1313,7 +1622,10 @@ function bindEvents() {
     finally { setLoading(false); }
   });
 
-  $("#draft-paragraph").addEventListener("input", renderDraftPreview);
+  $("#draft-paragraph").addEventListener("input", () => {
+    $("#draft-validation-error").textContent = "";
+    renderDraftPreview();
+  });
   $("#draft-contact").addEventListener("change", renderDraftPreview);
   $("#draft-add-contact").addEventListener("click", () => {
     const targetId = $("#draft-target-id").value;
@@ -1367,6 +1679,14 @@ function bindEvents() {
     if (target.contact_status === "cold_prospect" && !$("#draft-paragraph").value.trim()) {
       return showToast("Write the firm-specific paragraph before generating.", true);
     }
+    const supportingHookIds = target.contact_status === "cold_prospect"
+      ? selectedDraftHookIds()
+      : [];
+    if (target.contact_status === "cold_prospect" && !supportingHookIds.length) {
+      $("#draft-validation-error").textContent = "Select at least one sourced research hook before generating this cold draft.";
+      return showToast("Select at least one sourced research hook.", true);
+    }
+    $("#draft-validation-error").textContent = "";
     setLoading(true);
     try {
       const result = await api("/api/drafts", {
@@ -1375,6 +1695,7 @@ function bindEvents() {
           target_id: targetId,
           contact_id: $("#draft-contact").value || null,
           firm_specific_paragraph: $("#draft-paragraph").value.trim() || null,
+          supporting_hook_ids: supportingHookIds,
         }),
       });
       selectedDraftId = result.id;
@@ -1382,7 +1703,10 @@ function bindEvents() {
       showToast("Validator-passing draft added to review.");
       await loadState();
       switchView("drafts");
-    } catch (error) { showToast(error.message, true); }
+    } catch (error) {
+      $("#draft-validation-error").textContent = error.message;
+      showToast("Draft validation failed. Review the sentence-level provenance message.", true);
+    }
     finally { setLoading(false); }
   });
 
@@ -1397,6 +1721,32 @@ function bindEvents() {
       $("#contact-dialog").close();
       showToast(`Contact run completed. ${result.credits_spent} credit(s) spent.`);
       await loadState();
+    } catch (error) { showToast(error.message, true); }
+    finally { setLoading(false); }
+  });
+
+  $("#meeting-note-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const noteId = $("#meeting-note-id").value;
+    const targetId = $("#meeting-note-target-id").value;
+    const payload = {
+      interaction_date: $("#meeting-note-date").value,
+      interaction_type: $("#meeting-note-type").value.trim() || "Meeting",
+      participants: $("#meeting-note-participants").value.split(",").map((value) => value.trim()).filter(Boolean),
+      notes: $("#meeting-note-notes").value.trim(),
+      next_step: $("#meeting-note-next-step").value.trim(),
+      follow_up_date: $("#meeting-note-follow-up").value || null,
+    };
+    if (!payload.interaction_date || !payload.notes) return showToast("A date and meeting notes are required.", true);
+    setLoading(true);
+    try {
+      await api(noteId ? `/api/meeting-notes/${noteId}` : `/api/firms/${targetId}/meeting-notes`, {
+        method: noteId ? "PATCH" : "POST",
+        body: JSON.stringify(payload),
+      });
+      $("#meeting-note-dialog").close();
+      showToast(noteId ? "Meeting note updated." : "Meeting note added.");
+      await openFirmRecord(targetId);
     } catch (error) { showToast(error.message, true); }
     finally { setLoading(false); }
   });
