@@ -17,7 +17,7 @@ from common.provenance import (
     find_tone_violations,
     split_sentences,
 )
-from research.hook_ids import artifact_with_hook_ids
+from research.hook_ids import artifact_with_hook_ids, resolve_selected_hooks
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -29,6 +29,24 @@ CITADEL_PARAGRAPH = (
     "title or tenure, which makes a partnership with BLK a natural fit for "
     "connecting Citadel with ambitious undergraduate talent."
 )
+
+
+def _general_atlantic_hooks(*text_fragments: str):
+    """Resolve only the requested stored General Atlantic hooks by stable ID."""
+    artifact = artifact_with_hook_ids(json.loads(
+        (PROJECT_ROOT / "research" / "out" / "general_atlantic.json").read_text(
+            encoding="utf-8"
+        )
+    ))
+    selected_ids = [
+        hook["research_hook_id"]
+        for hook in artifact["alignment_hooks"]
+        if any(fragment in hook.get("text", "") for fragment in text_fragments)
+    ]
+    assert len(selected_ids) == len(text_fragments)
+    hooks, resolved_ids = resolve_selected_hooks(artifact, selected_ids)
+    assert resolved_ids == selected_ids
+    return hooks
 
 
 # ── Acceptance test 1: no source_url means no claim ───────────────────────────
@@ -194,3 +212,119 @@ def test_citadel_unsupported_claims_fail_with_actionable_sentence_message(
     assert "Sentence 1" in message
     assert "selected research hooks" in message
     assert "Unsupported phrase" in message
+
+
+# ── General Atlantic matched-span regression ─────────────────────────────────
+
+def test_supported_category_leading_span_passes_without_treating_rule_as_phrase(
+    blk_facts,
+):
+    hooks = _general_atlantic_hooks("category-leading companies")
+    paragraph = (
+        "General Atlantic’s focus on supporting category-leading companies through "
+        "strategic counsel, resources and value-add capabilities creates a strong fit "
+        "with BLK’s pre-vetted undergraduate network."
+    )
+
+    report = check_firm_paragraph(
+        paragraph,
+        hooks,
+        blk_facts,
+        firm_name="General Atlantic",
+        min_sentences=1,
+    )
+
+    assert report.ok, report.describe()
+    assert report.sentences[0].unsupported_claims == []
+    assert report.sentences[0].hook_ids == [hooks[0]["research_hook_id"]]
+
+
+def test_supported_actis_fact_and_blk_interpretation_pass(blk_facts):
+    hooks = _general_atlantic_hooks("critical infrastructure")
+    paragraph = (
+        "General Atlantic’s investment in critical infrastructure through Actis "
+        "creates a relevant avenue for BLK students interested in these areas."
+    )
+
+    report = check_firm_paragraph(
+        paragraph,
+        hooks,
+        blk_facts,
+        firm_name="General Atlantic",
+        min_sentences=1,
+    )
+
+    assert report.ok, report.describe()
+    assert report.sentences[0].unsupported_claims == []
+    assert report.sentences[0].hook_ids == [hooks[0]["research_hook_id"]]
+
+
+def test_current_general_atlantic_two_hook_paragraph_passes(blk_facts):
+    hooks = _general_atlantic_hooks(
+        "category-leading companies",
+        "critical infrastructure",
+    )
+    paragraph = (
+        "General Atlantic’s focus on supporting category-leading companies through "
+        "strategic counsel, resources and value-add capabilities, alongside its "
+        "investment in critical infrastructure through Actis, creates a strong fit "
+        "with BLK’s pre-vetted undergraduate network."
+    )
+
+    report = check_firm_paragraph(
+        paragraph,
+        hooks,
+        blk_facts,
+        firm_name="General Atlantic",
+        min_sentences=1,
+    )
+
+    assert report.ok, report.describe()
+    assert set(report.sentences[0].hook_ids) == {
+        hook["research_hook_id"] for hook in hooks
+    }
+
+
+def test_unsupported_healthcare_claim_reports_actual_spans(blk_facts):
+    hooks = _general_atlantic_hooks("category-leading companies")
+    paragraph = "General Atlantic is one of the largest healthcare investors in the world."
+
+    report = check_firm_paragraph(
+        paragraph,
+        hooks,
+        blk_facts,
+        firm_name="General Atlantic",
+        min_sentences=1,
+    )
+
+    assert not report.ok
+    claims = report.sentences[0].unsupported_claims
+    assert any(
+        claim.phrase == "largest" and claim.claim_type == "superlative"
+        for claim in claims
+    )
+    assert any(claim.phrase.lower().startswith("healthcare") for claim in claims)
+    assert "superlative" not in report.sentences[0].unsupported_terms
+    assert "largest" in report.describe()
+
+
+def test_unsupported_largest_reports_phrase_and_separate_rule_type(blk_facts):
+    hooks = _general_atlantic_hooks("category-leading companies")
+    paragraph = "General Atlantic is the largest growth equity investor."
+
+    report = check_firm_paragraph(
+        paragraph,
+        hooks,
+        blk_facts,
+        firm_name="General Atlantic",
+        min_sentences=1,
+    )
+
+    assert not report.ok
+    claims = report.sentences[0].unsupported_claims
+    assert any(
+        claim.phrase == "largest" and claim.claim_type == "superlative"
+        for claim in claims
+    )
+    assert "superlative" not in report.sentences[0].unsupported_terms
+    assert "Unsupported phrase: 'largest" in report.describe()

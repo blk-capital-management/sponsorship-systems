@@ -51,6 +51,13 @@ _WORD = re.compile(r"[A-Za-z][A-Za-z'&.\-]*|\d[\d,.%]*")
 
 
 @dataclass
+class ClaimDetection:
+    """One lexical claim span and the detector rule that identified it."""
+    phrase: str
+    claim_type: str
+
+
+@dataclass
 class SentenceEvidence:
     """One paragraph sentence and the selected hook(s) that back it."""
     sentence: str
@@ -61,10 +68,15 @@ class SentenceEvidence:
     hook_indices: list[int] = field(default_factory=list)
     hook_ids: list[str] = field(default_factory=list)
     unsupported_phrase: str | None = None
+    unsupported_claims: list[ClaimDetection] = field(default_factory=list)
 
     @property
     def supported(self) -> bool:
-        return bool(self.source_url or self.source_urls) and not self.unsupported_terms
+        return (
+            bool(self.source_url or self.source_urls)
+            and not self.unsupported_terms
+            and not self.unsupported_claims
+        )
 
 
 @dataclass
@@ -121,14 +133,14 @@ def split_sentences(paragraph: str) -> list[str]:
     return [s.strip() for s in _SENTENCE_SPLIT.split(text) if s.strip()]
 
 
-def _claim_terms(sentence: str) -> list[str]:
-    """Return tokens that assert something checkable: proper nouns and numbers.
+def _claim_terms(sentence: str) -> list[ClaimDetection]:
+    """Return checkable proper-noun and number spans with detector metadata.
 
     The first token of a sentence is capitalized by grammar, not by meaning, so
     it only counts when it is not an ordinary word.
     """
     tokens = _WORD.findall(sentence)
-    terms: list[str] = []
+    terms: list[ClaimDetection] = []
     for position, token in enumerate(tokens):
         lowered = token.lower().strip(".")
         if lowered in _ENTITY_STOPWORDS:
@@ -141,7 +153,10 @@ def _claim_terms(sentence: str) -> list[str]:
             if token not in " ".join(tokens[1:]):
                 continue
         if is_number or is_proper:
-            terms.append(token.strip("."))
+            terms.append(ClaimDetection(
+                phrase=token.strip("."),
+                claim_type="number" if is_number else "proper_noun",
+            ))
     return terms
 
 
@@ -202,7 +217,17 @@ _FACTUAL_CLAIM_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"\b(?:double|triple)[sd]?\b", re.IGNORECASE), "double/triple"),
     (re.compile(r"\bplans?\b|\bplanned\b", re.IGNORECASE), "plans"),
     (re.compile(r"\b(?:hire|hires|hired|hiring)\b", re.IGNORECASE), "hires"),
-    (re.compile(r"\b(?:largest|leading|only|most)\b", re.IGNORECASE), "superlative"),
+    # Include a hyphenated modifier in the matched lexical span.  A selected
+    # hook that contains "category-leading" supports that exact phrase, while
+    # it does not automatically support a standalone claim that a firm is
+    # "leading".
+    (
+        re.compile(
+            r"\b(?:[A-Za-z]+-)?(?:largest|leading|only|most)\b",
+            re.IGNORECASE,
+        ),
+        "superlative",
+    ),
     (re.compile(r"\bspecifically identified\b", re.IGNORECASE), "specifically identified"),
     (re.compile(r"\brecruiting priority\b", re.IGNORECASE), "recruiting priority"),
 )
@@ -231,6 +256,33 @@ def _normalized_vocabulary(value: str) -> set[str]:
 def _phrase_is_sourced(phrase: str, hook_vocabs: list[set[str]]) -> bool:
     phrase_tokens = _normalized_vocabulary(phrase)
     return bool(phrase_tokens) and any(phrase_tokens <= vocab for vocab in hook_vocabs)
+
+
+def _unsupported_pattern_claims(
+    sentence: str,
+    hook_vocabs: list[set[str]],
+) -> list[ClaimDetection]:
+    """Return unsourced matched spans, never detector category labels."""
+    claims: list[ClaimDetection] = []
+    for pattern, claim_type in _FACTUAL_CLAIM_PATTERNS:
+        for match in pattern.finditer(sentence):
+            phrase = match.group(0)
+            if not _phrase_is_sourced(phrase, hook_vocabs):
+                claims.append(ClaimDetection(
+                    phrase=phrase,
+                    claim_type=claim_type,
+                ))
+    return claims
+
+
+def _append_unique_claim(
+    claims: list[ClaimDetection],
+    claim: ClaimDetection,
+) -> None:
+    """Append a claim unless its actual lexical span is already present."""
+    normalized = claim.phrase.casefold()
+    if all(existing.phrase.casefold() != normalized for existing in claims):
+        claims.append(claim)
 
 
 def check_firm_paragraph(
@@ -301,7 +353,7 @@ def check_firm_paragraph(
         terms = _claim_terms(sentence)
         firm_terms = [
             term for term in terms
-            if _normal_token(term) not in blk_vocab | firm_vocab
+            if _normal_token(term.phrase) not in blk_vocab | firm_vocab
         ]
 
         # Pick the hook that best explains this sentence, not merely the first
@@ -316,15 +368,14 @@ def check_firm_paragraph(
         overlaps = [len(content_vocab & hook_vocab) for hook_vocab in hook_vocabs]
         best_overlap = max(overlaps, default=0)
         best_index = overlaps.index(best_overlap) if best_overlap else None
-        best_unsupported = [
+        best_unsupported_claims = [
             term for term in firm_terms
-            if _normal_token(term) not in hook_union
+            if _normal_token(term.phrase) not in hook_union
         ]
 
-        unsupported_claims = [
-            label for pattern, label in _FACTUAL_CLAIM_PATTERNS
-            if pattern.search(sentence) and not _phrase_is_sourced(pattern.search(sentence).group(0), hook_vocabs)
-        ]
+        pattern_claims = _unsupported_pattern_claims(sentence, hook_vocabs)
+        for claim in pattern_claims:
+            _append_unique_claim(best_unsupported_claims, claim)
         mentions_firm_name = bool(firm_vocab & sentence_vocab)
         mentions_blk = "blk" in sentence_vocab
         firm_reference = mentions_firm_name or (
@@ -337,14 +388,23 @@ def check_firm_paragraph(
         insufficient_support = firm_reference and bool(content_vocab) and best_overlap < required_overlap
         if insufficient_support:
             unsupported_words = sorted(content_vocab - hook_union)[:6]
-            best_unsupported.extend(word for word in unsupported_words if word not in best_unsupported)
-        best_unsupported.extend(
-            claim for claim in unsupported_claims if claim not in best_unsupported
-        )
+            actual_tokens: dict[str, str] = {}
+            for token in _WORD.findall(sentence):
+                actual_tokens.setdefault(_normal_token(token), token.strip("."))
+            for word in unsupported_words:
+                _append_unique_claim(
+                    best_unsupported_claims,
+                    ClaimDetection(
+                        phrase=actual_tokens.get(word, word),
+                        claim_type="lexical_claim",
+                    ),
+                )
+
+        best_unsupported = [claim.phrase for claim in best_unsupported_claims]
 
         # A sentence making no firm-specific claim needs no hook, but it also
         # cannot be the whole paragraph, which the sentence-count gate covers.
-        if not firm_reference and not firm_terms and not unsupported_claims:
+        if not firm_reference and not firm_terms and not pattern_claims:
             report.sentences.append(
                 SentenceEvidence(sentence=sentence, source_url=None, hook_index=None)
             )
@@ -373,6 +433,7 @@ def check_firm_paragraph(
             hook_indices=relevant_indices if not best_unsupported else [],
             hook_ids=hook_ids if not best_unsupported else [],
             unsupported_phrase=unsupported_phrase,
+            unsupported_claims=best_unsupported_claims,
         )
         report.sentences.append(evidence)
 
