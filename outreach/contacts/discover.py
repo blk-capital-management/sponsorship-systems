@@ -368,11 +368,16 @@ def discover_target_contacts(
     provider even if a new orchestration path forgets the check.
     """
     settings = settings or load_settings()
-    if not artifact.get("alignment_hooks") or artifact.get("confidence") == "low":
-        log.warning("  Research is %s with %s hook(s), so this firm is in the manual "
-                    "queue. No contacts discovered.",
-                    artifact.get("confidence"), len(artifact.get("alignment_hooks", [])))
+    if artifact.get("confidence") == "low":
+        log.warning("  Research confidence is %s, so this firm is in the manual "
+                    "queue. No contacts discovered.", artifact.get("confidence"))
         return []
+    # Zero hooks is not a stop condition. Research is optional for drafting, so
+    # gating discovery on it would leave a no-research firm with no contact to
+    # address and block the draft anyway.
+    if not artifact.get("alignment_hooks"):
+        log.info("  Research returned no alignment hooks for this firm. "
+                 "Discovery continues; the draft will be recorded as ungrounded.")
 
     domain = str(target.get("domain") or "").strip()
     fetcher = Fetcher(settings["research"])

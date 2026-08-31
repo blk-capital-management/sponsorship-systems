@@ -11,6 +11,7 @@ from common.provenance import assert_no_em_dash
 from contacts.record import ContactRecord
 from drafts import generate
 from drafts.routing import COLD_PROSPECT
+from research import hook_ids
 from research.hook_ids import artifact_with_hook_ids
 
 LOCKED_TEMPLATE_TEXT = """Hi {contact_first_name},
@@ -339,9 +340,24 @@ def test_a_firm_claim_source_url_leaking_into_the_body_is_blocked(artifact, cont
         )
 
 
-# ── Zero-hook routing ──────────────────────────────────────────────────────────
+# ── Zero-hook drafting ─────────────────────────────────────────────────────────
+#
+# Research returning nothing is a normal outcome for a firm with a thin public
+# footprint, not an error. These used to assert a refusal; they now assert the
+# draft is produced and the absence is recorded for the reviewer.
 
-def test_zero_hook_artifact_produces_no_draft(contact, facts, tmp_path):
+ZERO_HOOK_PARAGRAPH = (
+    "Balyasny staffs its investment teams around portfolio managers who run "
+    "their own books. BLK selects its members through a multi-round process "
+    "built to produce undergraduates who can contribute on such a team early."
+)
+
+
+def _provenance(record):
+    return record["fields"]["firm_paragraph_provenance"]
+
+
+def test_zero_hook_artifact_still_produces_a_draft(contact, facts, tmp_path):
     zero_hook_artifact = {
         "firm": "No Hooks Capital", "firm_slug": "no_hooks", "domain": "nohooks.com",
         "region": "US", "relationship": "prospect", "fetched_at": "2026-08-13T00:00:00+00:00",
@@ -351,24 +367,29 @@ def test_zero_hook_artifact_produces_no_draft(contact, facts, tmp_path):
     out_dir = tmp_path / "drafts"
     review_dir = tmp_path / "review"
 
-    with pytest.raises(generate.NoUsableHooksError):
-        generate.generate_draft(
-            zero_hook_artifact, contact, facts,
-            template_text=LOCKED_TEMPLATE_TEXT,
-            out_dir=out_dir, review_dir=review_dir,
-        )
+    record = generate.generate_draft(
+        zero_hook_artifact, contact, facts,
+        template_text=LOCKED_TEMPLATE_TEXT,
+        firm_specific_paragraph=ZERO_HOOK_PARAGRAPH,
+        supporting_hook_ids=[],
+        out_dir=out_dir, review_dir=review_dir,
+    )
 
-    assert not out_dir.exists() or not list(out_dir.iterdir())
+    assert (out_dir / "no_hooks.json").exists()
+    provenance = _provenance(record)
+    assert provenance["grounding_status"] == "no_research_available"
+    assert provenance["hook_count"] == 0
+    assert provenance["hooks_used"] == []
+    assert record["validator_results"]["status"] == "pass"
+    assert record["validator_results"]["grounding_status"] == "no_research_available"
 
-    import csv
-    rows = list(csv.DictReader((review_dir / "manual_queue.csv").open(encoding="utf-8")))
-    assert len(rows) == 1
-    assert rows[0]["firm"] == "No Hooks Capital"
-    assert "firm_claim_source" in rows[0]["reason"]
+    # Missing research is informational. Nothing is routed to the manual queue
+    # from the draft path any more.
+    assert not (review_dir / "manual_queue.csv").exists()
 
 
 def test_hooks_with_no_firm_claim_source_count_as_zero_hooks(contact, facts, tmp_path):
-    """An alignment_hook present but unsourced is not usable (rule 1)."""
+    """An alignment_hook present but unsourced is still not usable evidence."""
     artifact = {
         "firm": "Half Sourced LLC", "firm_slug": "half_sourced", "domain": "half.com",
         "region": "US", "relationship": "prospect", "fetched_at": "2026-08-13T00:00:00+00:00",
@@ -377,9 +398,132 @@ def test_hooks_with_no_firm_claim_source_count_as_zero_hooks(contact, facts, tmp
                              "quote": "We run a campus program.", "basis": "values_themes"}],
         "firm_claim_sources": [], "confidence": "medium", "gaps": [],
     }
-    with pytest.raises(generate.NoUsableHooksError):
+    record = generate.generate_draft(
+        artifact, contact, facts,
+        template_text=LOCKED_TEMPLATE_TEXT,
+        firm_specific_paragraph=ZERO_HOOK_PARAGRAPH,
+        supporting_hook_ids=[],
+        out_dir=tmp_path / "drafts", review_dir=tmp_path / "review",
+    )
+    provenance = _provenance(record)
+    assert provenance["hook_count"] == 0
+    assert provenance["grounding_status"] == "no_research_available"
+
+
+def test_zero_hook_draft_is_a_review_item_and_sends_nothing(contact, facts, tmp_path):
+    """The relaxed path is still review-only. Rule 2 is untouched."""
+    artifact = {
+        "firm": "No Hooks Capital", "firm_slug": "no_hooks", "domain": "nohooks.com",
+        "region": "US", "relationship": "prospect", "fetched_at": "2026-08-13T00:00:00+00:00",
+        "pages_crawled": [], "alignment_hooks": [], "firm_claim_sources": [],
+        "confidence": "high", "gaps": [],
+    }
+    record = generate.generate_draft(
+        artifact, contact, facts,
+        template_text=LOCKED_TEMPLATE_TEXT,
+        firm_specific_paragraph=ZERO_HOOK_PARAGRAPH,
+        supporting_hook_ids=[],
+        out_dir=tmp_path / "drafts", review_dir=tmp_path / "review",
+    )
+    assert "sent_at" not in record
+    assert set(record) >= {"email_body", "evidence_block", "validator_results"}
+    assert not list((tmp_path / "drafts").glob("*.sent"))
+
+
+# ── Grounding is recorded, never enforced ─────────────────────────────────────
+
+def test_paragraph_that_does_not_match_a_hook_still_generates(artifact, contact, facts, tmp_path):
+    """The old paragraph-to-hook gate. A human wrote this; the validator reports."""
+    ungrounded = (
+        "Balyasny has built out its systematic research effort in Singapore over "
+        "the last two years. BLK selects its members through a multi-round "
+        "process designed to produce undergraduates ready for that kind of desk."
+    )
+    record = _generate(artifact, contact, facts, tmp_path, paragraph=ungrounded)
+    provenance = _provenance(record)
+    assert provenance["grounding_status"] == "ungrounded"
+    assert provenance["hook_count"] > 0
+    assert provenance["hooks_used"], "hooks were available and selected"
+    # The signal is kept, just not enforced.
+    assert provenance["advisories"]
+
+
+def test_a_matching_paragraph_is_recorded_as_grounded(artifact, contact, facts, tmp_path):
+    record = _generate(artifact, contact, facts, tmp_path)
+    assert _provenance(record)["grounding_status"] == "grounded"
+
+
+def test_one_sentence_paragraph_is_allowed(artifact, contact, facts, tmp_path):
+    """Sentence count is a house guideline now, not a gate."""
+    record = _generate(
+        artifact, contact, facts, tmp_path,
+        paragraph="Balyasny runs its internship program across specific teams.",
+    )
+    assert record["fields"]["firm_specific_paragraph"].startswith("Balyasny")
+
+
+# ── What still blocks ─────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("paragraph", [None, "", "   \n  "])
+def test_an_empty_paragraph_still_blocks(artifact, contact, facts, tmp_path, paragraph):
+    with pytest.raises(generate.DraftGenerationError, match="human-authored"):
+        _generate(artifact, contact, facts, tmp_path, paragraph=paragraph)
+
+
+def test_a_missing_contact_still_blocks(artifact, facts, tmp_path):
+    with pytest.raises(generate.DraftGenerationError, match="contact record"):
+        _generate(artifact, None, facts, tmp_path)
+
+
+def test_an_unresolved_merge_field_still_blocks_a_zero_hook_draft(contact, facts, tmp_path):
+    """Loosening research validation must not leak into stat validation."""
+    artifact = {
+        "firm": "No Hooks Capital", "firm_slug": "no_hooks", "domain": "nohooks.com",
+        "region": "US", "relationship": "prospect", "fetched_at": "2026-08-13T00:00:00+00:00",
+        "pages_crawled": [], "alignment_hooks": [], "firm_claim_sources": [],
+        "confidence": "high", "gaps": [],
+    }
+    out_dir = tmp_path / "drafts"
+    missing = {key: value for key, value in facts.items() if key != "member_count"}
+    with pytest.raises(KeyError, match="member_count"):
         generate.generate_draft(
-            artifact, contact, facts,
+            artifact, contact, missing,
             template_text=LOCKED_TEMPLATE_TEXT,
-            out_dir=tmp_path / "drafts", review_dir=tmp_path / "review",
+            firm_specific_paragraph=ZERO_HOOK_PARAGRAPH,
+            supporting_hook_ids=[],
+            out_dir=out_dir, review_dir=tmp_path / "review",
         )
+    assert not out_dir.exists() or not list(out_dir.iterdir())
+
+
+def test_a_drifted_stat_still_blocks_a_zero_hook_draft(contact, facts, tmp_path):
+    """Merge-field resolution stays strict on the relaxed path."""
+    artifact = {
+        "firm": "No Hooks Capital", "firm_slug": "no_hooks", "domain": "nohooks.com",
+        "region": "US", "relationship": "prospect", "fetched_at": "2026-08-13T00:00:00+00:00",
+        "pages_crawled": [], "alignment_hooks": [], "firm_claim_sources": [],
+        "confidence": "high", "gaps": [],
+    }
+    record = generate.generate_draft(
+        artifact, contact, facts,
+        template_text=LOCKED_TEMPLATE_TEXT,
+        firm_specific_paragraph=ZERO_HOOK_PARAGRAPH,
+        supporting_hook_ids=[],
+        out_dir=tmp_path / "drafts", review_dir=tmp_path / "review",
+    )
+    drifted = {**record["fields"], "member_count": "9,999+"}
+    with pytest.raises(generate.DraftGenerationError, match="member_count"):
+        generate.assert_fixed_fields_match_facts(drifted, facts)
+
+
+def test_an_empty_hook_selection_resolves_to_no_hooks(artifact):
+    decorated = artifact_with_hook_ids(artifact)
+    hooks, ids = hook_ids.resolve_selected_hooks(decorated, [])
+    assert (hooks, ids) == ([], [])
+
+
+def test_an_unknown_hook_id_still_raises(artifact):
+    """Artifact integrity is not a grounding check and stays strict."""
+    decorated = artifact_with_hook_ids(artifact)
+    with pytest.raises(hook_ids.ResearchHookSelectionError):
+        hook_ids.resolve_selected_hooks(decorated, ["rhook_notreal"])

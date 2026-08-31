@@ -865,15 +865,23 @@ def preview_contact_run(
 ) -> dict[str, Any]:
     eligible: list[dict[str, Any]] = []
     skipped: list[dict[str, str]] = []
+    notices: list[dict[str, str]] = []
     for target_id in target_ids:
         target = get_target(storage, user, target_id)
         decision = evaluate_pre_hunter_gate(target)
         artifact = get_artifact(storage, user, target_id)
         if decision.skip:
             skipped.append({"target_id": target_id, "reason": decision.describe()})
-        elif not artifact or artifact.get("confidence") == "low" or not artifact.get("alignment_hooks"):
+        elif not artifact or artifact.get("confidence") == "low":
             skipped.append({"target_id": target_id, "reason": "research is missing or manual-queue"})
         else:
+            # A zero-hook artifact stays eligible. Research is optional for
+            # drafting, so withholding a contact would block the draft anyway.
+            if not artifact.get("alignment_hooks"):
+                notices.append({
+                    "target_id": target_id,
+                    "notice": "Discovery will run without stored research hooks.",
+                })
             eligible.append(target)
 
     max_per_run = int(
@@ -899,7 +907,11 @@ def preview_contact_run(
             "credits_min": 0,
             "credits_max": credits_max,
             "hunter_balance_before": balance["remaining"],
-            "details": {"skipped": skipped, "requested_target_ids": target_ids},
+            "details": {
+                "skipped": skipped,
+                "notices": notices,
+                "requested_target_ids": target_ids,
+            },
             "expires_at": expires.isoformat(),
         },
         user.access_token, lane=user.owner,
@@ -908,6 +920,7 @@ def preview_contact_run(
         "run_id": run["id"],
         "eligible": [{"id": row["id"], "firm": row["firm"]} for row in eligible],
         "skipped": skipped,
+        "notices": notices,
         "credits_min": 0,
         "credits_max": credits_max,
         "hunter_balance": balance,
@@ -1140,8 +1153,13 @@ def _generate_record(
     artifact: dict[str, Any] | None,
     contact: ContactRecord | None,
     paragraph: str | None,
+    # generate_draft reads None as "select every sourced hook", which is the
+    # CLI contract. On the dashboard path the browser always sends an explicit
+    # list, so default to the empty selection: an omitted argument here must
+    # mean no hooks, never all of them.
     supporting_hook_ids: list[str] | None = None,
 ) -> dict[str, Any]:
+    supporting_hook_ids = supporting_hook_ids or []
     with tempfile.TemporaryDirectory(prefix="blk-bridge-draft-") as tmp:
         return generate_draft(
             artifact,
@@ -1161,8 +1179,10 @@ def generate_owner_draft(
     target_id: str,
     contact_id: str | None,
     paragraph: str | None,
+    # See _generate_record: never let an omitted argument mean "all hooks".
     supporting_hook_ids: list[str] | None = None,
 ) -> dict[str, Any]:
+    supporting_hook_ids = supporting_hook_ids or []
     target = get_target(storage, user, target_id)
     artifact = get_artifact(storage, user, target_id)
     contact: ContactRecord | None = None

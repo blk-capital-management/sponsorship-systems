@@ -445,6 +445,31 @@ function pill(value, label = null) {
   return `<span class="pill ${escapeHtml(css)}">${escapeHtml(label || humanize(value))}</span>`;
 }
 
+const GROUNDING_LABELS = {
+  grounded: "Grounded in stored sources",
+  ungrounded: "Not grounded in a stored source",
+  no_research_available: "No stored research available",
+};
+
+function groundingStatusOf(draft) {
+  return draft?.fields?.firm_paragraph_provenance?.grounding_status
+    || draft?.validator_results?.grounding_status
+    || null;
+}
+
+function groundingNotice(status) {
+  return status === "no_research_available"
+    ? "No stored research was available for this firm."
+    : "This paragraph is not grounded in a stored source.";
+}
+
+/** Informational label shown at approval time. Never a pass or fail. */
+function groundingPill(status) {
+  if (!status) return "";
+  const label = GROUNDING_LABELS[status] || humanize(status);
+  return `<span class="pill grounding ${escapeHtml(status)}">${escapeHtml(label)}</span>`;
+}
+
 function statusControl(target, field) {
   const relationship = field === "relationship_status";
   const effective = relationship
@@ -911,6 +936,7 @@ function renderDrafts() {
     <button class="draft-card ${draft.id === selectedDraftId ? "active" : ""}" data-id="${draft.id}">
       <span class="draft-card-top"><strong>${escapeHtml(draft.firm)}</strong>${pill(draft.status)}</span>
       <span>${escapeHtml(draft.contact?.name || "Relationship contact")} · ${escapeHtml(humanize(draft.contact_status))}</span>
+      ${groundingPill(groundingStatusOf(draft))}
     </button>
   `).join("") : emptyState("No drafts yet", "Create a draft from an eligible firm in the pipeline.");
   $$(".draft-card").forEach((card) => card.addEventListener("click", () => {
@@ -926,6 +952,10 @@ function renderDrafts() {
   }
   $("#draft-detail").className = "panel draft-detail";
   const checks = draft.validator_results?.checks || [];
+  const advisories = draft.fields?.firm_paragraph_provenance?.advisories || [];
+  const advisoryPanel = advisories.length ? `
+    <div class="detail-section-heading"><h4>Grounding notes</h4><span class="quiet">Advisory, non-blocking</span></div>
+    <ul class="grounding-notes">${advisories.map((note) => `<li>${escapeHtml(note)}</li>`).join("")}</ul>` : "";
   const recipient = draft.contact?.email || "";
   const subject = draftSubject(draft);
   const reviewButtons = draft.status === "pending_review" ? `
@@ -934,13 +964,14 @@ function renderDrafts() {
       <button class="button primary" id="approve-draft">Approve draft</button>
     </div>` : "";
   $("#draft-detail").innerHTML = `
-    <div class="draft-detail-header"><div><p class="eyebrow">${escapeHtml(humanize(draft.contact_status))}</p><h3>${escapeHtml(draft.firm)}</h3><div class="draft-meta"><span><strong>Recipient:</strong> ${escapeHtml(draft.contact?.name || "Relationship contact")}</span><span><strong>Email:</strong> ${escapeHtml(recipient || "not on file")}</span></div></div>${pill(draft.status)}</div>
+    <div class="draft-detail-header"><div><p class="eyebrow">${escapeHtml(humanize(draft.contact_status))}</p><h3>${escapeHtml(draft.firm)}</h3><div class="draft-meta"><span><strong>Recipient:</strong> ${escapeHtml(draft.contact?.name || "Relationship contact")}</span><span><strong>Email:</strong> ${escapeHtml(recipient || "not on file")}</span></div></div><div class="draft-detail-pills">${pill(draft.status)}${groundingPill(groundingStatusOf(draft))}</div></div>
     <div class="review-guide"><strong>Review order:</strong> Read the email, confirm the cited evidence supports every firm-specific claim, then make the approval decision.</div>
     <div class="detail-section-heading"><h4>Subject</h4><span class="quiet">${escapeHtml(humanize(draft.subject_status))}, editable before you copy</span></div>
     <input id="draft-subject-line" class="subject-input" type="text" value="${escapeHtml(subject)}" aria-label="Email subject line">
     <div class="detail-section-heading"><h4>Email body</h4><span class="quiet">Reviewable draft only. Nothing is sent.</span></div><div class="document">${escapeHtml(draft.email_body)}</div>
     <div class="detail-section-heading"><h4>Validator results</h4><div class="validator-list">${checks.map((check) => `<span class="validator">✓ ${escapeHtml(humanize(check))}</span>`).join("")}</div></div>
     <div class="detail-section-heading"><h4>Evidence and provenance</h4><span class="quiet">Internal review record</span></div><div class="evidence">${escapeHtml(draft.evidence_block)}</div>
+    ${advisoryPanel}
     ${reviewButtons}
     ${renderSendPanel(draft, recipient)}`;
   $("#approve-draft")?.addEventListener("click", () => reviewSelectedDraft("approved"));
@@ -1335,13 +1366,20 @@ function renderDraftHooks(targetId) {
   const target = state.targets?.find((item) => item.id === targetId);
   const artifact = (researchByTarget().get(targetId) || {}).artifact;
   const hooks = artifact?.alignment_hooks || [];
-  if (target?.contact_status !== "cold_prospect" || !hooks.length) {
+  if (target?.contact_status !== "cold_prospect") {
     panel.classList.add("hidden");
     $("#draft-hooks-list").innerHTML = "";
     $("#draft-provenance-summary").textContent = "";
     return;
   }
   panel.classList.remove("hidden");
+  if (!hooks.length) {
+    // Research legitimately returns nothing for firms with a thin public
+    // footprint. Neutral status, not an error state.
+    $("#draft-hooks-list").innerHTML = `<p class="quiet">No stored research for this firm. Write the paragraph as usual.</p>`;
+    updateDraftProvenanceSummary();
+    return;
+  }
   $("#draft-hooks-list").innerHTML = hooks.map((hook) => {
     const basis = String(hook.basis || "stored research").replaceAll("_", " ");
     const hookId = hook.research_hook_id || "";
@@ -1371,11 +1409,11 @@ function updateDraftProvenanceSummary() {
   const count = selected.length;
   const message = count
     ? `${count} stored research hook${count === 1 ? "" : "s"} selected. Bridge will map each supported sentence to these sources.`
-    : "Select at least one stored research hook to support the firm paragraph.";
+    : "No stored research selected. The draft will be recorded as ungrounded for the reviewer.";
   $("#draft-provenance-summary").textContent = message;
   $("#draft-preview-provenance").textContent = count
     ? `${count} source${count === 1 ? "" : "s"} selected`
-    : "No source selected";
+    : "No stored source";
 }
 
 /** Live-fill the locked template with the paragraph being written, so it reads like a finished email while drafting. */
@@ -1595,7 +1633,8 @@ function bindEvents() {
       $("#contact-preview").innerHTML = `
         <p><strong>${preview.eligible.length}</strong> eligible firm(s), <strong>${preview.skipped.length}</strong> skipped by the gate.</p>
         <p>Live Hunter balance: <strong>${remaining ?? "unavailable"}</strong>. This run can spend between ${preview.credits_min} and ${preview.credits_max} credits, but it will hard stop at the cap you confirm.</p>
-        ${preview.skipped.length ? `<details><summary>Skipped reasons</summary><ul>${preview.skipped.map((item) => `<li>${escapeHtml(item.reason)}</li>`).join("")}</ul></details>` : ""}`;
+        ${preview.skipped.length ? `<details><summary>Skipped reasons</summary><ul>${preview.skipped.map((item) => `<li>${escapeHtml(item.reason)}</li>`).join("")}</ul></details>` : ""}
+        ${(preview.notices || []).length ? `<p class="quiet">${escapeHtml(preview.notices[0].notice)} Applies to ${preview.notices.length} firm(s).</p>` : ""}`;
       $("#contact-dialog").showModal();
     } catch (error) { showToast(error.message, true); }
     finally { setLoading(false); }
@@ -1709,10 +1748,6 @@ function bindEvents() {
     const supportingHookIds = target.contact_status === "cold_prospect"
       ? selectedDraftHookIds()
       : [];
-    if (target.contact_status === "cold_prospect" && !supportingHookIds.length) {
-      $("#draft-validation-error").textContent = "Select at least one sourced research hook before generating this cold draft.";
-      return showToast("Select at least one sourced research hook.", true);
-    }
     $("#draft-validation-error").textContent = "";
     setLoading(true);
     try {
@@ -1727,7 +1762,10 @@ function bindEvents() {
       });
       selectedDraftId = result.id;
       $("#draft-dialog").close();
-      showToast("Validator-passing draft added to review.");
+      const grounding = result.fields?.firm_paragraph_provenance?.grounding_status;
+      showToast(grounding && grounding !== "grounded"
+        ? `Draft added to review. ${groundingNotice(grounding)}`
+        : "Validator-passing draft added to review.");
       await loadState();
       switchView("drafts");
     } catch (error) {

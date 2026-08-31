@@ -7,14 +7,21 @@ The core idea: the firm paragraph may only assert things that already appear in
 the research artifact's `alignment_hooks`, each of which carries a
 `firm_claim_source` (the firm namespace; see common/namespaces.py).
 Any capitalized name, number, or firm-specific term in the paragraph that cannot
-be found in a hook (or in the approved BLK vocabulary from blk_facts.json) is an
-invented fact, and generation fails.
+be found in a hook (or in the approved BLK vocabulary from blk_facts.json) is
+recorded as ungrounded.
+
+Severity is split. Style rules (em dash, house tone) are violations and block.
+Grounding gaps are advisories: the firm paragraph is human-authored by someone
+who already knows the firm, so the validator reports what it could not trace and
+lets the reviewer decide (see outreach/CLAUDE.md rule 1). Nothing here refuses a
+draft for want of research.
 
 Usage:
     from common.provenance import check_firm_paragraph, ProvenanceError
     report = check_firm_paragraph(paragraph, hooks, facts)
     if not report.ok:
         raise ProvenanceError(report.describe())
+    grounding = report.grounding_status  # grounded / ungrounded / no_research_available
 """
 
 import re
@@ -79,10 +86,23 @@ class SentenceEvidence:
         )
 
 
+# How well the paragraph traces to stored research. Recorded on every review
+# item and surfaced at approval time; never a pass/fail gate.
+GROUNDED = "grounded"
+UNGROUNDED = "ungrounded"
+NO_RESEARCH_AVAILABLE = "no_research_available"
+
+GROUNDING_STATUSES = (GROUNDED, UNGROUNDED, NO_RESEARCH_AVAILABLE)
+
+
 @dataclass
 class ProvenanceReport:
     violations: list[str] = field(default_factory=list)
     sentences: list[SentenceEvidence] = field(default_factory=list)
+    # Non-blocking findings. Grounding gaps and sentence-count drift land here,
+    # and `ok` deliberately ignores them. The signal is kept, not enforced.
+    advisories: list[str] = field(default_factory=list)
+    grounding_status: str = NO_RESEARCH_AVAILABLE
 
     @property
     def ok(self) -> bool:
@@ -91,6 +111,13 @@ class ProvenanceReport:
     def describe(self) -> str:
         lines = [f"  - {v}" for v in self.violations]
         return "Generated copy failed provenance checks:\n" + "\n".join(lines)
+
+    def describe_advisories(self) -> str:
+        """Neutral status for the reviewer. Never phrased as a failure."""
+        if not self.advisories:
+            return ""
+        lines = [f"  - {a}" for a in self.advisories]
+        return "Grounding notes:\n" + "\n".join(lines)
 
 
 class ProvenanceError(RuntimeError):
@@ -303,21 +330,28 @@ def check_firm_paragraph(
         facts: Parsed blk_facts.json, the approved BLK vocabulary.
 
     Returns:
-        A ProvenanceReport. `.ok` is False if anything is unsupported.
+        A ProvenanceReport. `.ok` is False only on a style violation (em dash,
+        house tone) or an empty paragraph. Untraceable claims and a missing
+        research artifact land in `.advisories` and are summarized by
+        `.grounding_status`; neither blocks.
     """
     report = ProvenanceReport()
+    usable_hooks = [h for h in hooks if firm_claim_source_of(h)]
+    report.grounding_status = UNGROUNDED if usable_hooks else NO_RESEARCH_AVAILABLE
 
     if not paragraph or not paragraph.strip():
         report.violations.append("firm paragraph is empty")
         return report
 
-    usable_hooks = [h for h in hooks if firm_claim_source_of(h)]
+    # Zero sourced hooks is a normal research outcome for a firm with a thin
+    # public footprint, not an error state. Nothing below short-circuits on it:
+    # style gates still run, every sentence is still recorded, and the reviewer
+    # sees the grounding status on the review item.
     if not usable_hooks:
-        report.violations.append(
-            "no alignment_hooks carry a source_url, so no firm-specific claim can "
-            "be made (rule 1)"
+        report.advisories.append(
+            "No stored research is available for this firm, so no sentence maps "
+            "to a source_url."
         )
-        return report
 
     # Style gates first. These are absolute.
     try:
@@ -334,9 +368,9 @@ def check_firm_paragraph(
 
     sentences = split_sentences(paragraph)
     if not (min_sentences <= len(sentences) <= max_sentences):
-        report.violations.append(
-            f"firm paragraph has {len(sentences)} sentence(s); "
-            f"required {min_sentences} to {max_sentences}"
+        report.advisories.append(
+            f"Firm paragraph has {len(sentences)} sentence(s); the house "
+            f"guideline is {min_sentences} to {max_sentences}."
         )
 
     hook_vocabs = [
@@ -348,6 +382,7 @@ def check_firm_paragraph(
     hook_union = set().union(*hook_vocabs)
     blk_vocab = {_normal_token(token) for token in _approved_blk_vocabulary(facts)}
     firm_vocab = _normalized_vocabulary(firm_name)
+    ungrounded_sentence = False
 
     for sentence in sentences:
         terms = _claim_terms(sentence)
@@ -438,13 +473,20 @@ def check_firm_paragraph(
         report.sentences.append(evidence)
 
         if best_unsupported:
-            report.violations.append(
-                f"Sentence {len(report.sentences)} contains a factual claim not "
-                "supported by the selected research hooks. Unsupported phrase: "
+            ungrounded_sentence = True
+            report.advisories.append(
+                f"Sentence {len(report.sentences)} makes a factual claim that does "
+                "not map to the selected research hooks. Unsupported phrase: "
                 f"{unsupported_phrase!r}; no source_url backs it. Sentence: "
-                f"{sentence!r}. Every "
-                "firm-specific claim must trace to selected stored evidence (rule 1)."
+                f"{sentence!r}."
             )
+
+    if not usable_hooks:
+        report.grounding_status = NO_RESEARCH_AVAILABLE
+    elif ungrounded_sentence or not any(ev.source_url for ev in report.sentences):
+        report.grounding_status = UNGROUNDED
+    else:
+        report.grounding_status = GROUNDED
 
     return report
 
@@ -452,12 +494,22 @@ def check_firm_paragraph(
 def build_evidence_block(report: ProvenanceReport, hooks: list[dict[str, Any]]) -> str:
     """Render the per-sentence evidence block that makes review take 30 seconds."""
     usable = [h for h in hooks if firm_claim_source_of(h)]
-    lines = ["## Evidence", ""]
+    no_research = report.grounding_status == NO_RESEARCH_AVAILABLE
+    lines = [
+        "## Evidence",
+        "",
+        f"Grounding status: {report.grounding_status}",
+        "",
+    ]
     for i, ev in enumerate(report.sentences, start=1):
         lines.append(f"{i}. {ev.sentence}")
         indices = ev.hook_indices or ([ev.hook_index] if ev.hook_index is not None else [])
         if not indices:
-            lines.append("   Source: no firm-specific claim in this sentence")
+            lines.append(
+                "   Source: no stored research available for this firm"
+                if no_research
+                else "   Source: no firm-specific claim in this sentence"
+            )
         else:
             for index in indices:
                 hook = usable[index]
@@ -467,5 +519,11 @@ def build_evidence_block(report: ProvenanceReport, hooks: list[dict[str, Any]]) 
                     lines.append(f"   Hook ID: {hook['research_hook_id']}")
                 if quote:
                     lines.append(f"   Supporting text: {quote.strip()[:300]}")
+        lines.append("")
+    # The reviewer, not the validator, decides what an ungrounded claim means.
+    # Keeping the notes in the record is the whole point of demoting them.
+    if report.advisories:
+        lines.extend(["## Grounding notes (advisory, non-blocking)", ""])
+        lines.extend(f"- {advisory}" for advisory in report.advisories)
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"

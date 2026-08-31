@@ -54,7 +54,9 @@ def resolve_selected_hooks(
     """Resolve browser-selected IDs against stored hooks, never client URLs.
 
     ``None`` keeps command-line and existing internal callers compatible by
-    selecting every sourced hook.  An explicit empty selection is rejected.
+    selecting every sourced hook.  An explicit empty selection is valid and
+    resolves to no hooks: research is optional, and a firm with nothing citable
+    still gets a draft (the review item records it as ungrounded).
     """
     hooks = [dict(hook) for hook in artifact.get("alignment_hooks", [])]
     indexed = {
@@ -69,10 +71,6 @@ def resolve_selected_hooks(
         ids = list(indexed)
     else:
         ids = [str(value).strip() for value in selected_ids if str(value).strip()]
-        if not ids:
-            raise ResearchHookSelectionError(
-                "Select at least one sourced research hook before generating this cold draft."
-            )
         if len(ids) != len(set(ids)):
             raise ResearchHookSelectionError(
                 "Each supporting research hook may be selected only once."
