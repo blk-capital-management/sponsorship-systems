@@ -1,12 +1,15 @@
 # Generate a draft
 
 **Objective.** Turn a research artifact plus a template into an email a human can
-review, where every firm-specific sentence traces to a source URL.
+review, with each firm-specific sentence traced to a source URL where one exists
+and the gaps recorded for the reviewer where one does not.
 
 ## Inputs
 
-- A research artifact with at least one alignment hook
-- A contact, or a decision to draft without one
+- A research artifact. Alignment hooks are optional: zero hooks is a supported
+  state and produces a draft recorded as `no_research_available`.
+- A verified contact
+- A non-empty, human-authored firm-specific paragraph
 - `config/blk_facts.json` for any BLK number
 - A template chosen by relationship status
 
@@ -38,8 +41,12 @@ Dashboard: the "Draft" action on a pipeline row.
 Every one of these is enforced in code, not by convention. A draft that fails any
 of them is not written.
 
-- [ ] **Every firm claim traces to a `source_url`.** `common/provenance.py`
-      rejects any sentence whose entities do not map to a sourced alignment hook.
+- [ ] **Every firm claim is traced to a `source_url` where one exists.**
+      `common/provenance.py` records any sentence whose entities do not map to a
+      sourced alignment hook and sets `grounding_status`. This is advisory: the
+      paragraph is human-authored, so the reviewer decides, not the validator.
+- [ ] **A verified contact and a non-empty paragraph.** These are the two hard
+      requirements. Nothing else refuses a draft.
 - [ ] **No em dashes.** `assert_no_em_dash` runs on every generated string.
 - [ ] **No invented BLK numbers.** Every statistic comes from `blk_facts.json`.
       Preflight blocks on null facts.
@@ -66,7 +73,10 @@ claim and the URL behind it. Status starts at `pending_review`.
 
 | Situation | What happens |
 |---|---|
-| No usable hooks on a cold target | `NoUsableHooksError`. Queued for manual review, no draft written. |
+| No usable hooks on a cold target | A draft is written with `grounding_status` `no_research_available`. Nothing is queued from this stage. |
+| A paragraph that maps to no sourced hook | A draft is written with `grounding_status` `ungrounded` and the untraced phrases listed in the evidence block. |
+| An empty paragraph, or no verified contact | `DraftGenerationError`. Nothing is written. |
+| An unresolved or drifted `blk_facts.json` field | `DraftGenerationError`. Merge-field resolution stays strict. |
 | A validator fails | `DraftGenerationError`. Nothing is written. |
 | Drafting for another owner's target | Requires the cross-owner flow and a typed confirmation. |
 

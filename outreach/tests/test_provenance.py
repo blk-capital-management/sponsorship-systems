@@ -62,36 +62,53 @@ def test_supported_paragraph_passes(hooks, blk_facts):
     assert any(s.source_url for s in report.sentences)
 
 
-def test_invented_firm_fact_fails(hooks, blk_facts):
-    """A claim about a program that appears in no hook must fail generation."""
+def test_untraceable_firm_fact_is_advisory_not_a_failure(hooks, blk_facts):
+    """A claim about a program in no hook is reported, not refused.
+
+    The paragraph is human-authored by someone who knows the firm, so the
+    validator records what it could not trace and the reviewer decides.
+    """
     paragraph = (
         "Sixth Street's Early Careers programs bring undergraduate students in. "
         "Your Chicago office also runs a Sophomore Springboard program each January."
     )
     report = check_firm_paragraph(paragraph, hooks, blk_facts)
-    assert not report.ok
-    joined = " ".join(report.violations)
+    assert report.ok, report.describe()
+    assert report.grounding_status == "ungrounded"
+    joined = " ".join(report.advisories)
     assert "no source_url backs" in joined
     assert "Springboard" in joined or "Chicago" in joined
 
 
-def test_invented_number_fails(hooks, blk_facts):
+def test_untraceable_number_is_advisory(hooks, blk_facts):
     paragraph = (
         "Sixth Street's Early Careers programs reach undergraduate students. "
         "Your team hired 47 interns last summer across four offices."
     )
     report = check_firm_paragraph(paragraph, hooks, blk_facts)
-    assert not report.ok
-    assert any("47" in v for v in report.violations)
+    assert report.ok, report.describe()
+    assert report.grounding_status == "ungrounded"
+    assert any("47" in advisory for advisory in report.advisories)
 
 
-def test_hooks_without_source_url_block_everything(blk_facts):
-    """A hook missing its source_url is unusable, not merely weaker."""
+def test_hooks_without_source_url_are_recorded_as_no_research(blk_facts):
+    """A hook missing its source_url is still unusable evidence, not a refusal."""
     unsourced = [{"text": "They run a campus program.", "source_url": "", "quote": "x"}]
     report = check_firm_paragraph("They run a campus program. It is large.",
                                   unsourced, blk_facts)
+    assert report.ok, report.describe()
+    assert report.grounding_status == "no_research_available"
+    assert any("No stored research is available" in a for a in report.advisories)
+    # The sentences are still walked and recorded, so the evidence block is
+    # not silently empty for a no-research firm.
+    assert len(report.sentences) == 2
+    assert not any(ev.source_url for ev in report.sentences)
+
+
+def test_an_empty_paragraph_is_still_a_violation(hooks, blk_facts):
+    report = check_firm_paragraph("   ", hooks, blk_facts)
     assert not report.ok
-    assert any("no alignment_hooks carry a source_url" in v for v in report.violations)
+    assert any("empty" in v for v in report.violations)
 
 
 def test_blk_facts_vocabulary_is_allowed(hooks, blk_facts):
@@ -143,10 +160,12 @@ def test_flattery_is_rejected(hooks, blk_facts):
     assert find_tone_violations(paragraph) == ["prestigious", "thrilled"]
 
 
-def test_sentence_count_bounds(hooks, blk_facts):
+def test_sentence_count_is_advisory_only(hooks, blk_facts):
+    """The 2 to 3 range is a house guideline. It no longer refuses a draft."""
     one = "Sixth Street's Early Careers programs reach undergraduate students."
     report = check_firm_paragraph(one, hooks, blk_facts)
-    assert any("sentence(s)" in v for v in report.violations)
+    assert report.ok, report.describe()
+    assert any("sentence(s)" in advisory for advisory in report.advisories)
 
 
 # ── Evidence block ────────────────────────────────────────────────────────────
@@ -194,7 +213,7 @@ def test_citadel_paragraph_passes_with_sentence_level_selected_hook_provenance(
     "Citadel plans to double its undergraduate internship class next year. BLK would welcome a conversation.",
     "Citadel has specifically identified BLK Capital Management as a recruiting priority. BLK would welcome a conversation.",
 ])
-def test_citadel_unsupported_claims_fail_with_actionable_sentence_message(
+def test_citadel_unsupported_claims_report_an_actionable_sentence_message(
     paragraph, blk_facts,
 ):
     artifact = artifact_with_hook_ids(json.loads(
@@ -207,8 +226,10 @@ def test_citadel_unsupported_claims_fail_with_actionable_sentence_message(
         firm_name="Citadel",
     )
 
-    assert not report.ok
-    message = report.describe()
+    # The signal is kept in full, just no longer enforced.
+    assert report.ok, report.describe()
+    assert report.grounding_status == "ungrounded"
+    message = report.describe_advisories()
     assert "Sentence 1" in message
     assert "selected research hooks" in message
     assert "Unsupported phrase" in message
@@ -297,7 +318,8 @@ def test_unsupported_healthcare_claim_reports_actual_spans(blk_facts):
         min_sentences=1,
     )
 
-    assert not report.ok
+    assert report.ok, report.describe()
+    assert report.grounding_status == "ungrounded"
     claims = report.sentences[0].unsupported_claims
     assert any(
         claim.phrase == "largest" and claim.claim_type == "superlative"
@@ -305,7 +327,7 @@ def test_unsupported_healthcare_claim_reports_actual_spans(blk_facts):
     )
     assert any(claim.phrase.lower().startswith("healthcare") for claim in claims)
     assert "superlative" not in report.sentences[0].unsupported_terms
-    assert "largest" in report.describe()
+    assert "largest" in report.describe_advisories()
 
 
 def test_unsupported_largest_reports_phrase_and_separate_rule_type(blk_facts):
@@ -320,11 +342,12 @@ def test_unsupported_largest_reports_phrase_and_separate_rule_type(blk_facts):
         min_sentences=1,
     )
 
-    assert not report.ok
+    assert report.ok, report.describe()
+    assert report.grounding_status == "ungrounded"
     claims = report.sentences[0].unsupported_claims
     assert any(
         claim.phrase == "largest" and claim.claim_type == "superlative"
         for claim in claims
     )
     assert "superlative" not in report.sentences[0].unsupported_terms
-    assert "Unsupported phrase: 'largest" in report.describe()
+    assert "Unsupported phrase: 'largest" in report.describe_advisories()

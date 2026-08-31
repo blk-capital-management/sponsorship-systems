@@ -13,10 +13,18 @@ refactor the resume book from here. The only shared asset is the Google OAuth cl
 
 Treat these as hard constraints. Violating any one of them makes the output unusable.
 
-1. **No invented facts.** Every firm-specific claim in a generated email must trace to a
-   `source_url` captured during research. No URL means the claim does not go in the email.
-   If research produces nothing citable, route the firm to the manual queue rather than
-   writing a generic paragraph.
+1. **Bridge never writes a firm fact.** The firm-specific paragraph is human-authored,
+   always. Bridge does not generate, autocomplete, suggest, or infer it, including when
+   research returns nothing. Missing research means an empty field waiting on a person,
+   never model-written filler.
+
+   Grounding is **recorded, not enforced**. Research hooks are optional: zero hooks is a
+   normal outcome for a firm with a thin public footprint, and a paragraph that does not
+   map onto a stored hook is not a failure. Every draft carries `hook_count`,
+   `hooks_used`, and a `grounding_status` of `grounded`, `ungrounded`, or
+   `no_research_available`, shown as a label on the review item. The reviewer decides
+   whether an untraced claim is acceptable. The validator does not second-guess a person
+   who already knows the firm.
 
 2. **No auto-send, ever.** The system produces Gmail drafts and a review queue. A human
    sends. There is no code path that transmits email without explicit human action.
@@ -37,7 +45,7 @@ Treat these as hard constraints. Violating any one of them makes the output unus
 
 | Rule | Enforcement |
 |---|---|
-| 1 | `common/provenance.py` rejects any draft sentence whose entities do not trace to an `alignment_hook` with a `source_url`. |
+| 1 | `compose_firm_paragraph` in `drafts/generate.py` stays unwired, so no code path can author the paragraph. `common/provenance.py` records every draft sentence whose entities do not trace to an `alignment_hook` with a `source_url` as an advisory and sets `grounding_status`; `drafts/generate.py` persists it on the review item. Advisory by design: only a style violation or an empty paragraph blocks. |
 | 2 | `tests/test_no_send_path.py` AST-scans the whole package for send endpoints. Gmail scope is `gmail.compose`, which cannot send. |
 | 3 | No LinkedIn fetch exists. `common/http.py` refuses `linkedin.com` at the request layer. |
 | 4 | `common/provenance.py::assert_no_em_dash`, run on every generated string. |
@@ -62,12 +70,16 @@ queue that Jamari reads at speed.
 ```
 targets.csv / dashboard intake
    -> research/fetch.py     crawls firm domain, writes research/out/<slug>.json
-                            low confidence or no hooks -> manual queue, stop
+                            low confidence -> manual queue, stop
+                            no hooks -> noted, pipeline continues
    -> contacts/discover.py  title targeting + pattern inference
+                            low confidence stops here; zero hooks does not
                             a confirmed email format on the target skips the
                             provider pattern lookup entirely
    -> contacts/verify.py    provider verification, drops below threshold
    -> drafts/generate.py    artifact + template -> review/drafts/<slug>.{json,txt}
+                            needs a verified contact and a human paragraph;
+                            records grounding_status, blocks on neither
    -> review                human approves or rejects (dashboard, or review/drafts)
    -> a human sends         the approved draft opens as a prefilled Gmail compose
                             URL; the person clicks send, then marks it sent
@@ -82,8 +94,8 @@ approved. Nothing transmits mail without a person clicking send.
 
 **Drafting spends no model tokens.** `compose_firm_paragraph` in
 `drafts/generate.py` is the only LLM call site and it is deliberately unwired
-(see the `del anthropic_client` line); firm paragraphs are composed
-deterministically from sourced hooks. Cost control in this system means Hunter
+(see the `del anthropic_client` line); firm paragraphs are written by a human,
+never composed. Cost control in this system means Hunter
 credits and crawl budget, not model spend.
 
 ---

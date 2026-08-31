@@ -444,13 +444,11 @@ def validate_email_body(
         facts,
         firm_name=str(artifact.get("firm") or ""),
     )
+    # `ok` now covers style and an empty paragraph only. Whether the paragraph
+    # traces to a stored hook is carried on report.grounding_status and shown to
+    # the reviewer; it does not block a human-authored paragraph.
     if not report.ok:
         violations.append(report.describe())
-    elif not any(s.source_url for s in report.sentences):
-        violations.append(
-            "firm_specific_paragraph contains no claim traceable to a "
-            "firm_claim_source"
-        )
 
     verbatim_run = find_verbatim_hook_run(paragraph, usable_hooks)
     if verbatim_run:
@@ -527,8 +525,14 @@ def validate_relationship_email_body(
         )
 
 
-def validator_results(status: str) -> dict[str, Any]:
-    """Structured pass detail written only after every applicable check succeeds."""
+def validator_results(status: str, *, grounding_status: str | None = None) -> dict[str, Any]:
+    """Structured pass detail written only after every applicable check succeeds.
+
+    `status` stays "pass" for every stored draft: save_validated_draft refuses
+    anything else. Grounding is not a check here, because it no longer gates;
+    it travels as its own label so the reviewer sees it without it reading as a
+    passed validator.
+    """
     common_checks = [
         "no_em_or_en_dash",
         "blk_facts_exact_match",
@@ -539,15 +543,20 @@ def validator_results(status: str) -> dict[str, Any]:
         "owner_lane_match",
     ]
     specific = (
-        ["firm_claims_trace_to_research_hooks", "no_verbatim_hook_copy"]
+        ["human_authored_firm_paragraph", "no_verbatim_hook_copy"]
         if status == COLD_PROSPECT
         else ["relationship_claims_trace_to_targets_csv", "crm_source_internal_only"]
     )
-    return {"status": "pass", "checks": common_checks + specific}
+    results: dict[str, Any] = {"status": "pass", "checks": common_checks + specific}
+    if grounding_status is not None:
+        results["grounding_status"] = grounding_status
+    return results
 
 
 # ── Manual queue ──────────────────────────────────────────────────────────────
 
+# Draft generation no longer queues a firm for want of research. This helper is
+# retained as the manual-queue writer for the research stage's CSV contract.
 def _queue_manual(artifact: dict[str, Any], reason: str, *, review_dir: Path | None = None) -> Path:
     path = (review_dir / "manual_queue.csv") if review_dir else MANUAL_QUEUE_CSV
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -670,7 +679,8 @@ def generate_draft(
         firm_specific_paragraph: human-authored cold-prospect paragraph.
             Automated composition remains unwired in this goal run.
         supporting_hook_ids: server-derived IDs for the stored hooks selected
-            by the writer. ``None`` selects all hooks for internal/CLI callers.
+            by the writer. ``None`` selects all hooks for internal/CLI callers;
+            an empty list means the writer selected none, which is allowed.
         anthropic_client: retained for API compatibility; never called here.
         out_dir: override review/drafts/, for tests.
         review_dir: override review/, for manual-queue routing in tests.
@@ -679,11 +689,12 @@ def generate_draft(
         The full draft record that was written to review/drafts/<slug>.json.
 
     Raises:
-        NoUsableHooksError: a cold target has no sourced alignment hook.
-            The firm is queued in manual_queue.csv; no draft is written.
-        DraftGenerationError: any C5 validator fails.
+        DraftGenerationError: any C5 validator fails. A cold target with no
+            sourced alignment hook is not a failure: the draft is produced and
+            recorded with grounding_status "no_research_available".
     """
     del anthropic_client  # compose_firm_paragraph intentionally remains unwired.
+    grounding_status: str | None = None
     facts = facts if facts is not None else load_blk_facts()
     status = route_target(target, slug=firm_slug(str(target.get("firm") or "")),
                           review_dir=review_dir) if target is not None else COLD_PROSPECT
@@ -699,29 +710,22 @@ def generate_draft(
         owner = normalize_owner(target.get("owner") if target is not None else contact.owner)
         if normalize_owner(contact.owner) != owner:
             raise DraftGenerationError("Contact owner does not match target owner.")
+        # Research is optional. A firm with no citable public footprint is a
+        # normal case, so this count is recorded rather than enforced; the
+        # research stage still routes such artifacts to the manual queue.
         stored_usable_hooks = [
             hook for hook in artifact.get("alignment_hooks", [])
             if firm_claim_source_of(hook)
         ]
-        if not stored_usable_hooks:
-            path = _queue_manual(
-                artifact,
-                "no alignment_hooks carry a firm_claim_source; no firm-specific "
-                "claim can be made (rule 1)",
-                review_dir=review_dir,
-            )
-            raise NoUsableHooksError(
-                f"{artifact.get('firm', '(unknown firm)')} has zero usable hooks. "
-                f"No draft was generated; queued in {path}.",
-                queue_path=path,
-            )
         try:
             usable_hooks, selected_hook_ids = resolve_selected_hooks(
                 artifact, supporting_hook_ids
             )
         except ResearchHookSelectionError as exc:
             raise DraftGenerationError(str(exc)) from exc
-        if firm_specific_paragraph is None:
+        # One of the two hard requirements for a cold draft, alongside a
+        # verified contact. Whitespace does not count as a paragraph.
+        if firm_specific_paragraph is None or not firm_specific_paragraph.strip():
             raise DraftGenerationError(
                 "A human-authored firm_specific_paragraph is required. "
                 "Automated composition is out of scope for this goal run."
@@ -755,6 +759,10 @@ def generate_draft(
         fields["firm_paragraph_provenance"] = {
             "internal_only": True,
             "supporting_hook_ids": selected_hook_ids,
+            "hook_count": len(stored_usable_hooks),
+            "hooks_used": list(selected_hook_ids),
+            "grounding_status": provenance_report.grounding_status,
+            "advisories": list(provenance_report.advisories),
             "sentence_mappings": [
                 {
                     "sentence": evidence.sentence,
@@ -764,6 +772,7 @@ def generate_draft(
                 for evidence in provenance_report.sentences
             ],
         }
+        grounding_status = provenance_report.grounding_status
     else:
         if target is None:
             raise DraftGenerationError("A warm or recovery draft requires a target row.")
@@ -803,7 +812,7 @@ def generate_draft(
     record = {
         **payload,
         "evidence_block": evidence_block,
-        "validator_results": validator_results(status),
+        "validator_results": validator_results(status, grounding_status=grounding_status),
         "fields": fields,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }

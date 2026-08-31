@@ -587,6 +587,59 @@ def test_firm_library_ui_and_cold_only_conference_copy_are_present() -> None:
     assert phrase not in recovery
 
 
+def test_the_client_no_longer_gates_generation_on_a_hook_selection() -> None:
+    """A client-only relaxation would leave the server 4xx firing, and the
+    reverse leaves dead friction in the modal. Both layers must agree."""
+    javascript = (PROJECT_ROOT / "public" / "app.js").read_text(encoding="utf-8")
+
+    assert "Select at least one sourced research hook" not in javascript
+    assert "Select at least one stored research hook" not in javascript
+    assert "No source selected" not in javascript
+    # The one client-side hard requirement that stays.
+    assert "Write the firm-specific paragraph before generating" in javascript
+    # Grounding is surfaced, not enforced.
+    assert "groundingPill" in javascript
+    assert "not grounded in a stored source" in javascript
+    # No confirmation step was added in place of the removed gate: an
+    # ungrounded paragraph must still generate on the first click.
+    submit_handler = javascript.split(
+        '$("#draft-form").addEventListener("submit"', 1,
+    )[1].split("\n  });", 1)[0]
+    assert "confirm(" not in submit_handler
+    assert "showModal(" not in submit_handler
+
+
+def test_the_dashboard_path_never_turns_an_omitted_selection_into_all_hooks() -> None:
+    """None and [] fail in opposite directions and are one typo apart.
+
+    generate_draft reads None as "every sourced hook" for the CLI. On the
+    dashboard an omitted argument must collapse to the empty selection, or a
+    silent bug would attach evidence the writer never picked.
+    """
+    import inspect
+
+    from dashboard import services
+
+    for func in (services._generate_record, services.generate_owner_draft):
+        source = inspect.getsource(func)
+        assert "supporting_hook_ids = supporting_hook_ids or []" in source, (
+            f"{func.__name__} can pass None through to generate_draft"
+        )
+
+    # DraftRequest is the only producer of this value on the API path, and it
+    # cannot emit None.
+    assert DraftRequest(target_id="t").supporting_hook_ids == []
+
+
+def test_an_empty_hook_selection_is_a_valid_draft_request() -> None:
+    request = DraftRequest(
+        target_id="target-1",
+        supporting_hook_ids=[],
+        firm_specific_paragraph="Sentence one. Sentence two.",
+    )
+    assert request.supporting_hook_ids == []
+
+
 def test_research_hook_ids_are_stable_api_decorations_not_schema_mutations() -> None:
     artifact = {
         "firm": "Citadel", "firm_slug": "citadel",

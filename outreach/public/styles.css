@@ -605,3 +605,11 @@ td input[type=checkbox], th input[type=checkbox] { width: 14px; min-height: auto
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Grounding is informational, not a verdict: muted by default, and the
+   ungrounded states read as status rather than as a failed check. */
+.pill.grounding { margin-top: 4px; color: var(--muted) !important; background: var(--wash-deep); }
+.pill.grounding.grounded { color: var(--green) !important; background: var(--green-bg); }
+.draft-detail-pills { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.grounding-notes { margin: 0 0 14px; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.grounding-notes li { margin-bottom: 5px; }
